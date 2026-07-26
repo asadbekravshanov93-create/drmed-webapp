@@ -231,7 +231,7 @@
               </div>
             </div>
             <div class="rx-meta">
-              <div class="rx-qr-code" id="paper_qr_code"></div>
+              <div class="rx-qr-code" id="paper_qr_code" title="PDF formatida yuklab olish / ko'rish"></div>
               <div class="rx-id-text">
                 <span>RETSEPT №:</span>
                 <strong id="paper_rx_id">RX-2026-00891</strong>
@@ -295,8 +295,10 @@
                 </div>
               </div>
 
-              <div class="rx-official-stamp">
-                <div class="stamp-inner">
+              <!-- MUHR JOYI (2-rasmdagi o'ringa moslangan) -->
+              <div class="rx-official-stamp" id="paper_stamp_container">
+                <img id="paper_stamp_img" src="" alt="Muhr" style="display:none; width:100%; height:100%; object-fit:contain;">
+                <div class="stamp-inner" id="paper_stamp_default">
                   <span>TIBBIYOT MARKAZI</span>
                   <strong>★ DR.MED ★</strong>
                   <span>TOSHKENT SH.</span>
@@ -368,6 +370,14 @@
         <div class="form-group">
           <label for="set_clinic_phone">Telefon</label>
           <input type="text" id="set_clinic_phone" value="+998 (71) 200-00-11">
+        </div>
+
+        <!-- SHIFOKOR VA KLINIKA MUHRI YUKLASH BO'LIMI -->
+        <div class="card-title-sm" style="margin-top:15px;">Stamp / MUHR SOZLAMASI</div>
+        <div class="form-group">
+          <label for="set_stamp_file">Shifokor Muhri Rasmi (PNG/JPG)</label>
+          <input type="file" id="set_stamp_file" accept="image/*" onchange="uploadStampImage(event)">
+          <small class="help-text" style="display:block; margin-top:4px; color:#666;">Yuklangan muhr retsept blankasining o'ng pastki burchagiga joylashadi.</small>
         </div>
       </div>
       <div class="modal-footer">
