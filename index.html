@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DR.MED RETSEPT FORMASI</title>
+  <title>DR.MED PRO SYSTEM</title>
   
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -14,83 +14,101 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: var(--tg-theme-bg-color, #f8fafc);
-      color: var(--tg-theme-text-color, #0f172a);
-    }
-  </style>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="pb-10">
+
+<body class="bg-slate-50 text-slate-800 pb-20">
 
   <div class="max-w-xl mx-auto p-4 space-y-6">
-    
-    <!-- Header -->
-    <div class="text-center space-y-1 mt-2">
-      <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-600 mb-2">
-        <i data-lucide="file-text" class="w-6 h-6"></i>
+
+    <!-- Header / Doctor Profile Card -->
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xl font-bold">
+          <i data-lucide="user-check"></i>
+        </div>
+        <div>
+          <h2 id="docName" class="font-bold text-slate-900 leading-tight"> Asrorov Asadbek</h2>
+          <p id="docSpec" class="text-xs text-blue-600 font-medium">Shifokor-Terapevt</p>
+          <p class="text-[10px] text-slate-400">ID: <span id="docId">012345</span></p>
+        </div>
       </div>
-      <h1 class="text-2xl font-bold text-slate-800">DR.MED</h1>
-      <p class="text-sm text-slate-500">Raqamli retsept yaratish shakli</p>
+      <div class="text-right">
+        <span class="inline-block w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
+        <p class="text-[10px] text-emerald-600 font-medium">Tizim faol</p>
+      </div>
     </div>
 
-    <form id="recipeForm" class="space-y-6">
-      
-      <!-- Bemor ma'lumotlari -->
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 space-y-4">
-        <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-          <i data-lucide="user" class="w-4 h-4"></i> Bemor ma'lumotlari
-        </h2>
-        
+    <!-- Main Form -->
+    <form id="recipeForm" class="space-y-5">
+
+      <!-- Step 1: Bemor ma'lumotlari -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-4">
+        <div class="flex items-center justify-between border-b pb-2 border-slate-100">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+            <i data-lucide="user" class="w-4 h-4 text-blue-600"></i> Bemor ma'lumotlari
+          </h3>
+          <span class="text-xs text-slate-400">1/3-qadam</span>
+        </div>
+
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">F.I.O.</label>
-          <input type="text" id="patientName" required placeholder="Masalan: Aliyev Vali" 
-            class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">F.I.O. (To'liq)</label>
+          <input type="text" id="patientName" required placeholder="Aliyev Vali Toshmatovich"
+            class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Yoshi</label>
-            <input type="number" id="patientAge" required placeholder="25" 
-              class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Yoshi</label>
+            <input type="number" id="patientAge" required placeholder="28"
+              class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
           </div>
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Tashxis</label>
-            <input type="text" id="diagnosis" required placeholder="O'TK" 
-              class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Jinsi</label>
+            <select id="patientGender" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm bg-white">
+              <option value="Erkak">Erkak</option>
+              <option value="Ayol">Ayol</option>
+            </select>
           </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Tashxis / Klinik xulosa</label>
+          <input type="text" id="diagnosis" required placeholder="O'tkir retsidivlanuvchi bronxit"
+            class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
         </div>
       </div>
 
-      <!-- Dori-darmonlar ro'yxati -->
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 space-y-4">
-        <div class="flex items-center justify-between">
-          <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-            <i data-lucide="pill" class="w-4 h-4"></i> Tayinlangan dorilar
-          </h2>
-          <button type="button" id="addMedBtn" class="text-xs font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1">
-            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Dori qo'shish
+      <!-- Step 2: Dori-darmonlar -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-4">
+        <div class="flex items-center justify-between border-b pb-2 border-slate-100">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+            <i data-lucide="pill" class="w-4 h-4 text-blue-600"></i> Tayinlangan dorilar
+          </h3>
+          <button type="button" id="addMedBtn" class="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 bg-blue-50 px-2.5 py-1 rounded-lg">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Qo'shish
           </button>
         </div>
 
-        <div id="medicationsList" class="space-y-4">
-          <!-- Dori kartochkasi shu yerga dinamik qo'shiladi -->
+        <div id="medicationsList" class="space-y-3">
+          <!-- Dynamic Medication Items -->
         </div>
       </div>
 
-      <!-- Qo'shimcha izoh -->
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 space-y-2">
-        <label class="block text-sm font-medium text-slate-700">Shifokor tavsiyasi / Izoh</label>
-        <textarea id="notes" rows="3" placeholder="Ko'proq suyuqlik ichish, parhez..." 
-          class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm resize-none"></textarea>
+      <!-- Step 3: Tavsiyalar -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-3">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2 border-b pb-2 border-slate-100">
+          <i data-lucide="clipboard-list" class="w-4 h-4 text-blue-600"></i> Shifokor tavsiyasi
+        </h3>
+        <textarea id="notes" rows="3" placeholder="Iliq suyuqlik ko'proq ichilsin, 5 kun parhez saqlansin..."
+          class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm resize-none"></textarea>
       </div>
 
-      <!-- Yuborish tugmasi -->
-      <button type="submit" id="submitBtn" 
-        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-xl shadow-lg shadow-blue-500/30 transition duration-200 flex items-center justify-center gap-2 text-sm">
-        <i data-lucide="send" class="w-4 h-4"></i> Retseptni yuborish
+      <!-- Submit Button -->
+      <button type="submit" id="submitBtn"
+        class="w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-semibold py-3.5 px-4 rounded-xl shadow-lg shadow-blue-500/25 transition duration-150 flex items-center justify-center gap-2 text-sm">
+        <i data-lucide="send" class="w-4 h-4"></i> Retseptni tasdiqlash va yuborish
       </button>
 
     </form>
@@ -98,104 +116,30 @@
 
   <!-- Template for Medication Item -->
   <template id="medTemplate">
-    <div class="med-item p-3 border border-slate-100 rounded-lg bg-slate-50/50 space-y-3 relative group">
-      <button type="button" class="remove-med-btn absolute top-2 right-2 text-slate-400 hover:text-red-500 transition-colors">
-        <i data-lucide="x" class="w-4 h-4"></i>
+    <div class="med-item p-3 border border-slate-200/80 rounded-xl bg-slate-50/50 space-y-2.5 relative group">
+      <button type="button" class="remove-med-btn absolute top-2 right-2 text-slate-400 hover:text-red-500 p-1">
+        <i data-lucide="trash-2" class="w-4 h-4"></i>
       </button>
 
       <div>
-        <label class="block text-xs font-medium text-slate-600 mb-1">Dori nomi va dozasi</label>
-        <input type="text" class="med-name w-full px-2.5 py-1.5 border border-slate-200 rounded-md text-sm bg-white focus:outline-none focus:border-blue-500" required placeholder="Masalan: Paratsetamol 500mg">
+        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Dori nomi va dozasi</label>
+        <input type="text" class="med-name w-full px-3 py-1.5 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:border-blue-500" required placeholder="Masalan: Amoksiklav 1000mg">
       </div>
 
       <div class="grid grid-cols-2 gap-2">
         <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Qabul qilish tartibi</label>
-          <input type="text" class="med-dosage w-full px-2.5 py-1.5 border border-slate-200 rounded-md text-sm bg-white focus:outline-none focus:border-blue-500" required placeholder="1 ta tabletkadan 3 mahal">
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Qabul qilish tartibi</label>
+          <input type="text" class="med-dosage w-full px-3 py-1.5 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:border-blue-500" required placeholder="1 tab x 2 mahal">
         </div>
         <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Davomiyligi (kun)</label>
-          <input type="text" class="med-duration w-full px-2.5 py-1.5 border border-slate-200 rounded-md text-sm bg-white focus:outline-none focus:border-blue-500" required placeholder="5 kun">
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Muddati (kun)</label>
+          <input type="text" class="med-duration w-full px-3 py-1.5 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:border-blue-500" required placeholder="7 kun">
         </div>
       </div>
     </div>
   </template>
 
-  <script>
-    // Initialize Lucide icons
-    lucide.createIcons();
-
-    // Initialize Telegram WebApp
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.ready();
-      tg.expand();
-    }
-
-    const medicationsList = document.getElementById('medicationsList');
-    const medTemplate = document.getElementById('medTemplate');
-    const addMedBtn = document.getElementById('addMedBtn');
-    const recipeForm = document.getElementById('recipeForm');
-
-    // Dori kartochkasini qo'shish funksiyasi
-    function addMedicationField() {
-      const clone = medTemplate.content.cloneNode(true);
-      const medItem = clone.querySelector('.med-item');
-      
-      // O'chirish tugmasi hodisasi
-      const removeBtn = clone.querySelector('.remove-med-btn');
-      removeBtn.addEventListener('click', () => {
-        if (medicationsList.children.length > 1) {
-          medItem.remove();
-        } else {
-          alert("Kamida bitta dori kiritilishi kerak!");
-        }
-      });
-
-      medicationsList.appendChild(clone);
-      lucide.createIcons();
-    }
-
-    // Boshlanishiga bitta dori maydonini yaratamiz
-    addMedicationField();
-
-    // Dori qo'shish tugmasi bosilganda
-    addMedBtn.addEventListener('click', addMedicationField);
-
-    // Forma yuborilganda
-    recipeForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-
-      // Barcha dorilarni yig'ib olish
-      const medItems = document.querySelectorAll('.med-item');
-      const medications = [];
-
-      medItems.forEach(item => {
-        medications.push({
-          name: item.querySelector('.med-name').value,
-          dosage: item.querySelector('.med-dosage').value,
-          duration: item.querySelector('.med-duration').value
-        });
-      });
-
-      // Ma'lumotlar obyektini shakllantirish
-      const formData = {
-        patientName: document.getElementById('patientName').value,
-        patientAge: document.getElementById('patientAge').value,
-        diagnosis: document.getElementById('diagnosis').value,
-        medications: medications,
-        notes: document.getElementById('notes').value
-      };
-
-      // Telegram Botga javobni yuborish
-      if (tg && tg.sendData) {
-        tg.sendData(JSON.stringify(formData));
-        tg.close();
-      } else {
-        console.log('Yuborilgan ma\'lumotlar:', formData);
-        alert('Ma\'lumotlar konsolga chiqarildi (Telegram WebApp muhitidan tashqarida).');
-      }
-    });
-  </script>
+  <!-- External JavaScript file -->
+  <script src="app.js"></script>
 </body>
 </html>
