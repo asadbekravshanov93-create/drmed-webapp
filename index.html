@@ -2,144 +2,438 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DR.MED PRO SYSTEM</title>
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>DR.MED – Pro Retsept Tizimi</title>
+
+  <!-- Google Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- HTML2PDF & QRCode Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
-  <!-- Custom CSS -->
   <link rel="stylesheet" href="style.css">
 </head>
+<body>
 
-<body class="bg-slate-50 text-slate-800 pb-20">
-
-  <div class="max-w-xl mx-auto p-4 space-y-6">
-
-    <!-- Header / Doctor Profile Card -->
-    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xl font-bold">
-          <i data-lucide="user-check"></i>
-        </div>
-        <div>
-          <h2 id="docName" class="font-bold text-slate-900 leading-tight"> Asrorov Asadbek</h2>
-          <p id="docSpec" class="text-xs text-blue-600 font-medium">Shifokor-Terapevt</p>
-          <p class="text-[10px] text-slate-400">ID: <span id="docId">012345</span></p>
-        </div>
-      </div>
-      <div class="text-right">
-        <span class="inline-block w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
-        <p class="text-[10px] text-emerald-600 font-medium">Tizim faol</p>
+  <!-- TOP HEADER -->
+  <header class="app-header">
+    <div class="header-brand">
+      <div class="brand-logo">+</div>
+      <div class="brand-info">
+        <h1>DR.MED PRO</h1>
+        <p>Elektron Retsept Tizimi</p>
       </div>
     </div>
+    <div class="header-actions">
+      <button class="icon-btn" onclick="openModal('historyModal')" title="Tarix">📜</button>
+      <button class="icon-btn" onclick="openModal('settingsModal')" title="Sozlamalar">⚙️</button>
+      <button class="icon-btn" onclick="openModal('menuModal')" title="Menyu">☰</button>
+    </div>
+  </header>
 
-    <!-- Main Form -->
-    <form id="recipeForm" class="space-y-5">
+  <!-- STEP NAVIGATION TABS -->
+  <nav class="wizard-nav">
+    <button class="wizard-tab active" id="tab1" onclick="switchStep(1)">
+      <span class="tab-num">1</span>
+      <span class="tab-label">Bemor</span>
+    </button>
+    <button class="wizard-tab" id="tab2" onclick="switchStep(2)">
+      <span class="tab-num">2</span>
+      <span class="tab-label">Retsept</span>
+    </button>
+    <button class="wizard-tab" id="tab3" onclick="switchStep(3)">
+      <span class="tab-num">3</span>
+      <span class="tab-label">Ko'rish</span>
+    </button>
+  </nav>
 
-      <!-- Step 1: Bemor ma'lumotlari -->
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-        <div class="flex items-center justify-between border-b pb-2 border-slate-100">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-            <i data-lucide="user" class="w-4 h-4 text-blue-600"></i> Bemor ma'lumotlari
-          </h3>
-          <span class="text-xs text-slate-400">1/3-qadam</span>
+  <!-- MAIN APP CONTENT -->
+  <main class="app-main">
+
+    <!-- ================= STEP 1: PATIENT & DIAGNOSIS ================= -->
+    <section class="step-content active" id="step1">
+      
+      <!-- Bemor Profil -->
+      <div class="card">
+        <div class="card-header">
+          <h2>👤 BEMOR MA'LUMOTLARI</h2>
+          <button class="sm-btn" onclick="clearPatientForm()">Tozalash</button>
         </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">F.I.O. (To'liq)</label>
-          <input type="text" id="patientName" required placeholder="Aliyev Vali Toshmatovich"
-            class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Yoshi</label>
-            <input type="number" id="patientAge" required placeholder="28"
-              class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
+        <div class="card-body">
+          <div class="form-group">
+            <label for="p_name">Bemor F.I.Sh. <span class="req">*</span></label>
+            <input type="text" id="p_name" placeholder="Masalan: Xolmirzayev Asadbek" value="Xolmirzayev Asadbek" oninput="liveUpdate()">
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Jinsi</label>
-            <select id="patientGender" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm bg-white">
-              <option value="Erkak">Erkak</option>
-              <option value="Ayol">Ayol</option>
-            </select>
-          </div>
-        </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Tashxis / Klinik xulosa</label>
-          <input type="text" id="diagnosis" required placeholder="O'tkir retsidivlanuvchi bronxit"
-            class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="p_birth">Tug'ilgan sanasi</label>
+              <input type="date" id="p_birth" value="2004-05-12" onchange="calculateAge(); liveUpdate();">
+            </div>
+            <div class="form-group col-6">
+              <label for="p_age">Yoshi</label>
+              <input type="number" id="p_age" value="20" placeholder="Yosh" oninput="liveUpdate()">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Jinsi</label>
+            <div class="segmented-control">
+              <button class="segment-btn active" id="gender_m" onclick="selectGender('Erkak')">Erkak</button>
+              <button class="segment-btn" id="gender_f" onclick="selectGender('Ayol')">Ayol</button>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="p_phone">Telefon raqami</label>
+              <input type="tel" id="p_phone" placeholder="+998 90 123 45 67" value="+998 90 123 45 67">
+            </div>
+            <div class="form-group col-6">
+              <label for="p_card">Ambulator karta №</label>
+              <input type="text" id="p_card" value="A-98745" oninput="liveUpdate()">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="p_address">Yashash manzili</label>
+            <input type="text" id="p_address" value="Toshkent sh., Chilonzor tumani" oninput="liveUpdate()">
+          </div>
         </div>
       </div>
 
-      <!-- Step 2: Dori-darmonlar -->
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-        <div class="flex items-center justify-between border-b pb-2 border-slate-100">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-            <i data-lucide="pill" class="w-4 h-4 text-blue-600"></i> Tayinlangan dorilar
-          </h3>
-          <button type="button" id="addMedBtn" class="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 bg-blue-50 px-2.5 py-1 rounded-lg">
-            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Qo'shish
+      <!-- Vital Ko'rsatkichlar -->
+      <div class="card">
+        <div class="card-header">
+          <h2>🩺 VITAL KO'RSATKICHLAR & DIAGNOZ</h2>
+        </div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group col-4">
+              <label for="v_bp">Qon bosimi</label>
+              <input type="text" id="v_bp" placeholder="120/80" value="120/80">
+            </div>
+            <div class="form-group col-4">
+              <label for="v_temp">Harorat (°C)</label>
+              <input type="text" id="v_temp" placeholder="36.6" value="37.8">
+            </div>
+            <div class="form-group col-4">
+              <label for="v_weight">Vazni (kg)</label>
+              <input type="number" id="v_weight" placeholder="70" value="68">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-4">
+              <label for="p_icd">ICD-10 Kodi</label>
+              <div class="input-with-btn">
+                <input type="text" id="p_icd" value="J20.9" oninput="liveUpdate()">
+                <button type="button" class="btn-input-act" onclick="openModal('icdModal')">🔍</button>
+              </div>
+            </div>
+            <div class="form-group col-8">
+              <label for="p_diag">Klinik Tashxis <span class="req">*</span></label>
+              <input type="text" id="p_diag" value="O'tkir bronxit, aniqlanmagan qo'zg'atuvchi bilan" oninput="liveUpdate()">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="p_allergy">Allergik holatlar (Allergiya)</label>
+            <input type="text" id="p_allergy" placeholder="Masalan: Penitsillin, Pollinoz..." value="Yo'q">
+          </div>
+
+          <div class="form-group">
+            <label for="p_note">Shifokor izohi / Qo'shimcha</label>
+            <textarea id="p_note" rows="2" placeholder="Shikoyat va anamnez izohlari...">Harorat ko'tarilishi, quruq yo'tal, umumiy holsizlik.</textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-footer">
+        <button class="btn btn-primary btn-block btn-lg" onclick="switchStep(2)">
+          Keyingisi: Retsept Yozish ➔
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= STEP 2: PRESCRIPTION BUILDER ================= -->
+    <section class="step-content" id="step2">
+      
+      <div class="section-title">
+        <h2>💊 RETSEPT TARKIBI (Rp.)</h2>
+        <button class="sm-btn btn-add" onclick="addNewDrugCard()">+ Dori Qo'shish</button>
+      </div>
+
+      <!-- Quick Template Selector -->
+      <div class="quick-templates">
+        <span>Tezkor Shablonlar:</span>
+        <button class="chip" onclick="applyPreset('bronchitis')">🫁 Bronxit</button>
+        <button class="chip" onclick="applyPreset('gripp')">🤒 O'RVI / Gripp</button>
+        <button class="chip" onclick="applyPreset('gastritis')">🫄 Gastrit</button>
+        <button class="chip" onclick="clearAllDrugs()">🗑️ Tozalash</button>
+      </div>
+
+      <!-- DRUGS CONTAINER -->
+      <div id="drugsListContainer"></div>
+
+      <div class="add-more-box" onclick="addNewDrugCard()">
+        <span class="add-icon">+</span>
+        <span>Yangi dori vositasi qo'shish</span>
+      </div>
+
+      <div class="step-footer form-row">
+        <div class="col-4">
+          <button class="btn btn-secondary btn-block" onclick="switchStep(1)">← Orqaga</button>
+        </div>
+        <div class="col-8">
+          <button class="btn btn-primary btn-block" onclick="switchStep(3)">👁️ Ko'rish va Tasdiqlash</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= STEP 3: PREVIEW, SIGN & EXPORT ================= -->
+    <section class="step-content" id="step3">
+      
+      <!-- ACTION CONTROL BAR -->
+      <div class="action-toolbar">
+        <button class="act-btn btn-save" onclick="savePrescriptionToHistory()">
+          <i>💾</i> Saqlash
+        </button>
+        <button class="act-btn btn-pdf" onclick="exportToPDF()">
+          <i>📄</i> PDF Yuklash
+        </button>
+        <button class="act-btn btn-print" onclick="printPrescription()">
+          <i>🖨️</i> Chop Etish
+        </button>
+        <button class="act-btn btn-share" onclick="shareTelegram()">
+          <i>✈️</i> Telegram
+        </button>
+      </div>
+
+      <!-- BLANK PRINTABLE AREA -->
+      <div class="paper-container">
+        <div class="rx-paper" id="printablePaper">
+          
+          <!-- BLANK HEADER -->
+          <div class="rx-header">
+            <div class="rx-clinic-brand">
+              <div class="rx-medical-cross">✚</div>
+              <div class="rx-clinic-details">
+                <h3 id="paper_clinic_name">DR.MED TIBBIYOT MARKAZI</h3>
+                <p id="paper_clinic_address">Toshkent sh., Chilonzor tumani, Bunyodkor shoh ko'chasi 12-uy</p>
+                <p>Tel: <span id="paper_clinic_phone">+998 (71) 200-00-11</span></p>
+              </div>
+            </div>
+            <div class="rx-meta">
+              <div class="rx-qr-code" id="paper_qr_code"></div>
+              <div class="rx-id-text">
+                <span>RETSEPT №:</span>
+                <strong id="paper_rx_id">RX-2026-00891</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="rx-divider"></div>
+
+          <!-- PATIENT & DIAGNOSIS INFO GRID -->
+          <div class="rx-info-grid">
+            <div class="rx-info-col">
+              <div class="rx-field"><span>Bemor F.I.Sh.:</span> <strong id="paper_p_name"></strong></div>
+              <div class="rx-field"><span>Tug'ilgan sanasi:</span> <strong id="paper_p_birth"></strong> (<span id="paper_p_age"></span> yosh)</div>
+              <div class="rx-field"><span>Jinsi / Manzili:</span> <strong id="paper_p_gender"></strong>, <span id="paper_p_address"></span></div>
+              <div class="rx-field"><span>Ambulator karta №:</span> <strong id="paper_p_card"></strong></div>
+            </div>
+            <div class="rx-info-col">
+              <div class="rx-field"><span>Sana:</span> <strong id="paper_rx_date"></strong></div>
+              <div class="rx-field"><span>ICD-10 kodi:</span> <strong id="paper_p_icd"></strong></div>
+              <div class="rx-field"><span>Klinik tashxis:</span> <strong id="paper_p_diag"></strong></div>
+              <div class="rx-field"><span>Allergiya:</span> <strong id="paper_p_allergy"></strong></div>
+            </div>
+          </div>
+
+          <!-- DOCTOR INFO -->
+          <div class="rx-doctor-banner">
+            <div><span>Davolovchi shifokor:</span> <strong id="paper_doc_name">Dr. Asrorov A.A.</strong></div>
+            <div><span>Mutaxassislik / ID:</span> <strong id="paper_doc_spec">Terapevt</strong> (№ <span id="paper_doc_id">012345</span>)</div>
+          </div>
+
+          <div class="rx-title-banner">
+            <span>R E T S E P T</span>
+            <small>(Forma № 108/u)</small>
+          </div>
+
+          <!-- RX DRUGS LIST -->
+          <div class="rx-drugs-body" id="paper_drugs_list">
+            <!-- Dynamic drugs inserted here -->
+          </div>
+
+          <!-- SPECIAL INSTRUCTIONS -->
+          <div class="rx-instruction-box">
+            <strong>S. (Qo'llash tartibi va maxsus ko'rsatmalar):</strong>
+            <p id="paper_p_note">Dori vositalarini tayinlangan vaqtda, ko'rsatilgan dozalarda qabul qiling.</p>
+          </div>
+
+          <!-- FOOTER / SIGNATURE & STAMP -->
+          <div class="rx-footer">
+            <div class="rx-validity">
+              <p>Retsept amal qilish muddati: <b>10 kun</b></p>
+              <p class="small-text">Ushbu hujjat elektron raqamli identifikatorga ega.</p>
+            </div>
+
+            <div class="rx-stamps-wrapper">
+              <div class="rx-sig-block">
+                <span>Shifokor imzosi:</span>
+                <div class="sig-img-holder" id="paper_signature_holder">
+                  <span class="sig-placeholder" id="sig_text_fallback">Asrorov A.A.</span>
+                  <img id="paper_sig_img" src="" alt="Signature" style="display:none;">
+                </div>
+              </div>
+
+              <div class="rx-official-stamp">
+                <div class="stamp-inner">
+                  <span>TIBBIYOT MARKAZI</span>
+                  <strong>★ DR.MED ★</strong>
+                  <span>TOSHKENT SH.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- SIGNATURE CANVAS CARD -->
+      <div class="card signature-card">
+        <div class="card-header">
+          <h2>✍️ SHIFOKOR RAQAMLI IMZOSI</h2>
+          <button class="sm-btn" onclick="clearSignatureCanvas()">Tozalash</button>
+        </div>
+        <div class="card-body">
+          <p class="help-text">Ekranga barmog'ingiz yoki sichqoncha bilan imzo cheking:</p>
+          <div class="canvas-wrapper">
+            <canvas id="signatureCanvas" width="400" height="150"></canvas>
+          </div>
+          <button class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="applySignatureToPaper()">
+            Imzoni Blankaga Tushirish
           </button>
         </div>
+      </div>
 
-        <div id="medicationsList" class="space-y-3">
-          <!-- Dynamic Medication Items -->
+      <div class="step-footer">
+        <button class="btn btn-secondary btn-block" onclick="switchStep(2)">← Tahrirlashga Qaytish</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= MODAL 1: SETTINGS (DOCTOR & CLINIC) ================= -->
+  <div class="modal-backdrop" id="settingsModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>⚙️ Shifokor va Klinika Sozlamalari</h3>
+        <button class="close-btn" onclick="closeModal('settingsModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="card-title-sm">👨‍⚕️ SHIFOKOR PROFILI</div>
+        <div class="form-group">
+          <label for="set_doc_name">Shifokor F.I.Sh.</label>
+          <input type="text" id="set_doc_name" value="Asrorov Asadbek Asliddinovich">
+        </div>
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label for="set_doc_spec">Mutaxassisligi</label>
+            <input type="text" id="set_doc_spec" value="Shifokor-Terapevt">
+          </div>
+          <div class="form-group col-6">
+            <label for="set_doc_id">Litsenziya / ID №</label>
+            <input type="text" id="set_doc_id" value="012345">
+          </div>
+        </div>
+
+        <div class="card-title-sm" style="margin-top:15px;">🏥 KLINIKA REKVIZITLARI</div>
+        <div class="form-group">
+          <label for="set_clinic_name">Klinika Nomi</label>
+          <input type="text" id="set_clinic_name" value="DR.MED Tibbiyot Markazi">
+        </div>
+        <div class="form-group">
+          <label for="set_clinic_address">Manzil</label>
+          <input type="text" id="set_clinic_address" value="Toshkent sh., Chilonzor tumani, Bunyodkor ko'chasi 12-uy">
+        </div>
+        <div class="form-group">
+          <label for="set_clinic_phone">Telefon</label>
+          <input type="text" id="set_clinic_phone" value="+998 (71) 200-00-11">
         </div>
       </div>
-
-      <!-- Step 3: Tavsiyalar -->
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-3">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2 border-b pb-2 border-slate-100">
-          <i data-lucide="clipboard-list" class="w-4 h-4 text-blue-600"></i> Shifokor tavsiyasi
-        </h3>
-        <textarea id="notes" rows="3" placeholder="Iliq suyuqlik ko'proq ichilsin, 5 kun parhez saqlansin..."
-          class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm resize-none"></textarea>
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-block" onclick="saveSettings()">Saqlash va Yangilash</button>
       </div>
-
-      <!-- Submit Button -->
-      <button type="submit" id="submitBtn"
-        class="w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-semibold py-3.5 px-4 rounded-xl shadow-lg shadow-blue-500/25 transition duration-150 flex items-center justify-center gap-2 text-sm">
-        <i data-lucide="send" class="w-4 h-4"></i> Retseptni tasdiqlash va yuborish
-      </button>
-
-    </form>
+    </div>
   </div>
 
-  <!-- Template for Medication Item -->
-  <template id="medTemplate">
-    <div class="med-item p-3 border border-slate-200/80 rounded-xl bg-slate-50/50 space-y-2.5 relative group">
-      <button type="button" class="remove-med-btn absolute top-2 right-2 text-slate-400 hover:text-red-500 p-1">
-        <i data-lucide="trash-2" class="w-4 h-4"></i>
-      </button>
-
-      <div>
-        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Dori nomi va dozasi</label>
-        <input type="text" class="med-name w-full px-3 py-1.5 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:border-blue-500" required placeholder="Masalan: Amoksiklav 1000mg">
+  <!-- ================= MODAL 2: HISTORY ================= -->
+  <div class="modal-backdrop" id="historyModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>📜 Saqlangan Retseptlar Tarixi</h3>
+        <button class="close-btn" onclick="closeModal('historyModal')">✕</button>
       </div>
-
-      <div class="grid grid-cols-2 gap-2">
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Qabul qilish tartibi</label>
-          <input type="text" class="med-dosage w-full px-3 py-1.5 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:border-blue-500" required placeholder="1 tab x 2 mahal">
+      <div class="modal-body">
+        <div class="form-group">
+          <input type="text" id="historySearch" placeholder="Bemor ismi bo'yicha izlash..." oninput="filterHistory()">
         </div>
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Muddati (kun)</label>
-          <input type="text" class="med-duration w-full px-3 py-1.5 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:border-blue-500" required placeholder="7 kun">
+        <div class="history-list" id="historyListContainer">
+          <!-- Dynamic history items -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger btn-sm" onclick="clearAllHistory()">Tarixni Tozalash</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL 3: ICD-10 SEARCH ================= -->
+  <div class="modal-backdrop" id="icdModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>🔍 ICD-10 Kasalliklar Kodi</h3>
+        <button class="close-btn" onclick="closeModal('icdModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <input type="text" id="icdSearchInput" placeholder="Kasalik nomi yoki kodi..." oninput="searchICD10()">
+        </div>
+        <div class="icd-results-list" id="icdResultsList">
+          <!-- Dynamic ICD search results -->
         </div>
       </div>
     </div>
-  </template>
+  </div>
 
-  <!-- External JavaScript file -->
+  <!-- ================= MODAL 4: MAIN MENU ================= -->
+  <div class="modal-backdrop" id="menuModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>📋 Asosiy Menyu</h3>
+        <button class="close-btn" onclick="closeModal('menuModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <ul class="nav-menu-list">
+          <li onclick="switchStep(1); closeModal('menuModal');">➕ Yangi retsept shakllantirish</li>
+          <li onclick="openModal('historyModal'); closeModal('menuModal');">📜 Retseptlar arxivi</li>
+          <li onclick="openModal('settingsModal'); closeModal('menuModal');">⚙️ Shifokor va Klinika Sozlamalari</li>
+          <li onclick="openModal('icdModal'); closeModal('menuModal');">📚 ICD-10 Ma'lumotnomasi</li>
+          <li onclick="resetAppDefaults(); closeModal('menuModal');">🔄 Tizimni qayta yuklash (Reset)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>
