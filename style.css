@@ -259,8 +259,13 @@ body {
   gap: 8px;
 }
 
+/* USTUN KENG LIKLARI MASALASI TUSHIRILDI VA BOSHINCHA GRID NIZOMI */
+.col-2 { flex: 2; }
+.col-3 { flex: 3; }
 .col-4 { flex: 4; }
+.col-5 { flex: 5; }
 .col-6 { flex: 6; }
+.col-7 { flex: 7; }
 .col-8 { flex: 8; }
 
 .segmented-control {
@@ -630,17 +635,29 @@ body {
   gap: 15px;
 }
 
+/* IMZO BLOCKI TUZATISHI (O'RTAGA TUSHMASLIK MUAMMOSI HAL ETILDI) */
 .rx-sig-block {
-  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   font-size: 8px;
 }
 
+.rx-sig-block span {
+  display: block;
+  margin-bottom: 2px;
+}
+
 .sig-img-holder {
-  min-width: 80px;
-  height: 30px;
+  width: 100px;
+  height: 38px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
+  text-align: center;
+  position: relative;
 }
 
 .sig-placeholder {
@@ -648,11 +665,15 @@ body {
   font-size: 14px;
   color: #002b80;
   text-decoration: underline;
+  display: inline-block;
 }
 
 #paper_sig_img {
-  max-height: 35px;
+  max-width: 100%;
+  max-height: 36px;
   object-fit: contain;
+  display: block;
+  margin: 0 auto;
 }
 
 .rx-official-stamp {
