@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retsept Yozish</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    
+    :root {
+      --bg-color: var(--tg-theme-bg-color, #f4f7f6);
+      --card-bg: var(--tg-theme-secondary-bg-color, #ffffff);
+      --text-color: var(--tg-theme-text-color, #333333);
+      --hint-color: var(--tg-theme-hint-color, #888888);
+      --primary-color: #00a884;
+    }
+
+    body { 
+      background-color: var(--bg-color); 
+      color: var(--text-color); 
+      padding: 16px; 
+      padding-bottom: 80px;
+    }
+    
+    .header { text-align: center; margin-bottom: 20px; }
+    .header h2 { color: var(--primary-color); font-size: 20px; font-weight: 700; }
+    .header p { color: var(--hint-color); font-size: 12px; }
+
+    .section-title { 
+      font-size: 12px; 
+      font-weight: 700; 
+      color: var(--primary-color); 
+      text-transform: uppercase; 
+      margin: 16px 0 8px 0; 
+      letter-spacing: 0.5px; 
+    }
+
+    .card { 
+      background: var(--card-bg); 
+      padding: 16px; 
+      border-radius: 12px; 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04); 
+      margin-bottom: 12px; 
+    }
+
+    .form-group { margin-bottom: 12px; }
+    .form-group:last-child { margin-bottom: 0; }
+    
+    .form-group label { 
+      display: block; 
+      font-size: 12px; 
+      font-weight: 600; 
+      color: var(--text-color); 
+      margin-bottom: 4px; 
+    }
+    
+    .form-group input, .form-group textarea {
+      width: 100%; 
+      padding: 10px 12px; 
+      border: 1px solid #e0e0e0; 
+      border-radius: 8px; 
+      font-size: 14px; 
+      outline: none; 
+      transition: 0.2s;
+      background: var(--card-bg);
+      color: var(--text-color);
+    }
+    
+    .form-group input:focus, .form-group textarea:focus { 
+      border-color: var(--primary-color); 
+    }
+
+    .row { display: flex; gap: 10px; }
+    .col { flex: 1; }
+
+    .medicine-item {
+      position: relative;
+      background: rgba(0, 168, 132, 0.05);
+      border: 1px dashed var(--primary-color);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .btn-add {
+      width: 100%;
+      background: transparent;
+      border: 1px solid var(--primary-color);
+      color: var(--primary-color);
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h2>DR.MED RETSEPT FORMASI</h2>
+    <p>Bemor va tayinlangan dorilar ma'lumotlarini kiriting</p>
+  </div>
+
+  <form id="recipeForm">
+    <div class="section-title">👤 Bemor ma'lumotlari</div>
+    <div class="card">
+      <div class="form-group">
+        <label>F.I.Sh.</label>
+        <input type="text" id="patient_name" placeholder="Asadbek Xolmirzayev" required>
+      </div>
+      
+      <div class="row">
+        <div class="col form-group">
+          <label>Tug'ilgan sanasi</label>
+          <input type="text" id="birth_date" placeholder="12.05.2004">
+        </div>
+        <div class="col form-group">
+          <label>Yoshi</label>
+          <input type="number" id="age" placeholder="20" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Manzili (ixtiyoriy)</label>
+        <input type="text" id="address" placeholder="Toshkent sh., Chilonzor t.">
+      </div>
+    </div>
+
+    <div class="section-title">🩺 Diagnoz / Tashxis</div>
+    <div class="card">
+      <div class="form-group">
+        <label>ICD-10 kodi yoki Tashxis</label>
+        <textarea id="diagnosis" rows="2" placeholder="J20.9 - O'tkir bronxit" required></textarea>
+      </div>
+    </div>
+
+    <div class="section-title">💊 Tayinlangan dorilar (Rp)</div>
+    <div class="card">
+      <div id="medicinesContainer">
+        <div class="medicine-item">
+          <div class="form-group">
+            <input type="text" class="med-name" placeholder="Dori nomi (masalan: Amoxicillin 0.5)" required>
+          </div>
+          <div class="form-group">
+            <input type="text" class="med-dose" placeholder="Qabul qilish tartibi (masalan: 1 tadan 3 mahal)" required>
+          </div>
+        </div>
+      </div>
+
+      <button type="button" class="btn-add" id="addMedBtn">➕ Boshqa dori qo'shish</button>
+    </div>
+  </form>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    tg.ready();
+
+    tg.MainButton.setText("RETSEPTNI YARATISH ➔");
+    tg.MainButton.setTextColor("#FFFFFF");
+    tg.MainButton.setColor("#00a884");
+    tg.MainButton.show();
+
+    const medContainer = document.getElementById('medicinesContainer');
+    const addMedBtn = document.getElementById('addMedBtn');
+    let medCount = 1;
+
+    addMedBtn.addEventListener('click', () => {
+      medCount++;
+      const medDiv = document.createElement('div');
+      medDiv.className = 'medicine-item';
+      medDiv.innerHTML = `
+        <div class="form-group">
+          <input type="text" class="med-name" placeholder="${medCount}-dori nomi" required>
+        </div>
+        <div class="form-group">
+          <input type="text" class="med-dose" placeholder="Qabul qilish tartibi" required>
+        </div>
+      `;
+      medContainer.appendChild(medDiv);
+    });
+
+    tg.MainButton.onClick(function() {
+      const patientName = document.getElementById('patient_name').value.trim();
+      const age = document.getElementById('age').value.trim();
+      const diagnosis = document.getElementById('diagnosis').value.trim();
+
+      if (!patientName || !age || !diagnosis) {
+        tg.showAlert("Iltimos, bemor ismi, yoshi va tashxisini to'liq kiriting!");
+        return;
+      }
+
+      const medNames = document.querySelectorAll('.med-name');
+      const medDoses = document.querySelectorAll('.med-dose');
+      let medicinesTextList = [];
+
+      medNames.forEach((input, index) => {
+        const name = input.value.trim();
+        const dose = medDoses[index].value.trim();
+        if (name) {
+          medicinesTextList.push(`${index + 1}. ${name} — ${dose}`);
+        }
+      });
+
+      if (medicinesTextList.length === 0) {
+        tg.showAlert("Kamida bitta dori kiritishingiz kerak!");
+        return;
+      }
+
+      const data = {
+        patient_name: patientName,
+        birth_date: document.getElementById('birth_date').value.trim() || "-",
+        age: age,
+        address: document.getElementById('address').value.trim() || "-",
+        diagnosis: diagnosis,
+        medicines: medicinesTextList.join("\n")
+      };
+
+      tg.sendData(JSON.stringify(data));
+    });
+  </script>
+</body>
+</html>
