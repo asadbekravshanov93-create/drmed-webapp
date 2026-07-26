@@ -247,6 +247,12 @@ body {
   transition: border 0.2s ease;
 }
 
+.form-group input[type="file"] {
+  padding: 6px;
+  background: #f8fafc;
+  cursor: pointer;
+}
+
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
@@ -259,7 +265,6 @@ body {
   gap: 8px;
 }
 
-/* USTUN KENG LIKLARI MASALASI TUSHIRILDI VA BOSHINCHA GRID NIZOMI */
 .col-2 { flex: 2; }
 .col-3 { flex: 3; }
 .col-4 { flex: 4; }
@@ -463,7 +468,7 @@ body {
   margin-bottom: 15px;
 }
 
-/* RX PRINT BLANKA FORM - FULL WIDTH VA KATTA SHRIFTLAR */
+/* RX PRINT BLANKA FORM */
 .rx-paper {
   background: #ffffff;
   width: 100% !important;
@@ -517,6 +522,15 @@ body {
   display: flex;
   justify-content: flex-end;
   margin-bottom: 4px;
+  width: 64px;
+  height: 64px;
+  margin-left: auto;
+}
+
+.rx-qr-code img,
+.rx-qr-code canvas {
+  width: 64px !important;
+  height: 64px !important;
 }
 
 .rx-id-text {
@@ -640,7 +654,7 @@ body {
   gap: 15px;
 }
 
-/* IMZO BLOCKI TUZATISHI (O'RTAGA TUSHMASLIK MUAMMOSI HAL ETILDI) */
+/* SHIFOKOR IMZOSI BO'LIMI */
 .rx-sig-block {
   display: flex;
   flex-direction: column;
@@ -681,23 +695,28 @@ body {
   margin: 0 auto;
 }
 
+/* MUHR JOYI (2-rasmdagi ko'rinishga to'liq moslangan) */
 .rx-official-stamp {
-  width: 64px;
-  height: 64px;
+  width: 80px;
+  height: 80px;
   border: 2px dashed #0056b3;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   transform: rotate(-12deg);
+  overflow: hidden;
+  position: relative;
+  background: transparent;
 }
 
 .stamp-inner {
   text-align: center;
   color: #0056b3;
-  font-size: 6px;
+  font-size: 7px;
   font-weight: 800;
   line-height: 1.1;
+  pointer-events: none;
 }
 
 /* SIGNATURE CANVAS */
