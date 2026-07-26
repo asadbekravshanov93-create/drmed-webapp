@@ -2,10 +2,10 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DR.MED - Retsept App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>DR.MED - Tibbiy Retsept Tizimi</title>
 
-  <!-- Telegram & Libraries -->
+  <!-- Telegram WebApp & Libraries -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -16,317 +16,130 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
 
     :root {
-      --bg-color: #f8fafc;
-      --card-bg: #ffffff;
-      --text-color: #1e293b;
-      --hint-color: #64748b;
-      --primary-color: #0d9488;
-      --border-color: #e2e8f0;
+      --primary: #0d9488;
+      --primary-dark: #0f766e;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #cbd5e1;
     }
 
     body {
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      padding: 14px;
-      padding-bottom: 90px;
+      background-color: var(--bg);
+      color: var(--text);
+      padding-bottom: 75px;
     }
 
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .top-nav {
-      font-size: 14px;
-      color: var(--primary-color);
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .settings-btn {
-      font-size: 12px;
-      color: var(--hint-color);
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      background: #e2e8f0;
-      padding: 6px 10px;
-      border-radius: 8px;
-    }
-
-    .header-title { font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
-    .step-indicator { font-size: 12px; color: var(--hint-color); margin-bottom: 16px; font-weight: 500; }
-
-    .section-title {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--primary-color);
-      text-transform: uppercase;
-      margin: 12px 0 8px 0;
-    }
-
-    .card {
-      background: var(--card-bg);
-      padding: 14px;
-      border-radius: 12px;
-      border: 1px solid var(--border-color);
-      margin-bottom: 12px;
-    }
-
-    .form-group { margin-bottom: 10px; }
-    .form-group label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      color: #334155;
-      margin-bottom: 4px;
-    }
-
-    .form-group input, .form-group textarea {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      font-size: 13px;
-      outline: none;
+    /* BOTTOM MENU NAV */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
       background: #ffffff;
-      color: var(--text-color);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 1000;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-decoration: none;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .nav-item .icon { font-size: 20px; margin-bottom: 2px; }
+    .nav-item.active { color: var(--primary); font-weight: 700; }
+
+    /* TAB PAGES */
+    .tab-content { display: none; padding: 14px; }
+    .tab-content.active { display: block; }
+
+    /* CARDS & FORMS */
+    .header-title { font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 12px; }
+    .card { background: var(--card); border-radius: 12px; padding: 14px; border: 1px solid var(--border); margin-bottom: 12px; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 600; color: #334155; margin-bottom: 4px; }
+    .form-group input, .form-group textarea {
+      width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; background: #fff;
     }
 
     .row { display: flex; gap: 8px; }
     .col { flex: 1; }
 
-    .gender-toggle { display: flex; gap: 8px; margin-bottom: 10px; }
-    .gender-btn {
-      flex: 1;
-      padding: 9px;
-      border: 1px solid var(--border-color);
-      background: #fff;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      color: #475569;
-      cursor: pointer;
-      text-align: center;
+    .btn {
+      width: 100%; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; text-align: center;
     }
-    .gender-btn.active {
-      border-color: var(--primary-color);
-      color: var(--primary-color);
-      background: rgba(13, 148, 136, 0.05);
-    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
 
-    .medicine-item {
-      background: rgba(13, 148, 136, 0.02);
-      border: 1px dashed var(--primary-color);
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 10px;
-    }
+    .med-item { background: #f8fafc; border: 1px dashed var(--primary); padding: 10px; border-radius: 8px; margin-bottom: 8px; }
 
-    .btn-add {
-      width: 100%;
-      background: transparent;
-      border: 1px solid var(--primary-color);
-      color: var(--primary-color);
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .step-page { display: none; }
-    .step-page.active { display: block; }
-
-    /* PREVIEW PAGE & SETTINGS */
-    #previewPage, #settingsPage { display: none; }
-
+    /* RETSEPT PAPER - OFFICIAL BLANK FORM (A5 STYLE) */
+    .recipe-paper-wrapper { display: flex; justify-content: center; }
+    
     .recipe-paper {
+      width: 100%;
+      max-width: 500px;
       background: #ffffff;
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 18px;
-      margin-bottom: 16px;
+      border: 2px solid #0d9488;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      position: relative;
     }
 
-    .paper-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 8px;
-    }
+    .rp-header { display: flex; justify-content: space-between; border-bottom: 2px solid #0d9488; padding-bottom: 10px; margin-bottom: 12px; }
+    .rp-brand { font-size: 22px; font-weight: 900; color: #0d9488; line-height: 1; }
+    .rp-sub { font-size: 10px; font-weight: 800; color: #0f172a; letter-spacing: 0.5px; }
+    .rp-clinic { font-size: 9px; color: #64748b; margin-top: 4px; }
+    .rp-id-box { text-align: right; font-size: 10px; color: #64748b; }
+    .rp-id-box b { font-size: 13px; color: #0f172a; display: block; }
 
-    .brand-title {
-      font-size: 20px;
-      font-weight: 800;
-      color: #0d9488;
-      line-height: 1;
-    }
+    .rp-section-title { font-size: 10px; font-weight: 800; color: #0d9488; text-transform: uppercase; margin-bottom: 4px; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px; }
+    .rp-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 11px; margin-bottom: 10px; color: #334155; }
+    .rp-info-full { font-size: 11px; margin-bottom: 10px; color: #334155; }
 
-    .brand-subtitle {
-      font-size: 10px;
-      font-weight: 800;
-      color: #1e293b;
-      margin-top: 3px;
-    }
+    .rp-rx-box { border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; background: #fafafa; margin-bottom: 14px; min-height: 120px; }
+    .rp-rx-title { font-size: 14px; font-weight: 900; font-style: italic; color: #0f172a; margin-bottom: 8px; }
+    .rp-med-list { padding-left: 18px; font-size: 11px; }
+    .rp-med-list li { margin-bottom: 6px; }
+    .rp-med-list b { font-size: 12px; color: #0f172a; }
 
-    .clinic-info {
-      font-size: 9px;
-      color: #64748b;
-      margin-top: 4px;
-      line-height: 1.3;
-    }
+    /* FOOTER: STAMP, SIGNATURE & QR */
+    .rp-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 15px; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+    .rp-stamp-area { display: flex; gap: 10px; align-items: center; }
+    .img-preview-box { width: 55px; height: 55px; border: 1px dashed #cbd5e1; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .img-preview-box img { width: 100%; height: 100%; object-fit: contain; }
 
-    .rx-id-block {
-      text-align: right;
-      font-size: 10px;
-      color: #64748b;
-    }
+    .rp-qr { width: 55px; height: 55px; }
 
-    .rx-id-block b {
-      font-size: 12px;
-      color: #1e293b;
-    }
+    .rp-doc-info { text-align: right; font-size: 10px; color: #334155; }
+    .rp-doc-info b { font-size: 11px; color: #0f172a; }
 
-    .divider-line {
-      height: 2px;
-      background-color: #0d9488;
-      margin: 10px 0 14px 0;
-      border-radius: 2px;
-    }
-
-    .info-section {
-      margin-bottom: 12px;
-    }
-
-    .info-title {
-      font-size: 11px;
-      font-weight: 800;
-      color: #1e293b;
-      margin-bottom: 4px;
-    }
-
-    .info-body {
-      font-size: 12px;
-      color: #334155;
-      line-height: 1.5;
-    }
-
-    .recipe-box {
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 12px 14px;
-      margin-top: 10px;
-      background: #ffffff;
-    }
-
-    .recipe-box-title {
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 1px;
-      margin-bottom: 8px;
-      color: #0f172a;
-    }
-
-    .med-list {
-      padding-left: 18px;
-      font-size: 12px;
-    }
-
-    .med-list li {
-      margin-bottom: 8px;
-      color: #0f172a;
-    }
-
-    .med-list li b {
-      font-weight: 700;
-      font-size: 13px;
-    }
-
-    .med-dose-text {
-      font-size: 11px;
-      color: #64748b;
-      margin-top: 2px;
-    }
-
-    .footer-stamp-area {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      margin-top: 16px;
-    }
-
-    .qr-code-box img, .qr-code-box canvas {
-      width: 50px !important;
-      height: 50px !important;
-    }
-
-    .doctor-signature-box {
-      text-align: right;
-      font-size: 11px;
-      color: #475569;
-    }
-
-    .action-buttons {
-      display: flex;
-      gap: 8px;
-    }
-
-    .action-btn {
-      flex: 1;
-      padding: 12px 8px;
-      border-radius: 10px;
-      font-size: 12px;
-      font-weight: 600;
-      border: 1px solid var(--border-color);
-      background: #fff;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      color: #334155;
-    }
-
-    .action-btn.primary {
-      background: var(--primary-color);
-      color: #fff;
-      border: none;
-    }
-
-    @media print {
-      body * { visibility: hidden; }
-      #recipePaper, #recipePaper * { visibility: visible; }
-      #recipePaper {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        border: none;
-      }
-      .action-buttons { display: none; }
-    }
+    /* ACTION BUTTONS */
+    .action-row { display: flex; gap: 8px; margin-top: 14px; }
   </style>
 </head>
 <body>
 
-  <!-- STEP 1: BEMOR MA'LUMOTLARI -->
-  <div id="step1" class="step-page active">
-    <div class="top-bar">
-      <div></div>
-      <div class="settings-btn" onclick="openSettings()">⚙️ Shifokor profili</div>
-    </div>
-    <div class="header-title">Retsept yozish</div>
-    <div class="step-indicator">1 / 4 - Bemor ma'lumotlari</div>
-
-    <div class="section-title">👤 BEMOR MA'LUMOTLARI</div>
+  <!-- 1. RETSEPT TAZORSH TAB -->
+  <div id="tab-create" class="tab-content active">
+    <div class="header-title">Yangi Retsept</div>
+    
     <div class="card">
       <div class="form-group">
-        <label>F.I.Sh.</label>
+        <label>Bemor F.I.Sh.</label>
         <input type="text" id="patient_name" value="Asadbek Ravshanov">
       </div>
       <div class="row">
@@ -339,332 +152,367 @@
           <input type="number" id="age" value="24">
         </div>
       </div>
-      <div class="form-group">
-        <label>Jinsi</label>
-        <div class="gender-toggle">
-          <div class="gender-btn active" id="btn_erkak" onclick="setGender('Erkak')">Erkak</div>
-          <div class="gender-btn" id="btn_ayol" onclick="setGender('Ayol')">Ayol</div>
+      <div class="row">
+        <div class="col form-group">
+          <label>Jinsi</label>
+          <input type="text" id="gender" value="Erkak">
+        </div>
+        <div class="col form-group">
+          <label>Karta №</label>
+          <input type="text" id="card_num" value="A-123">
         </div>
       </div>
       <div class="form-group">
-        <label>Ambulator karta №</label>
-        <input type="text" id="card_num" value="A-123">
+        <label>Diagnoz (ICD-10)</label>
+        <input type="text" id="diagnosis" value="J20.9 - O'tkir bronxit">
       </div>
     </div>
-  </div>
 
-  <!-- STEP 2: DIAGNOZ -->
-  <div id="step2" class="step-page">
-    <div class="top-bar">
-      <div class="top-nav" onclick="prevStep(1)">❮ Orqaga</div>
-    </div>
-    <div class="header-title">Retsept yozish</div>
-    <div class="step-indicator">2 / 4 - Diagnoz</div>
-
-    <div class="section-title">🩺 DIAGNOZ</div>
     <div class="card">
-      <div class="form-group">
-        <label>ICD-10 kodi va Tashxis</label>
-        <textarea id="diagnosis" rows="3">J20.9 - O'tkir bronxit</textarea>
+      <div class="form-group"><label>Tayinlangan dorilar (Rp.)</label></div>
+      <div id="medsContainer">
+        <div class="med-item">
+          <input type="text" class="med-name" value="Caps. Azithromycini 0.5 N3" style="margin-bottom:4px;" placeholder="Dori nomi va dozasi">
+          <input type="text" class="med-dose" value="D.S. 1 kapsuladan 1 mahal, ovqatdan 1 soat oldin (3 kun)" placeholder="Qabul qilish tartibi">
+        </div>
       </div>
+      <button class="btn btn-outline" onclick="addMedInput()">+ Dori qo'shish</button>
     </div>
+
+    <button class="btn btn-primary" onclick="generateRecipe()">Retseptni Shakllantirish ➔</button>
   </div>
 
-  <!-- STEP 3: DORILAR -->
-  <div id="step3" class="step-page">
-    <div class="top-bar">
-      <div class="top-nav" onclick="prevStep(2)">❮ Orqaga</div>
+  <!-- RETSEPT VIEW (PREVIEW) MODAL / PAGE -->
+  <div id="tab-preview" class="tab-content">
+    <div class="header-title">
+      <span onclick="switchTab('tab-create')" style="cursor:pointer; font-size:16px;">❮ Orqaga</span> | Retsept Tayyor
     </div>
-    <div class="header-title">Retsept yozish</div>
-    <div class="step-indicator">3 / 4 - Tayinlangan dorilar</div>
 
-    <div class="section-title">💊 TAYINLANGAN DORILAR (RP)</div>
-    <div class="card">
-      <div id="medicinesContainer">
-        <div class="medicine-item">
-          <div class="form-group">
-            <input type="text" class="med-name" value="Caps. Azithromycini 0.5 N3" placeholder="Dori nomi va dozasi">
+    <div class="recipe-paper-wrapper">
+      <div class="recipe-paper" id="recipePaper">
+        <div class="rp-header">
+          <div>
+            <div class="rp-brand" id="pv_brand">DR.MED</div>
+            <div class="rp-sub">ELEKTRON TIBBIY RETSEPT</div>
+            <div class="rp-clinic" id="pv_clinic">DR.MED Tibbiyot Markazi<br>Toshkent sh., Chilonzor tumani</div>
           </div>
-          <div class="form-group">
-            <input type="text" class="med-dose" value="D.S. 1 kapsuladan 1 mahal (3 kun)" placeholder="Qabul qilish tartibi">
+          <div class="rp-id-box">
+            Retsept ID:
+            <b id="pv_rx_id">RX-2026-0001</b>
+            Sana: <span id="pv_date">26.07.2026</span>
+          </div>
+        </div>
+
+        <div class="rp-section-title">BEMOR MA'LUMOTLARI</div>
+        <div class="rp-info-grid">
+          <div><b>F.I.Sh.:</b> <span id="pv_patient"></span></div>
+          <div><b>Tug'ilgan sana:</b> <span id="pv_birth"></span></div>
+          <div><b>Yoshi / Jinsi:</b> <span id="pv_age_gender"></span></div>
+          <div><b>Karta №:</b> <span id="pv_card"></span></div>
+        </div>
+
+        <div class="rp-section-title">DIAGNOZ</div>
+        <div class="rp-info-full" id="pv_diag"></div>
+
+        <div class="rp-rx-box">
+          <div class="rp-rx-title">Rp. (Recipe)</div>
+          <ol class="rp-med-list" id="pv_meds_list"></ol>
+        </div>
+
+        <div class="rp-footer">
+          <div class="rp-stamp-area">
+            <div class="img-preview-box" id="pv_muhr_box" title="Muhr">
+              <span style="font-size:8px; color:#aaa;">MUHR</span>
+            </div>
+            <div class="img-preview-box" id="pv_imzo_box" title="Imzo">
+              <span style="font-size:8px; color:#aaa;">IMZO</span>
+            </div>
+          </div>
+
+          <div class="rp-qr" id="qrcode"></div>
+
+          <div class="rp-doc-info">
+            <div>Shifokor: <b id="pv_doc_name">Dr. Aliyev A.A.</b></div>
+            <div id="pv_doc_spec">Terapevt</div>
+            <div style="margin-top:4px;">Imzo: ___________</div>
           </div>
         </div>
       </div>
-      <button type="button" class="btn-add" onclick="addMedicineField()">➕ Boshqa dori qo'shish</button>
+    </div>
+
+    <div class="action-row">
+      <button class="btn btn-outline" onclick="downloadPDF()">📄 PDF Yuklash</button>
+      <button class="btn btn-primary" onclick="saveAndSend()">💾 Saqlash va Yuborish</button>
     </div>
   </div>
 
-  <!-- STEP 4: QO'SHIMCHA -->
-  <div id="step4" class="step-page">
-    <div class="top-bar">
-      <div class="top-nav" onclick="prevStep(3)">❮ Orqaga</div>
+  <!-- 2. TARIX TAB -->
+  <div id="tab-history" class="tab-content">
+    <div class="header-title">Retseptlar Tarixi</div>
+    <div id="historyList">
+      <div class="card" style="text-align:center; color:#888;">Hali saqlangan retseptlar yo'q.</div>
     </div>
-    <div class="header-title">Retsept yozish</div>
-    <div class="step-indicator">4 / 4 - Qo'shimcha ma'lumot</div>
+  </div>
 
-    <div class="section-title">🔍 QO'SHIMCHA MA'LUMOT</div>
+  <!-- 3. BEMORLAR TAB -->
+  <div id="tab-patients" class="tab-content">
+    <div class="header-title">Bemorlar Bazasi</div>
     <div class="card">
-      <div class="form-group">
-        <label>Allergiyasi (ixtiyoriy)</label>
-        <input type="text" id="allergy" placeholder="Yo'q">
-      </div>
-      <div class="form-group">
-        <label>Izoh (ixtiyoriy)</label>
-        <input type="text" id="note" placeholder="Shifokor ko'rsatmasi bo'yicha">
-      </div>
+      <b>Asadbek Ravshanov</b>
+      <div style="font-size:12px; color:#666;">24 yosh | Karta: A-123</div>
     </div>
   </div>
 
-  <!-- SHIFOKOR PROFILI (SOZLAMALAR) -->
-  <div id="settingsPage">
-    <div class="top-bar">
-      <div class="top-nav" onclick="closeSettings()">❮ Orqaga</div>
-    </div>
-    <div class="header-title">Shifokor Profili</div>
-    <div class="step-indicator">Ushbu ma'lumotlar retseptda aks etadi</div>
-
+  <!-- 4. SOZLAMALAR (SHIFOKOR PROFILI) TAB -->
+  <div id="tab-settings" class="tab-content">
+    <div class="header-title">Sozlamalar (Shifokor Profili)</div>
+    
     <div class="card">
       <div class="form-group">
         <label>Shifokor F.I.Sh.</label>
-        <input type="text" id="doc_name_input" value="Dr. Aliyev A.A.">
+        <input type="text" id="set_doc_name" value="Dr. Aliyev A.A.">
       </div>
       <div class="form-group">
         <label>Mutaxassisligi</label>
-        <input type="text" id="doc_spec_input" value="Terapevt">
+        <input type="text" id="set_doc_spec" value="Terapevt - Karidolog">
       </div>
       <div class="form-group">
-        <label>Klinika / Tibbiyot markazi nomi</label>
-        <input type="text" id="clinic_name_input" value="DR.MED Tibbiyot Markazi">
+        <label>Klinika nomi</label>
+        <input type="text" id="set_clinic_name" value="DR.MED Tibbiyot Markazi">
       </div>
       <div class="form-group">
         <label>Klinika manzili</label>
-        <input type="text" id="clinic_address_input" value="Toshkent sh., Chilonzor tumani">
+        <input type="text" id="set_clinic_address" value="Toshkent sh., Chilonzor tumani">
       </div>
-      <button type="button" class="btn-add" style="background: var(--primary-color); color:#fff; border:none; margin-top:8px;" onclick="closeSettings()">💾 Saqlash</button>
+
+      <div class="form-group">
+        <label>Shifokor Muhr rasmi (PNG/JPG)</label>
+        <input type="file" id="file_muhr" accept="image/*" onchange="uploadImage(this, 'muhr_data')">
+      </div>
+
+      <div class="form-group">
+        <label>Shifokor Imzo rasmi (PNG/JPG)</label>
+        <input type="file" id="file_imzo" accept="image/*" onchange="uploadImage(this, 'imzo_data')">
+      </div>
+
+      <button class="btn btn-primary" onclick="saveSettings()">💾 Sozlamalarni Saqlash</button>
     </div>
   </div>
 
-  <!-- PREVIEW PAGE -->
-  <div id="previewPage">
-    <div class="top-bar">
-      <div class="top-nav" onclick="prevStep(4)">❮ Orqaga</div>
+  <!-- BOTTOM NAVIGATION (4 MENYU) -->
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav-create" onclick="switchTab('tab-create')">
+      <span class="icon">📝</span>
+      <span>Retsept</span>
     </div>
-    <div class="header-title">Tayyor retsept</div>
-
-    <div class="recipe-paper" id="recipePaper">
-      <div class="paper-header">
-        <div>
-          <div class="brand-title">DR.MED</div>
-          <div class="brand-subtitle">ELEKTRON RETSEPT</div>
-          <div class="clinic-info" id="pv_clinic_info">
-            DR.MED Tibbiyot Markazi<br>Toshkent sh., Chilonzor tumani
-          </div>
-        </div>
-        <div class="rx-id-block">
-          Retsept ID:<br>
-          <b id="disp_rx_id">RX-2026-8584</b>
-        </div>
-      </div>
-
-      <div class="divider-line"></div>
-
-      <div class="info-section">
-        <div class="info-title">BEMOR MA'LUMOTLARI:</div>
-        <div class="info-body">
-          F.I.Sh.: <span id="pv_name">Asadbek Ravshanov</span><br>
-          Tug'ilgan sanasi: <span id="pv_birth">06.08.2002</span> | Yoshi: <span id="pv_age">24</span> | Jinsi: <span id="pv_gender">Erkak</span><br>
-          Ambulator karta №: <span id="pv_card">A-123</span>
-        </div>
-      </div>
-
-      <div class="info-section">
-        <div class="info-title">DIAGNOZ:</div>
-        <div class="info-body" id="pv_diagnosis">J20.9 - O'tkir bronxit</div>
-      </div>
-
-      <div class="recipe-box">
-        <div class="recipe-box-title">R E T S E P T (Rp.):</div>
-        <ol class="med-list" id="pv_meds">
-          <!-- Dynamic Items -->
-        </ol>
-      </div>
-
-      <div class="footer-stamp-area">
-        <div class="qr-code-box" id="qrcode"></div>
-        <div class="doctor-signature-box">
-          <div>Sana: <span id="pv_date">26.07.2026</span> | Shifokor imzosi: _________</div>
-          <div style="font-size:10px; color:#64748b; margin-top:2px;" id="pv_doctor_info">Dr. Aliyev A.A. (Terapevt)</div>
-        </div>
-      </div>
+    <div class="nav-item" id="nav-history" onclick="switchTab('tab-history')">
+      <span class="icon">📋</span>
+      <span>Tarix</span>
     </div>
-
-    <!-- ACTION BUTTONS -->
-    <div class="action-buttons">
-      <button class="action-btn" onclick="downloadPDF()">📄 PDF yuklash</button>
-      <button class="action-btn" onclick="printRecipe()">🖨️ Chop etish</button>
-      <button class="action-btn primary" onclick="sendToBot()">💾 Saqlash</button>
+    <div class="nav-item" id="nav-patients" onclick="switchTab('tab-patients')">
+      <span class="icon">👥</span>
+      <span>Bemorlar</span>
+    </div>
+    <div class="nav-item" id="nav-settings" onclick="switchTab('tab-settings')">
+      <span class="icon">⚙️</span>
+      <span>Sozlamalar</span>
     </div>
   </div>
 
   <script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-    tg.ready();
+    const tg = window.Telegram ? window.Telegram.WebApp : null;
+    if (tg) { tg.expand(); }
 
-    let currentStep = 1;
-    let selectedGender = "Erkak";
+    // INITIAL LOAD
+    window.onload = function() {
+      loadSettings();
+      loadHistory();
+    };
 
-    function openSettings() {
-      document.querySelectorAll('.step-page').forEach(p => p.classList.remove('active'));
-      document.getElementById('settingsPage').style.display = 'block';
-      tg.MainButton.hide();
+    // TAB SWITCHING
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+      document.getElementById(tabId).classList.add('active');
+      
+      const navMap = {
+        'tab-create': 'nav-create',
+        'tab-history': 'nav-history',
+        'tab-patients': 'nav-patients',
+        'tab-settings': 'nav-settings'
+      };
+      if (navMap[tabId]) {
+        document.getElementById(navMap[tabId]).classList.add('active');
+      }
     }
 
-    function closeSettings() {
-      document.getElementById('settingsPage').style.display = 'none';
-      document.getElementById(`step${currentStep}`).classList.add('active');
-      updateMainButton();
-    }
-
-    function setGender(gender) {
-      selectedGender = gender;
-      document.getElementById('btn_erkak').classList.toggle('active', gender === 'Erkak');
-      document.getElementById('btn_ayol').classList.toggle('active', gender === 'Ayol');
-    }
-
-    function addMedicineField() {
-      const container = document.getElementById('medicinesContainer');
+    // ADD MEDICINE INPUT
+    function addMedInput() {
+      const container = document.getElementById('medsContainer');
       const div = document.createElement('div');
-      div.className = 'medicine-item';
+      div.className = 'med-item';
       div.innerHTML = `
-        <div class="form-group">
-          <input type="text" class="med-name" placeholder="Dori nomi va dozasi">
-        </div>
-        <div class="form-group">
-          <input type="text" class="med-dose" placeholder="Qabul qilish tartibi">
-        </div>
+        <input type="text" class="med-name" style="margin-bottom:4px;" placeholder="Dori nomi va dozasi">
+        <input type="text" class="med-dose" placeholder="Qabul qilish tartibi">
       `;
       container.appendChild(div);
     }
 
-    function updateMainButton() {
-      if (currentStep < 4) {
-        tg.MainButton.setText("KEYINGI BOSQICH ➔");
-        tg.MainButton.show();
-      } else if (currentStep === 4) {
-        tg.MainButton.setText("RETSEPTNI KO'RISH 👁️");
-        tg.MainButton.show();
-      } else {
-        tg.MainButton.hide();
+    // IMAGE UPLOAD (MUHR / IMZO) TO LOCALSTORAGE
+    function uploadImage(input, storageKey) {
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          localStorage.setItem(storageKey, e.target.result);
+          alert("Rasm saqlandi!");
+        };
+        reader.readAsDataURL(input.files[0]);
       }
     }
 
-    function nextStep() {
-      if (currentStep < 4) {
-        document.getElementById(`step${currentStep}`).classList.remove('active');
-        currentStep++;
-        document.getElementById(`step${currentStep}`).classList.add('active');
-        updateMainButton();
-      } else if (currentStep === 4) {
-        showPreview();
+    // SAVE SETTINGS
+    function saveSettings() {
+      const settings = {
+        docName: document.getElementById('set_doc_name').value,
+        docSpec: document.getElementById('set_doc_spec').value,
+        clinicName: document.getElementById('set_clinic_name').value,
+        clinicAddress: document.getElementById('set_clinic_address').value
+      };
+      localStorage.setItem('dr_med_settings', JSON.stringify(settings));
+      alert("Sozlamalar muvaffaqiyatli saqlandi!");
+    }
+
+    // LOAD SETTINGS
+    function loadSettings() {
+      const saved = localStorage.getItem('dr_med_settings');
+      if (saved) {
+        const settings = JSON.parse(saved);
+        document.getElementById('set_doc_name').value = settings.docName || '';
+        document.getElementById('set_doc_spec').value = settings.docSpec || '';
+        document.getElementById('set_clinic_name').value = settings.clinicName || '';
+        document.getElementById('set_clinic_address').value = settings.clinicAddress || '';
       }
     }
 
-    function prevStep(step) {
-      document.querySelectorAll('.step-page').forEach(p => p.classList.remove('active'));
-      document.getElementById('previewPage').style.display = 'none';
-      currentStep = step;
-      document.getElementById(`step${currentStep}`).classList.add('active');
-      updateMainButton();
-    }
-
-    function showPreview() {
-      document.getElementById(`step4`).classList.remove('active');
-      document.getElementById('previewPage').style.display = 'block';
-      currentStep = 5;
-      updateMainButton();
-
-      // Doctor & Clinic Info Update
-      const docName = document.getElementById('doc_name_input').value || 'Dr. Aliyev A.A.';
-      const docSpec = document.getElementById('doc_spec_input').value || 'Terapevt';
-      const clinicName = document.getElementById('clinic_name_input').value || 'DR.MED Tibbiyot Markazi';
-      const clinicAddress = document.getElementById('clinic_address_input').value || 'Toshkent sh., Chilonzor tumani';
-
-      document.getElementById('pv_clinic_info').innerHTML = `${clinicName}<br>${clinicAddress}`;
-      document.getElementById('pv_doctor_info').innerText = `${docName} (${docSpec})`;
+    // GENERATE RECIPE
+    function generateRecipe() {
+      const settings = JSON.parse(localStorage.getItem('dr_med_settings') || '{}');
+      
+      // Header Info
+      document.getElementById('pv_clinic').innerHTML = `${settings.clinicName || 'DR.MED Tibbiyot Markazi'}<br>${settings.clinicAddress || 'Toshkent sh.'}`;
+      document.getElementById('pv_doc_name').innerText = settings.docName || 'Dr. Aliyev A.A.';
+      document.getElementById('pv_doc_spec').innerText = settings.docSpec || 'Terapevt';
 
       // Patient Info
-      document.getElementById('pv_name').innerText = document.getElementById('patient_name').value || 'Asadbek Ravshanov';
-      document.getElementById('pv_birth').innerText = document.getElementById('birth_date').value || '06.08.2002';
-      document.getElementById('pv_age').innerText = document.getElementById('age').value || '24';
-      document.getElementById('pv_gender').innerText = selectedGender;
-      document.getElementById('pv_card').innerText = document.getElementById('card_num').value || 'A-123';
-      document.getElementById('pv_diagnosis').innerText = document.getElementById('diagnosis').value || "J20.9 - O'tkir bronxit";
+      document.getElementById('pv_patient').innerText = document.getElementById('patient_name').value;
+      document.getElementById('pv_birth').innerText = document.getElementById('birth_date').value;
+      document.getElementById('pv_age_gender').innerText = `${document.getElementById('age').value} yosh / ${document.getElementById('gender').value}`;
+      document.getElementById('pv_card').innerText = document.getElementById('card_num').value;
+      document.getElementById('pv_diag').innerText = document.getElementById('diagnosis').value;
 
-      // Today Date
+      // Date & RX ID
       const today = new Date();
       const dateStr = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
       document.getElementById('pv_date').innerText = dateStr;
+      
+      const rxId = "RX-" + today.getFullYear() + "-" + Math.floor(1000 + Math.random() * 9000);
+      document.getElementById('pv_rx_id').innerText = rxId;
 
-      // Unique RX ID
-      const randomID = "RX-" + today.getFullYear() + "-" + String(Math.floor(1000 + Math.random() * 9000));
-      document.getElementById('disp_rx_id').innerText = randomID;
-
-      // Medicines Render
-      const medsList = document.getElementById('pv_meds');
+      // Medicines
+      const medsList = document.getElementById('pv_meds_list');
       medsList.innerHTML = '';
       const names = document.querySelectorAll('.med-name');
       const doses = document.querySelectorAll('.med-dose');
 
-      names.forEach((input, i) => {
-        if (input.value && input.value.trim() !== '') {
+      names.forEach((inp, idx) => {
+        if (inp.value.trim() !== '') {
           const li = document.createElement('li');
-          const doseVal = doses[i] && doses[i].value ? doses[i].value : '';
-          li.innerHTML = `<b>${input.value}</b><div class="med-dose-text">${doseVal}</div>`;
+          li.innerHTML = `<b>${inp.value}</b><br><span style="color:#555; font-size:10px;">${doses[idx].value}</span>`;
           medsList.appendChild(li);
         }
       });
 
-      // QR Code Generation
-      document.getElementById("qrcode").innerHTML = "";
+      // Render Muhr & Imzo
+      const muhrData = localStorage.getItem('muhr_data');
+      if (muhrData) {
+        document.getElementById('pv_muhr_box').innerHTML = `<img src="${muhrData}">`;
+      }
+      const imzoData = localStorage.getItem('imzo_data');
+      if (imzoData) {
+        document.getElementById('pv_imzo_box').innerHTML = `<img src="${imzoData}">`;
+      }
+
+      // Generate QR Code
+      document.getElementById('qrcode').innerHTML = "";
       new QRCode(document.getElementById("qrcode"), {
-        text: `DR.MED | ID: ${randomID}`,
-        width: 50,
-        height: 50
+        text: `DR.MED RETSEPT\nID: ${rxId}\nBemor: ${document.getElementById('patient_name').value}\nSana: ${dateStr}`,
+        width: 55,
+        height: 55
       });
+
+      switchTab('tab-preview');
     }
 
-    tg.MainButton.onClick(() => {
-      nextStep();
-    });
-
-    updateMainButton();
-
+    // DOWNLOAD PDF PERFECT FIT (A5 FORM)
     function downloadPDF() {
       const element = document.getElementById('recipePaper');
+      const rxId = document.getElementById('pv_rx_id').innerText;
+
       const opt = {
-        margin:       [0.3, 0.3, 0.3, 0.3],
-        filename:     `Retsept_${document.getElementById('disp_rx_id').innerText}.pdf`,
+        margin:       [0.2, 0.2, 0.2, 0.2],
+        filename:     `Retsept_${rxId}.pdf`,
         image:        { type: 'jpeg', quality: 1.0 },
-        html2canvas:  { scale: 3, useCORS: true, logging: false },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        html2canvas:  { scale: 3, useCORS: true },
+        jsPDF:        { unit: 'in', format: 'a5', orientation: 'portrait' }
       };
+
       html2pdf().set(opt).from(element).save();
     }
 
-    function printRecipe() {
-      window.print();
+    // SAVE TO HISTORY & SEND TO TELEGRAM
+    function saveAndSend() {
+      const rxData = {
+        id: document.getElementById('pv_rx_id').innerText,
+        date: document.getElementById('pv_date').innerText,
+        patient: document.getElementById('pv_patient').innerText,
+        diagnosis: document.getElementById('pv_diag').innerText
+      };
+
+      let history = JSON.parse(localStorage.getItem('dr_med_history') || '[]');
+      history.unshift(rxData);
+      localStorage.setItem('dr_med_history', JSON.stringify(history));
+      loadHistory();
+
+      if (tg && tg.sendData) {
+        tg.sendData(JSON.stringify(rxData));
+      } else {
+        alert("Retsept muvaffaqiyatli saqlandi!");
+      }
     }
 
-    function sendToBot() {
-      const data = {
-        rx_id: document.getElementById('disp_rx_id').innerText,
-        doctor: document.getElementById('doc_name_input').value,
-        patient_name: document.getElementById('patient_name').value,
-        age: document.getElementById('age').value,
-        diagnosis: document.getElementById('diagnosis').value
-      };
-      tg.sendData(JSON.stringify(data));
+    // LOAD HISTORY
+    function loadHistory() {
+      const history = JSON.parse(localStorage.getItem('dr_med_history') || '[]');
+      const container = document.getElementById('historyList');
+      if (history.length === 0) {
+        container.innerHTML = '<div class="card" style="text-align:center; color:#888;">Hali saqlangan retseptlar yo\'q.</div>';
+        return;
+      }
+      container.innerHTML = '';
+      history.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between;">
+            <b>${item.patient}</b>
+            <span style="font-size:11px; color:#0d9488;">${item.id}</span>
+          </div>
+          <div style="font-size:12px; color:#666; margin-top:4px;">Diagnoz: ${item.diagnosis}</div>
+          <div style="font-size:10px; color:#999; margin-top:2px;">Sana: ${item.date}</div>
+        `;
+        container.appendChild(div);
+      });
     }
   </script>
 </body>
