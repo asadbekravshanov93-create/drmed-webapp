@@ -1,20 +1,810 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* ==========================================================================
+   DR.MED PRO SYSTEM - COMPLETE RESPONSIVE STYLESHEET
+   ========================================================================== */
 
-body {
-  font-family: 'Inter', sans-serif;
+:root {
+  --primary: #007a63;
+  --primary-dark: #005a49;
+  --primary-light: #e6f2f0;
+  --secondary: #475569;
+  --accent: #2563eb;
+  --danger: #dc2626;
+  --success: #16a34a;
+  --bg-main: #f1f5f9;
+  --card-bg: #ffffff;
+  --border-color: #cbd5e1;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Telegram Theme Variables Integration */
+body.tg-theme {
+  --bg-main: var(--tg-theme-secondary-bg-color, #f1f5f9);
+  --card-bg: var(--tg-theme-bg-color, #ffffff);
+  --text-main: var(--tg-theme-text-color, #0f172a);
+  --text-muted: var(--tg-theme-hint-color, #64748b);
+  --primary: var(--tg-theme-button-color, #007a63);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-tap-highlight-color: transparent;
 }
 
-body.tg-theme {
-  background-color: var(--tg-theme-bg-color, #f8fafc);
-  color: var(--tg-theme-text-color, #0f172a);
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  line-height: 1.4;
+  padding-bottom: 30px;
 }
 
-/* Custom scrollbars */
-::-webkit-scrollbar {
-  width: 4px;
+/* HEADER */
+.app-header {
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow);
 }
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo {
+  width: 36px;
+  height: 36px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 24px;
+  font-weight: 900;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-info h1 {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1.1;
+}
+
+.brand-info p {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.header-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.icon-btn {
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.icon-btn:active {
+  transform: scale(0.95);
+  background: var(--primary-light);
+}
+
+/* WIZARD TABS */
+.wizard-nav {
+  display: flex;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 61px;
+  z-index: 90;
+}
+
+.wizard-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 12px 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.tab-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: var(--text-muted);
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wizard-tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.wizard-tab.active .tab-num {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+/* MAIN LAYOUT */
+.app-main {
+  max-width: 650px;
+  margin: 15px auto;
+  padding: 0 12px;
+}
+
+.step-content {
+  display: none;
+}
+
+.step-content.active {
+  display: block;
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* CARDS & FORMS */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 8px;
+}
+
+.card-header h2 {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card-title-sm {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--primary);
+  text-transform: uppercase;
+}
+
+.form-group {
+  margin-bottom: 10px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 4px;
+}
+
+.req { color: var(--danger); }
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-main);
+  background: #ffffff;
+  outline: none;
+  transition: border 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+.form-row {
+  display: flex;
+  gap: 8px;
+}
+
+.col-4 { flex: 4; }
+.col-6 { flex: 6; }
+.col-8 { flex: 8; }
+
+.segmented-control {
+  display: flex;
+  gap: 6px;
+}
+
+.segment-btn {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.segment-btn.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.input-with-btn {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-input-act {
+  background: var(--primary-light);
+  border: 1px solid var(--border-color);
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+/* BUTTONS */
+.btn {
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-block { width: 100%; }
+.btn-lg { padding: 12px 20px; font-size: 14px; }
+.btn-sm { padding: 6px 10px; font-size: 11px; }
+
+.btn-primary { background: var(--primary); color: #ffffff; }
+.btn-primary:active { background: var(--primary-dark); }
+
+.btn-secondary { background: #e2e8f0; color: #334155; }
+.btn-danger { background: var(--danger); color: #ffffff; }
+
+.sm-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  padding: 4px 8px;
   border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.btn-add {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+/* STEP 2: DRUGS BUILDER */
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.section-title h2 {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.quick-templates {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+.quick-templates span {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.chip {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.drug-card {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  margin-bottom: 12px;
+  position: relative;
+  box-shadow: var(--shadow);
+}
+
+.drug-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.drug-num {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--primary);
+}
+
+.drug-card-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.add-more-box {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  text-align: center;
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  background: rgba(0, 122, 99, 0.02);
+  margin-bottom: 15px;
+}
+
+/* STEP 3: PREVIEW & BLANK DESIGN */
+.action-toolbar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.act-btn {
+  border: none;
+  padding: 10px 4px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.btn-save { background: #0284c7; }
+.btn-pdf { background: #059669; }
+.btn-print { background: #6366f1; }
+.btn-share { background: #0284c7; }
+
+.paper-container {
+  overflow-x: auto;
+  background: #cbd5e1;
+  padding: 10px;
+  border-radius: var(--radius-md);
+  margin-bottom: 15px;
+}
+
+/* RX PRINT BLANKA FORM */
+.rx-paper {
+  background: #ffffff;
+  width: 100%;
+  max-width: 550px;
+  margin: 0 auto;
+  padding: 20px;
+  border-radius: 4px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  font-size: 11px;
+  color: #1e293b;
+  position: relative;
+}
+
+.rx-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.rx-clinic-brand {
+  display: flex;
+  gap: 10px;
+}
+
+.rx-medical-cross {
+  font-size: 32px;
+  color: var(--primary);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.rx-clinic-details h3 {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--primary);
+}
+
+.rx-clinic-details p {
+  font-size: 8.5px;
+  color: #475569;
+  line-height: 1.2;
+}
+
+.rx-meta {
+  text-align: right;
+}
+
+.rx-qr-code {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+
+.rx-id-text {
+  font-size: 8px;
+  color: #64748b;
+}
+
+.rx-id-text strong {
+  display: block;
+  font-size: 10px;
+  color: #0f172a;
+}
+
+.rx-divider {
+  height: 2px;
+  background: var(--primary);
+  margin: 10px 0;
+}
+
+.rx-info-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 10px;
+  font-size: 9px;
+  margin-bottom: 8px;
+}
+
+.rx-field span {
+  color: #64748b;
+}
+
+.rx-doctor-banner {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 9px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.rx-title-banner {
+  text-align: center;
+  margin: 10px 0;
+}
+
+.rx-title-banner span {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 6px;
+  color: #0f172a;
+}
+
+.rx-title-banner small {
+  display: block;
+  font-size: 8px;
+  color: #64748b;
+}
+
+.rx-drugs-body {
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 10px;
+  min-height: 140px;
+  background: #fafafa;
+  margin-bottom: 10px;
+}
+
+.rx-drug-item {
+  margin-bottom: 8px;
+  font-size: 9.5px;
+  line-height: 1.3;
+}
+
+.rx-drug-item strong {
+  color: #000;
+}
+
+.rx-drug-sub {
+  padding-left: 14px;
+  color: #334155;
+  font-size: 9px;
+}
+
+.rx-instruction-box {
+  font-size: 8.5px;
+  margin-bottom: 12px;
+}
+
+.rx-instruction-box p {
+  color: #334155;
+  padding-left: 8px;
+}
+
+.rx-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 10px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 8px;
+}
+
+.rx-validity p {
+  font-size: 8px;
+  color: #475569;
+}
+
+.rx-validity .small-text {
+  font-size: 7px;
+  color: #94a3b8;
+}
+
+.rx-stamps-wrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: 15px;
+}
+
+.rx-sig-block {
+  text-align: right;
+  font-size: 8px;
+}
+
+.sig-img-holder {
+  min-width: 80px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.sig-placeholder {
+  font-family: 'Brush Script MT', cursive;
+  font-size: 14px;
+  color: #002b80;
+  text-decoration: underline;
+}
+
+#paper_sig_img {
+  max-height: 35px;
+  object-fit: contain;
+}
+
+.rx-official-stamp {
+  width: 58px;
+  height: 58px;
+  border: 2px dashed #0056b3;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-12deg);
+}
+
+.stamp-inner {
+  text-align: center;
+  color: #0056b3;
+  font-size: 5.5px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+/* SIGNATURE CANVAS */
+.signature-card .canvas-wrapper {
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-sm);
+  background: #fafafa;
+  display: flex;
+  justify-content: center;
+}
+
+#signatureCanvas {
+  width: 100%;
+  max-width: 400px;
+  height: 120px;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.help-text {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+/* MODALS */
+.modal-backdrop {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(2px);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
+}
+
+.modal-backdrop.active {
+  display: flex;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-dialog {
+  background: var(--card-bg);
+  width: 100%;
+  max-width: 480px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+  background: var(--primary);
+  color: #ffffff;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.modal-body {
+  padding: 15px;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  padding: 10px 15px;
+  border-top: 1px solid var(--border-color);
+  background: #f8fafc;
+}
+
+/* NAV MENU LIST */
+.nav-menu-list {
+  list-style: none;
+}
+
+.nav-menu-list li {
+  padding: 12px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.nav-menu-list li:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+/* HISTORY ITEM */
+.history-item {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-info h4 { font-size: 12px; font-weight: 800; }
+.history-info p { font-size: 10px; color: var(--text-muted); }
+
+/* PRINT STYLES */
+@media print {
+  body * { visibility: hidden; }
+  .paper-container, .paper-container * { visibility: visible; }
+  .paper-container {
+    position: absolute;
+    left: 0; top: 0;
+    width: 100%;
+    background: none;
+    padding: 0;
+  }
+  .rx-paper {
+    box-shadow: none;
+    max-width: 100%;
+  }
 }
