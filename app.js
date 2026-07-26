@@ -479,11 +479,16 @@ function selectICD(code, title) {
 function exportToPDF() {
   const element = document.getElementById('printablePaper');
   const opt = {
-    margin: 0.1,
-    filename: `DRMED_Retsept_${document.getElementById('p_name').value}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 3, useCORS: true },
-    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+    margin:       [5, 5, 5, 5], // Yon chetlaridagi bo'shliqlarni qisqartirish
+    filename:     `DRMED_Retsept_${document.getElementById('p_name').value || 'bemor'}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { 
+      scale: 2, 
+      useCORS: true, 
+      logging: false,
+      windowWidth: 800 // Canvas o'lchamini kengaytirib, shrift va elementlarni to'liq yoyish
+    },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
   html2pdf().set(opt).from(element).save();
 }
