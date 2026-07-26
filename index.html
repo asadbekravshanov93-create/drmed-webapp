@@ -3,20 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DR.MED - Elektron Retsept System</title>
-  
-  <!-- Telegram WebApp SDK -->
+  <title>DR.MED - Retsept App</title>
+
+  <!-- Telegram & Libraries -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- HTML to PDF conversion -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <!-- QR Code Generator -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  
+
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-    
+
     :root {
       --bg-color: #f8fafc;
       --card-bg: #ffffff;
@@ -26,63 +24,75 @@
       --border-color: #e2e8f0;
     }
 
-    body { 
-      background-color: var(--bg-color); 
-      color: var(--text-color); 
-      padding: 14px; 
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding: 14px;
       padding-bottom: 90px;
     }
 
-    .top-nav {
+    .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 12px;
+    }
+
+    .top-nav {
       font-size: 14px;
       color: var(--primary-color);
       font-weight: 600;
       cursor: pointer;
     }
-    
+
+    .settings-btn {
+      font-size: 12px;
+      color: var(--hint-color);
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: #e2e8f0;
+      padding: 6px 10px;
+      border-radius: 8px;
+    }
+
     .header-title { font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
     .step-indicator { font-size: 12px; color: var(--hint-color); margin-bottom: 16px; font-weight: 500; }
 
-    .section-title { 
-      font-size: 11px; 
-      font-weight: 700; 
-      color: var(--primary-color); 
-      text-transform: uppercase; 
-      letter-spacing: 0.5px;
-      margin: 12px 0 8px 0; 
-      display: flex;
-      align-items: center;
-      gap: 6px;
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary-color);
+      text-transform: uppercase;
+      margin: 12px 0 8px 0;
     }
 
-    .card { 
-      background: var(--card-bg); 
-      padding: 14px; 
-      border-radius: 12px; 
+    .card {
+      background: var(--card-bg);
+      padding: 14px;
+      border-radius: 12px;
       border: 1px solid var(--border-color);
-      margin-bottom: 12px; 
+      margin-bottom: 12px;
     }
 
     .form-group { margin-bottom: 10px; }
-    .form-group label { 
-      display: block; 
-      font-size: 12px; 
-      font-weight: 600; 
-      color: #334155; 
-      margin-bottom: 4px; 
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 4px;
     }
-    
+
     .form-group input, .form-group textarea {
-      width: 100%; 
-      padding: 10px 12px; 
-      border: 1px solid var(--border-color); 
-      border-radius: 8px; 
-      font-size: 13px; 
-      outline: none; 
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
       background: #ffffff;
       color: var(--text-color);
     }
@@ -110,7 +120,6 @@
     }
 
     .medicine-item {
-      position: relative;
       background: rgba(13, 148, 136, 0.02);
       border: 1px dashed var(--primary-color);
       padding: 10px;
@@ -133,16 +142,15 @@
     .step-page { display: none; }
     .step-page.active { display: block; }
 
-    /* PREVIEW PAGE & PRINT STYLES */
-    #previewPage { display: none; }
-    
+    /* PREVIEW PAGE & SETTINGS */
+    #previewPage, #settingsPage { display: none; }
+
     .recipe-paper {
       background: #ffffff;
       border: 1px solid var(--border-color);
       border-radius: 16px;
-      padding: 20px;
+      padding: 18px;
       margin-bottom: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
     }
 
     .paper-header {
@@ -153,10 +161,9 @@
     }
 
     .brand-title {
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 800;
       color: #0d9488;
-      letter-spacing: -0.5px;
       line-height: 1;
     }
 
@@ -165,11 +172,10 @@
       font-weight: 800;
       color: #1e293b;
       margin-top: 3px;
-      letter-spacing: 0.5px;
     }
 
     .clinic-info {
-      font-size: 9.5px;
+      font-size: 9px;
       color: #64748b;
       margin-top: 4px;
       line-height: 1.3;
@@ -189,12 +195,12 @@
     .divider-line {
       height: 2px;
       background-color: #0d9488;
-      margin: 10px 0 16px 0;
+      margin: 10px 0 14px 0;
       border-radius: 2px;
     }
 
     .info-section {
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     .info-title {
@@ -202,7 +208,6 @@
       font-weight: 800;
       color: #1e293b;
       margin-bottom: 4px;
-      text-transform: uppercase;
     }
 
     .info-body {
@@ -214,16 +219,16 @@
     .recipe-box {
       border: 1px solid #e2e8f0;
       border-radius: 12px;
-      padding: 14px;
+      padding: 12px 14px;
       margin-top: 10px;
-      background: #fafafa;
+      background: #ffffff;
     }
 
     .recipe-box-title {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 800;
       letter-spacing: 1px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       color: #0f172a;
     }
 
@@ -233,7 +238,7 @@
     }
 
     .med-list li {
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       color: #0f172a;
     }
 
@@ -252,29 +257,18 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
-      margin-top: 20px;
-      padding-top: 10px;
+      margin-top: 16px;
     }
 
-    .qr-code-box {
-      width: 65px;
-      height: 65px;
+    .qr-code-box img, .qr-code-box canvas {
+      width: 50px !important;
+      height: 50px !important;
     }
 
     .doctor-signature-box {
       text-align: right;
       font-size: 11px;
       color: #475569;
-      position: relative;
-    }
-
-    .stamp-img, .signature-img {
-      position: absolute;
-      bottom: -10px;
-      right: 10px;
-      height: 60px;
-      opacity: 0.85;
-      pointer-events: none;
     }
 
     .action-buttons {
@@ -284,7 +278,7 @@
 
     .action-btn {
       flex: 1;
-      padding: 12px;
+      padding: 12px 8px;
       border-radius: 10px;
       font-size: 12px;
       font-weight: 600;
@@ -294,7 +288,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 4px;
       color: #334155;
     }
 
@@ -307,13 +301,12 @@
     @media print {
       body * { visibility: hidden; }
       #recipePaper, #recipePaper * { visibility: visible; }
-      #recipePaper { 
-        position: absolute; 
-        left: 0; 
-        top: 0; 
-        width: 100%; 
+      #recipePaper {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
         border: none;
-        box-shadow: none;
       }
       .action-buttons { display: none; }
     }
@@ -321,62 +314,29 @@
 </head>
 <body>
 
-  <!-- STEP 0: SHIFOKOR VA KLINIKA SOZLAMALARI -->
-  <div id="stepProfile" class="step-page">
-    <div class="header-title">Shifokor Sozlamalari</div>
-    <div class="step-indicator">Ma'lumotlar avtomatik to'ldirish uchun saqlanadi</div>
-
-    <div class="card">
-      <div class="form-group">
-        <label>Klinika Nomi</label>
-        <input type="text" id="doc_clinic" placeholder="DR.MED Tibbiyot Markazi">
-      </div>
-      <div class="form-group">
-        <label>Klinika Manzili</label>
-        <input type="text" id="doc_address" placeholder="Toshkent sh., Chilonzor tumani">
-      </div>
-      <div class="form-group">
-        <label>Shifokor F.I.Sh.</label>
-        <input type="text" id="doc_name" placeholder="Dr. Aliyev A.A.">
-      </div>
-      <div class="form-group">
-        <label>Mutaxassisligi</label>
-        <input type="text" id="doc_spec" placeholder="Terapevt">
-      </div>
-      <div class="form-group">
-        <label>Shifokor Imzosi (Rasm URL yoki Fayl)</label>
-        <input type="file" id="doc_sign_file" accept="image/*" onchange="uploadImage(event, 'sign')">
-      </div>
-      <div class="form-group">
-        <label>Muhr (Pechat) Rasmi (PNG)</label>
-        <input type="file" id="doc_stamp_file" accept="image/*" onchange="uploadImage(event, 'stamp')">
-      </div>
-      <button class="btn-add" style="background:var(--primary-color); color:#fff;" onclick="saveDoctorProfile()">💾 Sozlamalarni saqlash</button>
-    </div>
-  </div>
-
   <!-- STEP 1: BEMOR MA'LUMOTLARI -->
   <div id="step1" class="step-page active">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <div class="header-title">Retsept yozish</div>
-      <span style="font-size:12px; color:var(--primary-color); cursor:pointer; font-weight:600;" onclick="showProfilePage()">⚙️ Profil</span>
+    <div class="top-bar">
+      <div></div>
+      <div class="settings-btn" onclick="openSettings()">⚙️ Shifokor profili</div>
     </div>
+    <div class="header-title">Retsept yozish</div>
     <div class="step-indicator">1 / 4 - Bemor ma'lumotlari</div>
 
     <div class="section-title">👤 BEMOR MA'LUMOTLARI</div>
     <div class="card">
       <div class="form-group">
         <label>F.I.Sh.</label>
-        <input type="text" id="patient_name" placeholder="Asadbek Ravshanov">
+        <input type="text" id="patient_name" value="Asadbek Ravshanov">
       </div>
       <div class="row">
         <div class="col form-group">
           <label>Tug'ilgan sanasi</label>
-          <input type="text" id="birth_date" placeholder="06.08.2002">
+          <input type="text" id="birth_date" value="06.08.2002">
         </div>
         <div class="col form-group">
           <label>Yoshi</label>
-          <input type="number" id="age" placeholder="24">
+          <input type="number" id="age" value="24">
         </div>
       </div>
       <div class="form-group">
@@ -388,14 +348,16 @@
       </div>
       <div class="form-group">
         <label>Ambulator karta №</label>
-        <input type="text" id="card_num" placeholder="A-123">
+        <input type="text" id="card_num" value="A-123">
       </div>
     </div>
   </div>
 
   <!-- STEP 2: DIAGNOZ -->
   <div id="step2" class="step-page">
-    <div class="top-nav" onclick="prevStep(1)">❮ Orqaga</div>
+    <div class="top-bar">
+      <div class="top-nav" onclick="prevStep(1)">❮ Orqaga</div>
+    </div>
     <div class="header-title">Retsept yozish</div>
     <div class="step-indicator">2 / 4 - Diagnoz</div>
 
@@ -403,14 +365,16 @@
     <div class="card">
       <div class="form-group">
         <label>ICD-10 kodi va Tashxis</label>
-        <textarea id="diagnosis" rows="3" placeholder="J20.9 - O'tkir bronxit"></textarea>
+        <textarea id="diagnosis" rows="3">J20.9 - O'tkir bronxit</textarea>
       </div>
     </div>
   </div>
 
   <!-- STEP 3: DORILAR -->
   <div id="step3" class="step-page">
-    <div class="top-nav" onclick="prevStep(2)">❮ Orqaga</div>
+    <div class="top-bar">
+      <div class="top-nav" onclick="prevStep(2)">❮ Orqaga</div>
+    </div>
     <div class="header-title">Retsept yozish</div>
     <div class="step-indicator">3 / 4 - Tayinlangan dorilar</div>
 
@@ -419,10 +383,10 @@
       <div id="medicinesContainer">
         <div class="medicine-item">
           <div class="form-group">
-            <input type="text" class="med-name" placeholder="Caps.Azithromycini 0.5 N3">
+            <input type="text" class="med-name" value="Caps. Azithromycini 0.5 N3" placeholder="Dori nomi va dozasi">
           </div>
           <div class="form-group">
-            <input type="text" class="med-dose" placeholder="D.S. 1kaps 1mahal">
+            <input type="text" class="med-dose" value="D.S. 1 kapsuladan 1 mahal (3 kun)" placeholder="Qabul qilish tartibi">
           </div>
         </div>
       </div>
@@ -432,7 +396,9 @@
 
   <!-- STEP 4: QO'SHIMCHA -->
   <div id="step4" class="step-page">
-    <div class="top-nav" onclick="prevStep(3)">❮ Orqaga</div>
+    <div class="top-bar">
+      <div class="top-nav" onclick="prevStep(3)">❮ Orqaga</div>
+    </div>
     <div class="header-title">Retsept yozish</div>
     <div class="step-indicator">4 / 4 - Qo'shimcha ma'lumot</div>
 
@@ -449,23 +415,54 @@
     </div>
   </div>
 
-  <!-- PREVIEW PAGE (RASMDAGI BILAN 100% BIR XIL) -->
+  <!-- SHIFOKOR PROFILI (SOZLAMALAR) -->
+  <div id="settingsPage">
+    <div class="top-bar">
+      <div class="top-nav" onclick="closeSettings()">❮ Orqaga</div>
+    </div>
+    <div class="header-title">Shifokor Profili</div>
+    <div class="step-indicator">Ushbu ma'lumotlar retseptda aks etadi</div>
+
+    <div class="card">
+      <div class="form-group">
+        <label>Shifokor F.I.Sh.</label>
+        <input type="text" id="doc_name_input" value="Dr. Aliyev A.A.">
+      </div>
+      <div class="form-group">
+        <label>Mutaxassisligi</label>
+        <input type="text" id="doc_spec_input" value="Terapevt">
+      </div>
+      <div class="form-group">
+        <label>Klinika / Tibbiyot markazi nomi</label>
+        <input type="text" id="clinic_name_input" value="DR.MED Tibbiyot Markazi">
+      </div>
+      <div class="form-group">
+        <label>Klinika manzili</label>
+        <input type="text" id="clinic_address_input" value="Toshkent sh., Chilonzor tumani">
+      </div>
+      <button type="button" class="btn-add" style="background: var(--primary-color); color:#fff; border:none; margin-top:8px;" onclick="closeSettings()">💾 Saqlash</button>
+    </div>
+  </div>
+
+  <!-- PREVIEW PAGE -->
   <div id="previewPage">
-    <div class="top-nav" onclick="prevStep(4)">❮ Orqaga</div>
+    <div class="top-bar">
+      <div class="top-nav" onclick="prevStep(4)">❮ Orqaga</div>
+    </div>
     <div class="header-title">Tayyor retsept</div>
 
     <div class="recipe-paper" id="recipePaper">
       <div class="paper-header">
         <div>
-          <div class="brand-title" id="disp_clinic_title">DR.MED</div>
+          <div class="brand-title">DR.MED</div>
           <div class="brand-subtitle">ELEKTRON RETSEPT</div>
-          <div class="clinic-info" id="disp_clinic_info">
+          <div class="clinic-info" id="pv_clinic_info">
             DR.MED Tibbiyot Markazi<br>Toshkent sh., Chilonzor tumani
           </div>
         </div>
         <div class="rx-id-block">
           Retsept ID:<br>
-          <b id="disp_rx_id">RX-2026-0704</b>
+          <b id="disp_rx_id">RX-2026-8584</b>
         </div>
       </div>
 
@@ -495,9 +492,8 @@
       <div class="footer-stamp-area">
         <div class="qr-code-box" id="qrcode"></div>
         <div class="doctor-signature-box">
-          <div id="stamp_container"></div>
           <div>Sana: <span id="pv_date">26.07.2026</span> | Shifokor imzosi: _________</div>
-          <div style="font-size:10px; color:#64748b; margin-top:2px;" id="disp_doctor_name">Dr. Aliyev A.A.</div>
+          <div style="font-size:10px; color:#64748b; margin-top:2px;" id="pv_doctor_info">Dr. Aliyev A.A. (Terapevt)</div>
         </div>
       </div>
     </div>
@@ -517,55 +513,17 @@
 
     let currentStep = 1;
     let selectedGender = "Erkak";
-    let doctorProfile = {
-      clinic: "DR.MED Tibbiyot Markazi",
-      address: "Toshkent sh., Chilonzor tumani",
-      name: "Dr. Aliyev A.A.",
-      spec: "Terapevt",
-      sign: "",
-      stamp: ""
-    };
 
-    // Load Profile from LocalStorage
-    function loadDoctorProfile() {
-      const saved = localStorage.getItem('dr_profile');
-      if (saved) {
-        doctorProfile = JSON.parse(saved);
-        document.getElementById('doc_clinic').value = doctorProfile.clinic || "";
-        document.getElementById('doc_address').value = doctorProfile.address || "";
-        document.getElementById('doc_name').value = doctorProfile.name || "";
-        document.getElementById('doc_spec').value = doctorProfile.spec || "";
-      }
-    }
-
-    function saveDoctorProfile() {
-      doctorProfile.clinic = document.getElementById('doc_clinic').value;
-      doctorProfile.address = document.getElementById('doc_address').value;
-      doctorProfile.name = document.getElementById('doc_name').value;
-      doctorProfile.spec = document.getElementById('doc_spec').value;
-
-      localStorage.setItem('dr_profile', JSON.stringify(doctorProfile));
-      alert("Sozlamalar saqlandi!");
-      prevStep(1);
-    }
-
-    function uploadImage(event, type) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          if (type === 'sign') doctorProfile.sign = e.target.result;
-          if (type === 'stamp') doctorProfile.stamp = e.target.result;
-          localStorage.setItem('dr_profile', JSON.stringify(doctorProfile));
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-
-    function showProfilePage() {
+    function openSettings() {
       document.querySelectorAll('.step-page').forEach(p => p.classList.remove('active'));
-      document.getElementById('stepProfile').classList.add('active');
+      document.getElementById('settingsPage').style.display = 'block';
       tg.MainButton.hide();
+    }
+
+    function closeSettings() {
+      document.getElementById('settingsPage').style.display = 'none';
+      document.getElementById(`step${currentStep}`).classList.add('active');
+      updateMainButton();
     }
 
     function setGender(gender) {
@@ -583,7 +541,7 @@
           <input type="text" class="med-name" placeholder="Dori nomi va dozasi">
         </div>
         <div class="form-group">
-          <input type="text" class="med-dose" placeholder="D.S. Qabul qilish tartibi">
+          <input type="text" class="med-dose" placeholder="Qabul qilish tartibi">
         </div>
       `;
       container.appendChild(div);
@@ -626,9 +584,14 @@
       currentStep = 5;
       updateMainButton();
 
-      // Clinic Info
-      document.getElementById('disp_clinic_info').innerHTML = `${doctorProfile.clinic || "DR.MED Tibbiyot Markazi"}<br>${doctorProfile.address || "Toshkent sh., Chilonzor tumani"}`;
-      document.getElementById('disp_doctor_name').innerText = doctorProfile.name ? `${doctorProfile.name} (${doctorProfile.spec})` : "";
+      // Doctor & Clinic Info Update
+      const docName = document.getElementById('doc_name_input').value || 'Dr. Aliyev A.A.';
+      const docSpec = document.getElementById('doc_spec_input').value || 'Terapevt';
+      const clinicName = document.getElementById('clinic_name_input').value || 'DR.MED Tibbiyot Markazi';
+      const clinicAddress = document.getElementById('clinic_address_input').value || 'Toshkent sh., Chilonzor tumani';
+
+      document.getElementById('pv_clinic_info').innerHTML = `${clinicName}<br>${clinicAddress}`;
+      document.getElementById('pv_doctor_info').innerText = `${docName} (${docSpec})`;
 
       // Patient Info
       document.getElementById('pv_name').innerText = document.getElementById('patient_name').value || 'Asadbek Ravshanov';
@@ -647,16 +610,17 @@
       const randomID = "RX-" + today.getFullYear() + "-" + String(Math.floor(1000 + Math.random() * 9000));
       document.getElementById('disp_rx_id').innerText = randomID;
 
-      // Medicines
+      // Medicines Render
       const medsList = document.getElementById('pv_meds');
       medsList.innerHTML = '';
       const names = document.querySelectorAll('.med-name');
       const doses = document.querySelectorAll('.med-dose');
 
       names.forEach((input, i) => {
-        if (input.value.trim()) {
+        if (input.value && input.value.trim() !== '') {
           const li = document.createElement('li');
-          li.innerHTML = `<b>${input.value}</b><div class="med-dose-text">${doses[i].value}</div>`;
+          const doseVal = doses[i] && doses[i].value ? doses[i].value : '';
+          li.innerHTML = `<b>${input.value}</b><div class="med-dose-text">${doseVal}</div>`;
           medsList.appendChild(li);
         }
       });
@@ -664,36 +628,25 @@
       // QR Code Generation
       document.getElementById("qrcode").innerHTML = "";
       new QRCode(document.getElementById("qrcode"), {
-        text: `DR.MED RETSEPT | ID: ${randomID} | Bemor: ${document.getElementById('patient_name').value}`,
-        width: 65,
-        height: 65
+        text: `DR.MED | ID: ${randomID}`,
+        width: 50,
+        height: 50
       });
-
-      // Signature & Stamp render
-      const stampContainer = document.getElementById('stamp_container');
-      stampContainer.innerHTML = '';
-      if (doctorProfile.stamp) {
-        stampContainer.innerHTML += `<img src="${doctorProfile.stamp}" class="stamp-img">`;
-      }
-      if (doctorProfile.sign) {
-        stampContainer.innerHTML += `<img src="${doctorProfile.sign}" class="signature-img">`;
-      }
     }
 
     tg.MainButton.onClick(() => {
       nextStep();
     });
 
-    loadDoctorProfile();
     updateMainButton();
 
     function downloadPDF() {
       const element = document.getElementById('recipePaper');
       const opt = {
-        margin:       0.2,
-        filename:     'Retsept.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
+        margin:       [0.3, 0.3, 0.3, 0.3],
+        filename:     `Retsept_${document.getElementById('disp_rx_id').innerText}.pdf`,
+        image:        { type: 'jpeg', quality: 1.0 },
+        html2canvas:  { scale: 3, useCORS: true, logging: false },
         jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
       };
       html2pdf().set(opt).from(element).save();
@@ -706,6 +659,7 @@
     function sendToBot() {
       const data = {
         rx_id: document.getElementById('disp_rx_id').innerText,
+        doctor: document.getElementById('doc_name_input').value,
         patient_name: document.getElementById('patient_name').value,
         age: document.getElementById('age').value,
         diagnosis: document.getElementById('diagnosis').value
