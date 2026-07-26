@@ -122,8 +122,9 @@ function renderDrugCards() {
         </div>
       </div>
 
+      <!-- DORI NOMI KENGAYTIRILDI (col-7, col-3, col-2) -->
       <div class="form-row">
-        <div class="form-group col-6">
+        <div class="form-group col-7">
           <label>Dori nomi (Lat) <span class="req">*</span></label>
           <input type="text" value="${d.name}" placeholder="Masalan: Paracetamoli" oninput="drugs[${idx}].name=this.value; liveUpdate();">
         </div>
@@ -131,7 +132,7 @@ function renderDrugCards() {
           <label>Dozasi</label>
           <input type="text" value="${d.dose}" placeholder="500 mg" oninput="drugs[${idx}].dose=this.value; liveUpdate();">
         </div>
-        <div class="form-group col-3">
+        <div class="form-group col-2">
           <label>Shakli</label>
           <select onchange="drugs[${idx}].shape=this.value; liveUpdate();">
             <option value="Tab." ${d.shape==='Tab.'?'selected':''}>Tab.</option>
@@ -329,7 +330,7 @@ function clearSignatureCanvas() {
   if (!ctx) return;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   document.getElementById('paper_sig_img').style.display = 'none';
-  document.getElementById('sig_text_fallback').style.display = 'inline';
+  document.getElementById('sig_text_fallback').style.display = 'inline-block';
 }
 
 function applySignatureToPaper() {
