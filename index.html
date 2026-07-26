@@ -2,669 +2,200 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>DR.MED – Elektron Retsept (Blankada PDF)</title>
-
-  <!-- External Libraries -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DR.MED RETSEPT FORMASI</title>
+  
+  <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-
-    :root {
-      --primary: #007a63;
-      --primary-hover: #006350;
-      --bg: #eef2f5;
-      --card-bg: #ffffff;
-      --text: #1e293b;
-      --border: #cbd5e1;
-    }
-
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     body {
-      background-color: var(--bg);
-      color: var(--text);
-      padding: 15px;
-      display: flex;
-      justify-content: center;
-    }
-
-    .app-header-title {
-      text-align: center;
-      font-size: 22px;
-      font-weight: 900;
-      color: var(--primary);
-      margin-bottom: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    /* GRID LAYOUT FOR DESKTOP & MOBILE */
-    .steps-wrapper {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
-      width: 100%;
-      max-width: 1200px;
-    }
-
-    @media (max-width: 900px) {
-      .steps-wrapper {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .step-column {
-      background: #f8fafc;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .step-header {
-      background: var(--primary);
-      color: #fff;
-      padding: 10px 14px;
-      font-size: 13px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .step-body {
-      padding: 12px;
-      flex: 1;
-      overflow-y: auto;
-    }
-
-    .card-section {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 10px;
-      margin-bottom: 12px;
-    }
-
-    .card-title {
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--primary);
-      text-transform: uppercase;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .form-group { margin-bottom: 8px; }
-    .form-group label { display: block; font-size: 10px; font-weight: 700; color: #475569; margin-bottom: 3px; }
-    .form-group input, .form-group select, .form-group textarea {
-      width: 100%;
-      padding: 7px 9px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-size: 11px;
-      outline: none;
-      background: #fff;
-    }
-
-    .row { display: flex; gap: 6px; }
-    .col { flex: 1; }
-
-    /* GENDER TOGGLE BUTTONS */
-    .gender-toggle { display: flex; gap: 6px; }
-    .gender-btn {
-      flex: 1;
-      padding: 8px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      background: #fff;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-      text-align: center;
-      color: #64748b;
-    }
-    .gender-btn.active {
-      background: var(--primary);
-      color: #fff;
-      border-color: var(--primary);
-    }
-
-    /* BUTTONS */
-    .btn {
-      width: 100%;
-      padding: 10px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 700;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-    .btn-primary { background: var(--primary); color: #fff; }
-    .btn-primary:hover { background: var(--primary-hover); }
-    .btn-outline { background: transparent; border: 1px solid var(--border); color: #475569; }
-
-    /* DRUG CARD IN STEP 2 */
-    .rp-item-card {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px;
-      margin-bottom: 10px;
-      position: relative;
-    }
-
-    .rp-item-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--primary);
-    }
-
-    .icon-btn-group { display: flex; gap: 6px; }
-    .icon-btn { border: none; background: transparent; cursor: pointer; font-size: 12px; color: #94a3b8; }
-    .icon-btn:hover { color: #ef4444; }
-
-    /* PDF BLANKA (STEP 3) DESIGN */
-    .pdf-paper {
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      padding: 14px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      font-size: 10px;
-      color: #0f172a;
-    }
-
-    .pdf-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      border-bottom: 2px solid var(--primary);
-      padding-bottom: 8px;
-      margin-bottom: 8px;
-    }
-
-    .pdf-logo-area { display: flex; gap: 8px; align-items: center; }
-    .pdf-cross-icon { font-size: 28px; color: var(--primary); font-weight: 900; line-height: 1; }
-    .pdf-title-text b { font-size: 16px; color: var(--primary); font-weight: 900; display: block; }
-    .pdf-title-text span { font-size: 8px; font-weight: 800; color: #334155; }
-
-    .pdf-clinic-info { font-size: 7.5px; color: #475569; margin-top: 4px; line-height: 1.2; }
-    .pdf-rx-id { text-align: right; font-size: 7.5px; color: #64748b; }
-    .pdf-rx-id b { font-size: 9px; color: #0f172a; display: block; }
-
-    .pdf-grid-two {
-      display: grid;
-      grid-template-columns: 1.2fr 1fr;
-      gap: 8px;
-      border-bottom: 1px solid #e2e8f0;
-      padding-bottom: 6px;
-      margin-bottom: 6px;
-    }
-
-    .pdf-sub-title {
-      font-size: 8px;
-      font-weight: 800;
-      color: var(--primary);
-      margin-bottom: 4px;
-      text-transform: uppercase;
-    }
-
-    .pdf-info-list { font-size: 8px; line-height: 1.4; color: #1e293b; }
-    .pdf-info-list div { display: flex; gap: 4px; }
-    .pdf-info-list b { min-width: 80px; color: #475569; }
-
-    .pdf-doc-box {
-      border-bottom: 1px solid #e2e8f0;
-      padding-bottom: 6px;
-      margin-bottom: 6px;
-    }
-
-    .pdf-retsept-title {
-      text-align: center;
-      font-size: 12px;
-      font-weight: 900;
-      letter-spacing: 6px;
-      margin: 8px 0;
-      color: #0f172a;
-    }
-
-    .pdf-rx-body {
-      border: 1px solid #e2e8f0;
-      border-radius: 6px;
-      padding: 8px;
-      background: #fafafa;
-      min-height: 120px;
-      margin-bottom: 8px;
-    }
-
-    .pdf-drug-entry { margin-bottom: 6px; font-size: 8.5px; line-height: 1.3; }
-    .pdf-drug-entry b { color: #0f172a; }
-    .pdf-drug-sub { padding-left: 12px; color: #334155; }
-
-    .pdf-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      margin-top: 6px;
-    }
-
-    .pdf-stamp-circle {
-      width: 55px;
-      height: 55px;
-      border: 2px dashed #0056b3;
-      border-radius: 50%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: #0056b3;
-      font-size: 6px;
-      font-weight: 800;
-      text-align: center;
-      transform: rotate(-10deg);
-    }
-
-    .pdf-signature-area { text-align: right; font-size: 8px; }
-    .pdf-sig-line { font-family: 'Brush Script MT', cursive; font-size: 14px; color: #002b80; text-decoration: underline; }
-
-    .pdf-bottom-notice {
-      text-align: center;
-      font-size: 6.5px;
-      color: #64748b;
-      margin-top: 8px;
-      border-top: 1px solid #f1f5f9;
-      padding-top: 4px;
+      font-family: 'Inter', sans-serif;
+      background-color: var(--tg-theme-bg-color, #f8fafc);
+      color: var(--tg-theme-text-color, #0f172a);
     }
   </style>
 </head>
-<body>
+<body class="pb-10">
 
-  <div style="width: 100%;">
-    <div class="app-header-title">
-      DR.MED – Elektron Retsept (Blankada PDF)
+  <div class="max-w-xl mx-auto p-4 space-y-6">
+    
+    <!-- Header -->
+    <div class="text-center space-y-1 mt-2">
+      <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-600 mb-2">
+        <i data-lucide="file-text" class="w-6 h-6"></i>
+      </div>
+      <h1 class="text-2xl font-bold text-slate-800">DR.MED</h1>
+      <p class="text-sm text-slate-500">Raqamli retsept yaratish shakli</p>
     </div>
 
-    <div class="steps-wrapper">
+    <form id="recipeForm" class="space-y-6">
       
-      <!-- ================= 1-QADAM: BEMOR MA'LUMOTLARI ================= -->
-      <div class="step-column">
-        <div class="step-header">
-          👤 1. Bemor ma'lumotlari
+      <!-- Bemor ma'lumotlari -->
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 space-y-4">
+        <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+          <i data-lucide="user" class="w-4 h-4"></i> Bemor ma'lumotlari
+        </h2>
+        
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">F.I.O.</label>
+          <input type="text" id="patientName" required placeholder="Masalan: Aliyev Vali" 
+            class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
         </div>
-        <div class="step-body">
-          <div class="card-section">
-            <div class="card-title">👤 BEMOR MA'LUMOTLARI</div>
-            
-            <div class="form-group">
-              <label>F.I.Sh.</label>
-              <input type="text" id="p_name" value="Asadbek Xolmirzayev" oninput="updatePDF()">
-            </div>
 
-            <div class="row">
-              <div class="col form-group">
-                <label>Tug'ilgan sanasi</label>
-                <input type="text" id="p_birth" value="12.05.2004" oninput="updatePDF()">
-              </div>
-              <div class="col form-group">
-                <label>Yoshi</label>
-                <input type="number" id="p_age" value="20" oninput="updatePDF()">
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label>Jinsi</label>
-              <div class="gender-toggle">
-                <button class="gender-btn active" id="btn_male" onclick="setGender('Erkak')">Erkak</button>
-                <button class="gender-btn" id="btn_female" onclick="setGender('Ayol')">Ayol</button>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label>Manzili (ixtiyoriy)</label>
-              <input type="text" id="p_address" value="Toshkent sh., Chilonzor tumani" oninput="updatePDF()">
-            </div>
-
-            <div class="form-group">
-              <label>Ambulator karta №</label>
-              <input type="text" id="p_card" value="A-123456" oninput="updatePDF()">
-            </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Yoshi</label>
+            <input type="number" id="patientAge" required placeholder="25" 
+              class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
           </div>
-
-          <div class="card-section">
-            <div class="card-title">🩺 DIAGNOZ</div>
-            <div class="row">
-              <div class="col form-group" style="flex: 0.4;">
-                <label>ICD-10 kodi</label>
-                <input type="text" id="p_icd" value="J20.9" oninput="updatePDF()">
-              </div>
-              <div class="col form-group">
-                <label>Tashxis</label>
-                <input type="text" id="p_diag" value="O'tkir bronxit, aniqlanmagan qo'zg'atuvchi bilan" oninput="updatePDF()">
-              </div>
-            </div>
-          </div>
-
-          <div class="card-section">
-            <div class="card-title">⚙️ QO'SHIMCHA MA'LUMOT</div>
-            <div class="form-group">
-              <label>Allergiyasi (ixtiyoriy)</label>
-              <input type="text" id="p_allergy" value="Yo'q">
-            </div>
-            <div class="form-group">
-              <label>Izoh (ixtiyoriy)</label>
-              <input type="text" id="p_note" value="Harorat 37.8°C, yo'tal, balg'am bilan.">
-            </div>
-          </div>
-
-          <button class="btn btn-primary" onclick="alert('2-qadamga o\'tildi')">Keyingisi: Retsept ➔</button>
-        </div>
-      </div>
-
-
-      <!-- ================= 2-QADAM: RETSEPT (DORILAR) ================= -->
-      <div class="step-column">
-        <div class="step-header">
-          🔗 2. Retsept
-        </div>
-        <div class="step-body">
-          <div class="card-title" style="margin-bottom: 6px;">💊 DORILAR</div>
-          
-          <div id="drugsContainer"></div>
-
-          <button class="btn btn-outline" style="margin-bottom: 12px; background: #fff;" onclick="addDrugCard()">+ Dori qo'shish</button>
-
-          <div class="row">
-            <button class="btn btn-outline" style="flex: 0.4; background:#fff;" onclick="alert('Orqaga')">← Orqaga</button>
-            <button class="btn btn-primary" style="flex: 1;" onclick="downloadPDF()">📄 PDF yaratish</button>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Tashxis</label>
+            <input type="text" id="diagnosis" required placeholder="O'TK" 
+              class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
           </div>
         </div>
       </div>
 
-
-      <!-- ================= 3-QADAM: TAYYOR RETSEPT (PDF BLANKA) ================= -->
-      <div class="step-column">
-        <div class="step-header">
-          📄 3. Tayyor retsept (PDF ko'rinish)
+      <!-- Dori-darmonlar ro'yxati -->
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <i data-lucide="pill" class="w-4 h-4"></i> Tayinlangan dorilar
+          </h2>
+          <button type="button" id="addMedBtn" class="text-xs font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Dori qo'shish
+          </button>
         </div>
-        <div class="step-body">
-          
-          <div class="pdf-paper" id="pdfPaper">
-            <!-- HEADER -->
-            <div class="pdf-header">
-              <div class="pdf-logo-area">
-                <div class="pdf-cross-icon">+</div>
-                <div class="pdf-title-text">
-                  <b>DR.MED</b>
-                  <span>ELEKTRON RETSEPT</span>
-                  <div class="pdf-clinic-info">
-                    <b>DR.MED Tibbiyot Markazi</b><br>
-                    Toshkent sh., Chilonzor tumani, Bunyodkor ko'chasi, 12-uy<br>
-                    Tel: +998 90 123 45 67
-                  </div>
-                </div>
-              </div>
 
-              <div class="pdf-rx-id">
-                <div id="pdf_qr" style="margin-bottom: 4px; display: flex; justify-content: flex-end;"></div>
-                Retsept ID:<br>
-                <b id="pdf_rx_num">RX-2025-0704-00125</b>
-              </div>
-            </div>
-
-            <!-- BEMOR & DIAGNOZ GRID -->
-            <div class="pdf-grid-two">
-              <div>
-                <div class="pdf-sub-title">BEMOR MA'LUMOTLARI</div>
-                <div class="pdf-info-list">
-                  <div><b>F.I.Sh.:</b> <span id="pdf_p_name">Asadbek Xolmirzayev</span></div>
-                  <div><b>Tug'ilgan sanasi:</b> <span id="pdf_p_birth">12.05.2004</span></div>
-                  <div><b>Yoshi:</b> <span id="pdf_p_age">20</span></div>
-                  <div><b>Jinsi:</b> <span id="pdf_p_gender">Erkak</span></div>
-                  <div><b>Manzili:</b> <span id="pdf_p_address">Toshkent sh., Chilonzor tumani</span></div>
-                  <div><b>Ambulator karta №:</b> <span id="pdf_p_card">A-123456</span></div>
-                </div>
-              </div>
-
-              <div>
-                <div class="pdf-sub-title">DIAGNOZ</div>
-                <div class="pdf-info-list">
-                  <div><b>ICD-10 kodi:</b> <span id="pdf_p_icd">J20.9</span></div>
-                  <div><b>Tashxis:</b> <span id="pdf_p_diag">O'tkir bronxit, aniqlanmagan qo'zg'atuvchi bilan</span></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- SHIFOKOR MA'LUMOTLARI -->
-            <div class="pdf-doc-box">
-              <div class="pdf-sub-title">SHIFOKOR MA'LUMOTLARI</div>
-              <div class="pdf-info-list">
-                <div><b>F.I.Sh.:</b> <span>Asrorov Asadbek Asliddinovich</span></div>
-                <div><b>Mutaxassisligi:</b> <span>Terapevt</span></div>
-                <div><b>Litsenziya / ID №:</b> <span>012345</span></div>
-              </div>
-            </div>
-
-            <!-- RETSEPT SARLAVHASI -->
-            <div class="pdf-retsept-title">R E T S E P T</div>
-
-            <!-- DORILAR RO'YXATI -->
-            <div class="pdf-rx-body" id="pdf_drugs_list"></div>
-
-            <div style="font-size: 8px; margin-bottom: 6px;">
-              <b>S.:</b><br>
-              <span style="color: #334155; padding-left: 10px;">Yuoqridagi ko'rsatmaga muvofiq qo'llansin.</span>
-            </div>
-
-            <!-- FOOTER & MUHR -->
-            <div class="pdf-footer">
-              <div>
-                <div>Sana: <b id="pdf_date">04.07.2026</b></div>
-              </div>
-
-              <div class="pdf-signature-area">
-                <div>Shifokor imzosi:</div>
-                <div class="pdf-sig-line">Asrorov A.</div>
-              </div>
-
-              <div class="pdf-stamp-circle">
-                TIBBIYOT MARKAZI<br>
-                <b style="font-size:7px; color:#0056b3;">★ DR.MED ★</b><br>
-                TOSHKENT
-              </div>
-            </div>
-
-            <div class="pdf-bottom-notice">
-              Ushbu retsept faqat malakali shifokor tomonidan tibbiy ko'rikdan so'ng rasmiylashtiriladi.
-            </div>
-
-          </div>
-
+        <div id="medicationsList" class="space-y-4">
+          <!-- Dori kartochkasi shu yerga dinamik qo'shiladi -->
         </div>
       </div>
 
-    </div>
+      <!-- Qo'shimcha izoh -->
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 space-y-2">
+        <label class="block text-sm font-medium text-slate-700">Shifokor tavsiyasi / Izoh</label>
+        <textarea id="notes" rows="3" placeholder="Ko'proq suyuqlik ichish, parhez..." 
+          class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm resize-none"></textarea>
+      </div>
+
+      <!-- Yuborish tugmasi -->
+      <button type="submit" id="submitBtn" 
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-xl shadow-lg shadow-blue-500/30 transition duration-200 flex items-center justify-center gap-2 text-sm">
+        <i data-lucide="send" class="w-4 h-4"></i> Retseptni yuborish
+      </button>
+
+    </form>
   </div>
 
+  <!-- Template for Medication Item -->
+  <template id="medTemplate">
+    <div class="med-item p-3 border border-slate-100 rounded-lg bg-slate-50/50 space-y-3 relative group">
+      <button type="button" class="remove-med-btn absolute top-2 right-2 text-slate-400 hover:text-red-500 transition-colors">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1">Dori nomi va dozasi</label>
+        <input type="text" class="med-name w-full px-2.5 py-1.5 border border-slate-200 rounded-md text-sm bg-white focus:outline-none focus:border-blue-500" required placeholder="Masalan: Paratsetamol 500mg">
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Qabul qilish tartibi</label>
+          <input type="text" class="med-dosage w-full px-2.5 py-1.5 border border-slate-200 rounded-md text-sm bg-white focus:outline-none focus:border-blue-500" required placeholder="1 ta tabletkadan 3 mahal">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Davomiyligi (kun)</label>
+          <input type="text" class="med-duration w-full px-2.5 py-1.5 border border-slate-200 rounded-md text-sm bg-white focus:outline-none focus:border-blue-500" required placeholder="5 kun">
+        </div>
+      </div>
+    </div>
+  </template>
+
   <script>
-    let currentGender = 'Erkak';
+    // Initialize Lucide icons
+    lucide.createIcons();
 
-    // Dori ma'lumotlar bazasi
-    let drugs = [
-      {
-        name: 'Amoxicillini',
-        dose: '0,5',
-        shape: 'Tab.',
-        count: '21 in caps.',
-        dtd: 'D.t.d. № 21 in caps.',
-        ds: 'Kuniga 3 mahal 1 kapsuladan, ovqatdan keyin 7 kun.'
-      },
-      {
-        name: 'Ambroxoli',
-        dose: '15 mg/5 ml',
-        shape: 'Syr.',
-        count: '100 ml',
-        dtd: '-',
-        ds: 'Kuniga 3 mahal 5 ml dan, ovqatdan keyin.'
-      },
-      {
-        name: 'Paracetamoli',
-        dose: '500 mg',
-        shape: 'Tab.',
-        count: '10',
-        dtd: 'D.t.d. № 10',
-        ds: 'Harorat 38°C dan yuqori bo\'lsa, 1 tabletka qabul qilinsin.'
-      }
-    ];
-
-    window.onload = function() {
-      renderDrugCards();
-      updatePDF();
-    };
-
-    function setGender(g) {
-      currentGender = g;
-      document.getElementById('btn_male').classList.toggle('active', g === 'Erkak');
-      document.getElementById('btn_female').classList.toggle('active', g === 'Ayol');
-      updatePDF();
+    // Initialize Telegram WebApp
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
     }
 
-    function renderDrugCards() {
-      const container = document.getElementById('drugsContainer');
-      container.innerHTML = '';
+    const medicationsList = document.getElementById('medicationsList');
+    const medTemplate = document.getElementById('medTemplate');
+    const addMedBtn = document.getElementById('addMedBtn');
+    const recipeForm = document.getElementById('recipeForm');
 
-      drugs.forEach((d, idx) => {
-        const card = document.createElement('div');
-        card.className = 'rp-item-card';
-        card.innerHTML = `
-          <div class="rp-item-header">
-            <span>Rp. ${idx + 1}</span>
-            <div class="icon-btn-group">
-              <button class="icon-btn" title="Nusxalash">📋</button>
-              <button class="icon-btn" title="O'chirish" onclick="removeDrug(${idx})">🗑️</button>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col form-group" style="flex: 1.2;">
-              <label>Dori nomi</label>
-              <input type="text" value="${d.name}" oninput="drugs[${idx}].name=this.value; updatePDF()">
-            </div>
-            <div class="col form-group">
-              <label>Dozasi</label>
-              <input type="text" value="${d.dose}" oninput="drugs[${idx}].dose=this.value; updatePDF()">
-            </div>
-            <div class="col form-group" style="flex: 0.8;">
-              <label>Shakli</label>
-              <select onchange="drugs[${idx}].shape=this.value; updatePDF()">
-                <option value="Tab." ${d.shape==='Tab.'?'selected':''}>Tab.</option>
-                <option value="Syr." ${d.shape==='Syr.'?'selected':''}>Syr.</option>
-                <option value="Caps." ${d.shape==='Caps.'?'selected':''}>Caps.</option>
-                <option value="Sol." ${d.shape==='Sol.'?'selected':''}>Sol.</option>
-              </select>
-            </div>
-            <div class="col form-group">
-              <label>Miqdori</label>
-              <input type="text" value="${d.count}" oninput="drugs[${idx}].count=this.value; updatePDF()">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>D.t.d.</label>
-            <input type="text" value="${d.dtd}" oninput="drugs[${idx}].dtd=this.value; updatePDF()">
-          </div>
-
-          <div class="form-group">
-            <label>D.S. (qo'llash usuli)</label>
-            <textarea style="height: 40px;" oninput="drugs[${idx}].ds=this.value; updatePDF()">${d.ds}</textarea>
-          </div>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    function addDrugCard() {
-      drugs.push({ name: '', dose: '', shape: 'Tab.', count: '', dtd: '', ds: '' });
-      renderDrugCards();
-      updatePDF();
-    }
-
-    function removeDrug(index) {
-      drugs.splice(index, 1);
-      renderDrugCards();
-      updatePDF();
-    }
-
-    function updatePDF() {
-      // Bemor ma'lumotlari
-      document.getElementById('pdf_p_name').innerText = document.getElementById('p_name').value;
-      document.getElementById('pdf_p_birth').innerText = document.getElementById('p_birth').value;
-      document.getElementById('pdf_p_age').innerText = document.getElementById('p_age').value;
-      document.getElementById('pdf_p_gender').innerText = currentGender;
-      document.getElementById('pdf_p_address').innerText = document.getElementById('p_address').value;
-      document.getElementById('pdf_p_card').innerText = document.getElementById('p_card').value;
-
-      // Diagnoz
-      document.getElementById('pdf_p_icd').innerText = document.getElementById('p_icd').value;
-      document.getElementById('pdf_p_diag').innerText = document.getElementById('p_diag').value;
-
-      // Dorilar ro'yxati
-      const rxContainer = document.getElementById('pdf_drugs_list');
-      rxContainer.innerHTML = '';
-
-      drugs.forEach((d, idx) => {
-        if(d.name.trim() !== '') {
-          const div = document.createElement('div');
-          div.className = 'pdf-drug-entry';
-          div.innerHTML = `
-            <b>Rp.: ${idx + 1}. ${d.shape} ${d.name} ${d.dose}</b><br>
-            <div class="pdf-drug-sub">
-              ${d.dtd !== '-' && d.dtd !== '' ? d.dtd + '<br>' : ''}
-              ${d.count ? d.count + '<br>' : ''}
-              S. ${d.ds}
-            </div>
-          `;
-          rxContainer.appendChild(div);
+    // Dori kartochkasini qo'shish funksiyasi
+    function addMedicationField() {
+      const clone = medTemplate.content.cloneNode(true);
+      const medItem = clone.querySelector('.med-item');
+      
+      // O'chirish tugmasi hodisasi
+      const removeBtn = clone.querySelector('.remove-med-btn');
+      removeBtn.addEventListener('click', () => {
+        if (medicationsList.children.length > 1) {
+          medItem.remove();
+        } else {
+          alert("Kamida bitta dori kiritilishi kerak!");
         }
       });
 
-      // QR Kod
-      document.getElementById('pdf_qr').innerHTML = '';
-      new QRCode(document.getElementById("pdf_qr"), {
-        text: `DR.MED | RX-2025-0704-00125 | Bemor: ${document.getElementById('p_name').value}`,
-        width: 40,
-        height: 40
-      });
+      medicationsList.appendChild(clone);
+      lucide.createIcons();
     }
 
-    function downloadPDF() {
-      const element = document.getElementById('pdfPaper');
-      const opt = {
-        margin:       0.1,
-        filename:     'DRMED_Retsept.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 3, useCORS: true },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+    // Boshlanishiga bitta dori maydonini yaratamiz
+    addMedicationField();
+
+    // Dori qo'shish tugmasi bosilganda
+    addMedBtn.addEventListener('click', addMedicationField);
+
+    // Forma yuborilganda
+    recipeForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      // Barcha dorilarni yig'ib olish
+      const medItems = document.querySelectorAll('.med-item');
+      const medications = [];
+
+      medItems.forEach(item => {
+        medications.push({
+          name: item.querySelector('.med-name').value,
+          dosage: item.querySelector('.med-dosage').value,
+          duration: item.querySelector('.med-duration').value
+        });
+      });
+
+      // Ma'lumotlar obyektini shakllantirish
+      const formData = {
+        patientName: document.getElementById('patientName').value,
+        patientAge: document.getElementById('patientAge').value,
+        diagnosis: document.getElementById('diagnosis').value,
+        medications: medications,
+        notes: document.getElementById('notes').value
       };
-      html2pdf().set(opt).from(element).save();
-    }
+
+      // Telegram Botga javobni yuborish
+      if (tg && tg.sendData) {
+        tg.sendData(JSON.stringify(formData));
+        tg.close();
+      } else {
+        console.log('Yuborilgan ma\'lumotlar:', formData);
+        alert('Ma\'lumotlar konsolga chiqarildi (Telegram WebApp muhitidan tashqarida).');
+      }
+    });
   </script>
 </body>
 </html>
