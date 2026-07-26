@@ -15,6 +15,7 @@ if (tg) {
 let currentStep = 1;
 let currentGender = 'Erkak';
 let signatureDataURL = null;
+let customStampDataURL = null; // Custom Stamp Image Data
 
 // DEFAULT DOCTOR & CLINIC SETTINGS
 let doctorProfile = {
@@ -122,7 +123,6 @@ function renderDrugCards() {
         </div>
       </div>
 
-      <!-- DORI NOMI KENGAYTIRILDI (col-7, col-3, col-2) -->
       <div class="form-row">
         <div class="form-group col-7">
           <label>Dori nomi (Lat) <span class="req">*</span></label>
@@ -263,15 +263,47 @@ function liveUpdate() {
     }
   });
 
-  // QR Code Generation
+  // Stamp Handling
+  const stampImgEl = document.getElementById('paper_stamp_img');
+  const stampDefaultEl = document.getElementById('paper_stamp_default');
+  if (customStampDataURL) {
+    stampImgEl.src = customStampDataURL;
+    stampImgEl.style.display = 'block';
+    if (stampDefaultEl) stampDefaultEl.style.display = 'none';
+  } else {
+    stampImgEl.style.display = 'none';
+    if (stampDefaultEl) stampDefaultEl.style.display = 'block';
+  }
+
+  // QR Code Generation for PDF Online Viewing / Verification
   const qrContainer = document.getElementById('paper_qr_code');
   qrContainer.innerHTML = '';
   const rxId = document.getElementById('paper_rx_id').innerText;
+  const patientName = encodeURIComponent(document.getElementById('p_name').value || 'bemor');
+  
+  // Generates direct view link
+  const pdfViewUrl = `https://drmed-webapp.vercel.app/verify.html?id=${rxId}&patient=${patientName}`;
+
   new QRCode(qrContainer, {
-    text: `DRMED-VERIFY|${rxId}|${document.getElementById('p_name').value}`,
-    width: 42,
-    height: 42
+    text: pdfViewUrl,
+    width: 64,
+    height: 64,
+    correctLevel: QRCode.CorrectLevel.M
   });
+}
+
+/* ================= STAMP IMAGE UPLOAD LOGIC ================= */
+function uploadStampImage(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      customStampDataURL = e.target.result;
+      localStorage.setItem('drmed_stamp', customStampDataURL);
+      liveUpdate();
+    };
+    reader.readAsDataURL(file);
+  }
 }
 
 /* ================= SIGNATURE CANVAS LOGIC ================= */
@@ -374,9 +406,11 @@ function saveSettings() {
 function loadSettingsFromStorage() {
   const savedDoc = localStorage.getItem('drmed_doctor');
   const savedClinic = localStorage.getItem('drmed_clinic');
+  const savedStamp = localStorage.getItem('drmed_stamp');
 
   if (savedDoc) doctorProfile = JSON.parse(savedDoc);
   if (savedClinic) clinicProfile = JSON.parse(savedClinic);
+  if (savedStamp) customStampDataURL = savedStamp;
 
   document.getElementById('set_doc_name').value = doctorProfile.name;
   document.getElementById('set_doc_spec').value = doctorProfile.spec;
@@ -479,14 +513,14 @@ function selectICD(code, title) {
 function exportToPDF() {
   const element = document.getElementById('printablePaper');
   const opt = {
-    margin:       [5, 5, 5, 5], // Yon chetlaridagi bo'shliqlarni qisqartirish
+    margin:       [5, 5, 5, 5],
     filename:     `DRMED_Retsept_${document.getElementById('p_name').value || 'bemor'}.pdf`,
     image:        { type: 'jpeg', quality: 0.98 },
     html2canvas:  { 
       scale: 2, 
       useCORS: true, 
       logging: false,
-      windowWidth: 800 // Canvas o'lchamini kengaytirib, shrift va elementlarni to'liq yoyish
+      windowWidth: 800
     },
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
