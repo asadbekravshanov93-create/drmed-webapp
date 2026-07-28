@@ -436,42 +436,6 @@ body {
   color: var(--primary);
 }
 
-.quick-templates {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 8px;
-  margin-bottom: 12px;
-  scrollbar-width: thin;
-}
-
-.quick-templates span {
-  font-size: 10.5px;
-  font-weight: 700;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
-.chip {
-  background: #ffffff;
-  border: 1px solid var(--border-color);
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 11.5px;
-  font-weight: 600;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: var(--transition-fast);
-  box-shadow: var(--shadow-sm);
-}
-
-.chip:hover {
-  background: var(--primary-light);
-  border-color: var(--primary);
-  color: var(--primary);
-}
-
 .drug-card {
   background: #ffffff;
   border: 1px solid var(--border-color);
@@ -797,7 +761,7 @@ body {
   margin: 0 auto;
 }
 
-/* MUHR JOYI (OPTIMALIZATSIYA QILINGAN VA STANDART MUHR USLUBI) */
+/* MUHR JOYI */
 .rx-official-stamp {
   width: 80px;
   height: 80px;
@@ -832,36 +796,6 @@ body {
   font-weight: 800;
   line-height: 1.1;
   pointer-events: none;
-}
-
-.stamp-circle {
-  width: 92%;
-  height: 92%;
-  border: 1px dashed #0056b3;
-  border-radius: 50%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2px;
-}
-
-.stamp-text-top {
-  font-size: 6px;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.stamp-center {
-  font-size: 9px;
-  font-weight: 900;
-  margin: 1px 0;
-  letter-spacing: 0.5px;
-}
-
-.stamp-text-bottom {
-  font-size: 6.5px;
-  font-weight: 800;
 }
 
 /* SIGNATURE CANVAS CARD */
