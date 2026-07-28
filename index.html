@@ -68,17 +68,17 @@
         <div class="card-body">
           <div class="form-group">
             <label for="p_name">Bemor F.I.Sh. <span class="req">*</span></label>
-            <input type="text" id="p_name" placeholder="Masalan: Xolmirzayev Asadbek" value="Xolmirzayev Asadbek" oninput="liveUpdate()">
+            <input type="text" id="p_name" placeholder="Masalan: Aliyev Vali Olimovich" oninput="liveUpdate()">
           </div>
 
           <div class="form-row">
             <div class="form-group col-6">
               <label for="p_birth">Tug'ilgan sanasi</label>
-              <input type="date" id="p_birth" value="2004-05-12" onchange="calculateAge(); liveUpdate();">
+              <input type="date" id="p_birth" onchange="calculateAge(); liveUpdate();">
             </div>
             <div class="form-group col-6">
               <label for="p_age">Yoshi</label>
-              <input type="number" id="p_age" value="20" placeholder="Yosh" oninput="liveUpdate()">
+              <input type="number" id="p_age" placeholder="Yosh" oninput="liveUpdate()">
             </div>
           </div>
 
@@ -93,17 +93,17 @@
           <div class="form-row">
             <div class="form-group col-6">
               <label for="p_phone">Telefon raqami</label>
-              <input type="tel" id="p_phone" placeholder="+998 90 123 45 67" value="+998 90 123 45 67">
+              <input type="tel" id="p_phone" placeholder="+998 90 123 45 67" oninput="liveUpdate()">
             </div>
             <div class="form-group col-6">
               <label for="p_card">Ambulator karta №</label>
-              <input type="text" id="p_card" value="A-98745" oninput="liveUpdate()">
+              <input type="text" id="p_card" placeholder="Masalan: A-98745" oninput="liveUpdate()">
             </div>
           </div>
 
           <div class="form-group">
             <label for="p_address">Yashash manzili</label>
-            <input type="text" id="p_address" value="Toshkent sh., Chilonzor tumani" oninput="liveUpdate()">
+            <input type="text" id="p_address" placeholder="Toshkent sh., Chilonzor tumani..." oninput="liveUpdate()">
           </div>
         </div>
       </div>
@@ -117,15 +117,15 @@
           <div class="form-row">
             <div class="form-group col-4">
               <label for="v_bp">Qon bosimi</label>
-              <input type="text" id="v_bp" placeholder="120/80" value="120/80">
+              <input type="text" id="v_bp" placeholder="120/80" oninput="liveUpdate()">
             </div>
             <div class="form-group col-4">
               <label for="v_temp">Harorat (°C)</label>
-              <input type="text" id="v_temp" placeholder="36.6" value="37.8">
+              <input type="text" id="v_temp" placeholder="36.6" oninput="liveUpdate()">
             </div>
             <div class="form-group col-4">
               <label for="v_weight">Vazni (kg)</label>
-              <input type="number" id="v_weight" placeholder="70" value="68">
+              <input type="number" id="v_weight" placeholder="70" oninput="liveUpdate()">
             </div>
           </div>
 
@@ -133,24 +133,24 @@
             <div class="form-group col-4">
               <label for="p_icd">ICD-10 Kodi</label>
               <div class="input-with-btn">
-                <input type="text" id="p_icd" value="J20.9" oninput="liveUpdate()">
+                <input type="text" id="p_icd" placeholder="Masalan: J20.9" oninput="liveUpdate()">
                 <button type="button" class="btn-input-act" onclick="openModal('icdModal')">🔍</button>
               </div>
             </div>
             <div class="form-group col-8">
               <label for="p_diag">Klinik Tashxis <span class="req">*</span></label>
-              <input type="text" id="p_diag" value="O'tkir bronxit, aniqlanmagan qo'zg'atuvchi bilan" oninput="liveUpdate()">
+              <input type="text" id="p_diag" placeholder="Klinik tashxisni kiriting..." oninput="liveUpdate()">
             </div>
           </div>
 
           <div class="form-group">
             <label for="p_allergy">Allergik holatlar (Allergiya)</label>
-            <input type="text" id="p_allergy" placeholder="Masalan: Penitsillin, Pollinoz..." value="Yo'q">
+            <input type="text" id="p_allergy" placeholder="Masalan: Penitsillin, Pollinoz yoki Yo'q" oninput="liveUpdate()">
           </div>
 
           <div class="form-group">
             <label for="p_note">Shifokor izohi / Qo'shimcha</label>
-            <textarea id="p_note" rows="2" placeholder="Shikoyat va anamnez izohlari...">Harorat ko'tarilishi, quruq yo'tal, umumiy holsizlik.</textarea>
+            <textarea id="p_note" rows="2" placeholder="Shikoyat va anamnez izohlari..." oninput="liveUpdate()"></textarea>
           </div>
         </div>
       </div>
@@ -259,8 +259,8 @@
 
           <!-- DOCTOR INFO -->
           <div class="rx-doctor-banner">
-            <div><span>Davolovchi shifokor:</span> <strong id="paper_doc_name">Dr. Asrorov A.A.</strong></div>
-            <div><span>Mutaxassislik / ID:</span> <strong id="paper_doc_spec">Terapevt</strong> (№ <span id="paper_doc_id">012345</span>)</div>
+            <div><span>Davolovchi shifokor:</span> <strong id="paper_doc_name">Shifokor F.I.Sh.</strong></div>
+            <div><span>Mutaxassislik / ID:</span> <strong id="paper_doc_spec">Terapevt</strong> (№ <span id="paper_doc_id">000000</span>)</div>
           </div>
 
           <div class="rx-title-banner">
@@ -290,12 +290,12 @@
               <div class="rx-sig-block">
                 <span>Shifokor imzosi:</span>
                 <div class="sig-img-holder" id="paper_signature_holder">
-                  <span class="sig-placeholder" id="sig_text_fallback">Asrorov A.A.</span>
+                  <span class="sig-placeholder" id="sig_text_fallback">Imzo</span>
                   <img id="paper_sig_img" src="" alt="Signature" style="display:none;">
                 </div>
               </div>
 
-              <!-- MUHR JOYI (2-rasmdagi o'ringa moslangan) -->
+              <!-- MUHR JOYI -->
               <div class="rx-official-stamp" id="paper_stamp_container">
                 <img id="paper_stamp_img" src="" alt="Muhr" style="display:none; width:100%; height:100%; object-fit:contain;">
                 <div class="stamp-inner" id="paper_stamp_default">
@@ -345,31 +345,31 @@
         <div class="card-title-sm">👨‍⚕️ SHIFOKOR PROFILI</div>
         <div class="form-group">
           <label for="set_doc_name">Shifokor F.I.Sh.</label>
-          <input type="text" id="set_doc_name" value="Asrorov Asadbek Asliddinovich">
+          <input type="text" id="set_doc_name" placeholder="Masalan: Dr. Asrorov A.A.">
         </div>
         <div class="form-row">
           <div class="form-group col-6">
             <label for="set_doc_spec">Mutaxassisligi</label>
-            <input type="text" id="set_doc_spec" value="Shifokor-Terapevt">
+            <input type="text" id="set_doc_spec" placeholder="Shifokor-Terapevt">
           </div>
           <div class="form-group col-6">
             <label for="set_doc_id">Litsenziya / ID №</label>
-            <input type="text" id="set_doc_id" value="012345">
+            <input type="text" id="set_doc_id" placeholder="012345">
           </div>
         </div>
 
         <div class="card-title-sm" style="margin-top:15px;">🏥 KLINIKA REKVIZITLARI</div>
         <div class="form-group">
           <label for="set_clinic_name">Klinika Nomi</label>
-          <input type="text" id="set_clinic_name" value="DR.MED Tibbiyot Markazi">
+          <input type="text" id="set_clinic_name" placeholder="DR.MED Tibbiyot Markazi">
         </div>
         <div class="form-group">
           <label for="set_clinic_address">Manzil</label>
-          <input type="text" id="set_clinic_address" value="Toshkent sh., Chilonzor tumani, Bunyodkor ko'chasi 12-uy">
+          <input type="text" id="set_clinic_address" placeholder="Toshkent sh., Chilonzor tumani...">
         </div>
         <div class="form-group">
           <label for="set_clinic_phone">Telefon</label>
-          <input type="text" id="set_clinic_phone" value="+998 (71) 200-00-11">
+          <input type="text" id="set_clinic_phone" placeholder="+998 (71) 200-00-11">
         </div>
 
         <!-- SHIFOKOR VA KLINIKA MUHRI YUKLASH BO'LIMI -->
@@ -416,7 +416,7 @@
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <input type="text" id="icdSearchInput" placeholder="Kasalik nomi yoki kodi..." oninput="searchICD10()">
+          <input type="text" id="icdSearchInput" placeholder="Kasallik nomi yoki kodi..." oninput="searchICD10()">
         </div>
         <div class="icd-results-list" id="icdResultsList">
           <!-- Dynamic ICD search results -->
