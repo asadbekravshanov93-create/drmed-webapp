@@ -50,18 +50,25 @@ let drugs = [
   }
 ];
 
-// ICD-10 DATABASE SAMPLE
-const icd10Data = [
-  { code: 'J20.9', title: "O'tkir bronxit, aniqlanmagan" },
-  { code: 'J06.9', title: "Yuqori nafas yo'llarining o'tkir infektsiyasi (O'RVI)" },
-  { code: 'K29.7', title: "Gastrit, aniqlanmagan" },
-  { code: 'I10', title: "Essensial [birlamchi] gipertenziya (Qon bosimi)" },
-  { code: 'J45.0', title: "Bronxial astma" }
-];
+// DYNAMIC ICD-10 DATABASE (icd10_uz.json faylidan yuklanadi)
+let icd10Data = [];
+
+function loadICD10Database() {
+  fetch('icd10_uz.json')
+    .then(response => response.json())
+    .then(data => {
+      icd10Data = data;
+      console.log(`✅ ICD-10 O'zbekcha bazasi yuklandi: ${icd10Data.length} ta tashxis.`);
+    })
+    .catch(err => {
+      console.error("❌ ICD-10 bazasini yuklashda xatolik:", err);
+    });
+}
 
 // INITIALIZATION ON LOAD
 window.addEventListener('DOMContentLoaded', () => {
   loadSettingsFromStorage();
+  loadICD10Database(); // ICD-10 o'zbekcha bazani yuklaydi
   renderDrugCards();
   initSignatureCanvas();
   liveUpdate();
@@ -284,12 +291,14 @@ function liveUpdate() {
   // Generates direct view link
   const pdfViewUrl = `https://drmed-webapp.vercel.app/verify.html?id=${rxId}&patient=${patientName}`;
 
-  new QRCode(qrContainer, {
-    text: pdfViewUrl,
-    width: 64,
-    height: 64,
-    correctLevel: QRCode.CorrectLevel.M
-  });
+  if (window.QRCode) {
+    new QRCode(qrContainer, {
+      text: pdfViewUrl,
+      width: 64,
+      height: 64,
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  }
 }
 
 /* ================= STAMP IMAGE UPLOAD LOGIC ================= */
@@ -485,15 +494,32 @@ function clearAllHistory() {
   }
 }
 
-/* ================= ICD-10 SEARCH ================= */
+/* ================= DYNAMIC ICD-10 SEARCH (O'ZBEKCHA) ================= */
 function searchICD10() {
-  const query = document.getElementById('icdSearchInput').value.toLowerCase();
+  const queryInput = document.getElementById('icdSearchInput');
+  const query = queryInput ? queryInput.value.toLowerCase().trim() : '';
   const resultsContainer = document.getElementById('icdResultsList');
 
-  const filtered = icd10Data.filter(i => i.code.toLowerCase().includes(query) || i.title.toLowerCase().includes(query));
+  if (!resultsContainer) return;
+
+  // Qidiruv bo'sh bo'lsa dastlabki 30 ta elementni ko'rsatadi
+  let filtered = [];
+  if (!query) {
+    filtered = icd10Data.slice(0, 30);
+  } else {
+    filtered = icd10Data.filter(i => 
+      (i.code && i.code.toLowerCase().includes(query)) || 
+      (i.title && i.title.toLowerCase().includes(query))
+    ).slice(0, 50); // Ekran qotib qolmasligi uchun ko'p natijalardan 50 tasini chiqaradi
+  }
+
+  if (filtered.length === 0) {
+    resultsContainer.innerHTML = '<p class="help-text" style="padding: 12px; text-align: center;">Tashxis topilmadi.</p>';
+    return;
+  }
 
   resultsContainer.innerHTML = filtered.map(i => `
-    <div class="history-item" onclick="selectICD('${i.code}', '${i.title}')" style="cursor:pointer;">
+    <div class="history-item" onclick="selectICD('${i.code}', '${i.title.replace(/'/g, "\\'")}')" style="cursor:pointer;">
       <div class="history-info">
         <h4>${i.code}</h4>
         <p>${i.title}</p>
