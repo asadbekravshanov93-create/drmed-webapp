@@ -295,11 +295,11 @@
                 </div>
               </div>
 
-              <!-- MUHR JOYI (TO'G'RILANDI) -->
+              <!-- MUHR JOYI -->
               <div class="rx-official-stamp" id="paper_stamp_container">
                 <img id="paper_stamp_img" src="" alt="Muhr" style="display:none; width:100%; height:100%; object-fit:contain; transform:none !important;">
                 <div class="stamp-inner" id="paper_stamp_default">
-                  <!-- Ichidagi matnlar olib tashlandi -->
+                  <!-- Standart muhr ko'rinishi -->
                 </div>
               </div>
             </div>
@@ -393,7 +393,7 @@
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <input type="text" id="historySearch" placeholder="Bemor ismi bo'yicha izlash..." oninput="filterHistory()">
+          <input type="text" id="historySearchInput" placeholder="Bemor ismi bo'yicha izlash..." oninput="renderHistoryList()">
         </div>
         <div class="history-list" id="historyListContainer">
           <!-- Dynamic history items -->
