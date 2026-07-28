@@ -695,7 +695,7 @@ body {
   margin: 0 auto;
 }
 
-/* MUHR JOYI (2-rasmdagi ko'rinishga to'liq moslangan) */
+/* MUHR JOYI (TO'G'RILANDI) */
 .rx-official-stamp {
   width: 80px;
   height: 80px;
@@ -704,13 +704,26 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transform: rotate(-12deg);
+  transform: none !important; /* Burilish va qiyshayish taqiqlandi */
   overflow: hidden;
   position: relative;
   background: transparent;
 }
 
+.rx-official-stamp img#paper_stamp_img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: none !important; /* Rasm qiyshaymay tekis joylashishi uchun */
+  display: block;
+}
+
 .stamp-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   color: #0056b3;
   font-size: 7px;
