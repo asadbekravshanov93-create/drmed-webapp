@@ -71,7 +71,7 @@ window.addEventListener('DOMContentLoaded', () => {
   loadICD10Database(); // ICD-10 o'zbekcha bazani yuklaydi
   renderDrugCards();
   initSignatureCanvas();
-  checkURLParamsAndRender(); // Urldan kelgan retsept parametrlarini tekshirish
+  checkURLParamsAndRender(); // URL'dan kelgan retsept parametrlarini tekshirish
   liveUpdate();
 });
 
@@ -84,8 +84,8 @@ function checkURLParamsAndRender() {
     const history = JSON.parse(localStorage.getItem('drmed_history') || '[]');
     const targetRx = history.find(item => item.id === viewRxId);
     if (targetRx) {
-      document.getElementById('p_name').value = targetRx.patientName || '';
-      document.getElementById('p_diag').value = targetRx.diag || '';
+      if (document.getElementById('p_name')) document.getElementById('p_name').value = targetRx.patientName || '';
+      if (document.getElementById('p_diag')) document.getElementById('p_diag').value = targetRx.diag || '';
       if (targetRx.drugs) drugs = targetRx.drugs;
       renderDrugCards();
       switchStep(3);
@@ -100,8 +100,10 @@ function switchStep(stepNum) {
   document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.wizard-tab').forEach(el => el.classList.remove('active'));
 
-  document.getElementById(`step${stepNum}`).classList.add('active');
-  document.getElementById(`tab${stepNum}`).classList.add('active');
+  const activeStep = document.getElementById(`step${stepNum}`);
+  const activeTab = document.getElementById(`tab${stepNum}`);
+  if (activeStep) activeStep.classList.add('active');
+  if (activeTab) activeTab.classList.add('active');
 
   if (stepNum === 3) {
     liveUpdate();
@@ -117,19 +119,23 @@ function switchStep(stepNum) {
 
 function selectGender(gender) {
   currentGender = gender;
-  document.getElementById('gender_m').classList.toggle('active', gender === 'Erkak');
-  document.getElementById('gender_f').classList.toggle('active', gender === 'Ayol');
+  const genderM = document.getElementById('gender_m');
+  const genderF = document.getElementById('gender_f');
+  if (genderM) genderM.classList.toggle('active', gender === 'Erkak');
+  if (genderF) genderF.classList.toggle('active', gender === 'Ayol');
   liveUpdate();
 }
 
 function calculateAge() {
-  const birthVal = document.getElementById('p_birth').value;
+  const birthVal = document.getElementById('p_birth') ? document.getElementById('p_birth').value : null;
   if (!birthVal) return;
   const birthDate = new Date(birthVal);
   const diff = Date.now() - birthDate.getTime();
   const ageDate = new Date(diff);
   const calculatedAge = Math.abs(ageDate.getUTCFullYear() - 1970);
-  document.getElementById('p_age').value = calculatedAge;
+  const ageInput = document.getElementById('p_age');
+  if (ageInput) ageInput.value = calculatedAge;
+  liveUpdate();
 }
 
 /* ================= DRUG BUILDER LOGIC ================= */
@@ -283,7 +289,7 @@ function liveUpdate() {
   }
   const currentRxId = rxIdEl ? rxIdEl.innerText : 'RX-000000';
 
-  // Drugs Render in Paper (1. Rp.: shakliga o'tkazildi)
+  // Drugs Render in Paper
   const paperDrugsContainer = document.getElementById('paper_drugs_list');
   if (paperDrugsContainer) {
     paperDrugsContainer.innerHTML = '';
@@ -305,7 +311,7 @@ function liveUpdate() {
     });
   }
 
-  // Stamp Handling
+  // Stamp Handling (Maxsus muhr yuklangan bo'lsa ko'rsatiladi, aks holda standart muhr qoladi)
   const stampImgEl = document.getElementById('paper_stamp_img');
   const stampDefaultEl = document.getElementById('paper_stamp_default');
   if (stampImgEl) {
@@ -319,12 +325,11 @@ function liveUpdate() {
     }
   }
 
-  // Dynamic QR Code Generation for Direct View and Verification
+  // Dynamic QR Code Generation
   const qrContainer = document.getElementById('paper_qr_code');
   if (qrContainer) {
     qrContainer.innerHTML = '';
     
-    // WebApp bazasidagi to'g'ri manzilni dinamik aniqlash (404 xatoni oldini oladi)
     const baseUrl = window.location.origin + window.location.pathname;
     const pdfViewUrl = `${baseUrl}?rx_id=${currentRxId}&patient=${encodeURIComponent(pName || 'bemor')}`;
 
@@ -445,13 +450,13 @@ function closeModal(id) {
 
 /* ================= SETTINGS & LOCAL STORAGE ================= */
 function saveSettings() {
-  doctorProfile.name = document.getElementById('set_doc_name').value;
-  doctorProfile.spec = document.getElementById('set_doc_spec').value;
-  doctorProfile.id = document.getElementById('set_doc_id').value;
+  if (document.getElementById('set_doc_name')) doctorProfile.name = document.getElementById('set_doc_name').value;
+  if (document.getElementById('set_doc_spec')) doctorProfile.spec = document.getElementById('set_doc_spec').value;
+  if (document.getElementById('set_doc_id')) doctorProfile.id = document.getElementById('set_doc_id').value;
 
-  clinicProfile.name = document.getElementById('set_clinic_name').value;
-  clinicProfile.address = document.getElementById('set_clinic_address').value;
-  clinicProfile.phone = document.getElementById('set_clinic_phone').value;
+  if (document.getElementById('set_clinic_name')) clinicProfile.name = document.getElementById('set_clinic_name').value;
+  if (document.getElementById('set_clinic_address')) clinicProfile.address = document.getElementById('set_clinic_address').value;
+  if (document.getElementById('set_clinic_phone')) clinicProfile.phone = document.getElementById('set_clinic_phone').value;
 
   localStorage.setItem('drmed_doctor', JSON.stringify(doctorProfile));
   localStorage.setItem('drmed_clinic', JSON.stringify(clinicProfile));
