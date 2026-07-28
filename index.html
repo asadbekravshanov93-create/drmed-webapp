@@ -2,7 +2,7 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>DR.MED – Pro Retsept Tizimi</title>
 
   <!-- Google Fonts & Icons -->
@@ -85,8 +85,8 @@
           <div class="form-group">
             <label>Jinsi</label>
             <div class="segmented-control">
-              <button class="segment-btn active" id="gender_m" onclick="selectGender('Erkak')">Erkak</button>
-              <button class="segment-btn" id="gender_f" onclick="selectGender('Ayol')">Ayol</button>
+              <button type="button" class="segment-btn active" id="gender_m" onclick="selectGender('Erkak')">Erkak</button>
+              <button type="button" class="segment-btn" id="gender_f" onclick="selectGender('Ayol')">Ayol</button>
             </div>
           </div>
 
@@ -156,7 +156,7 @@
       </div>
 
       <div class="step-footer">
-        <button class="btn btn-primary btn-block btn-lg" onclick="switchStep(2)">
+        <button type="button" class="btn btn-primary btn-block btn-lg" onclick="switchStep(2)">
           Keyingisi: Retsept Yozish ➔
         </button>
       </div>
@@ -167,16 +167,16 @@
       
       <div class="section-title">
         <h2>💊 RETSEPT TARKIBI (Rp.)</h2>
-        <button class="sm-btn btn-add" onclick="addNewDrugCard()">+ Dori Qo'shish</button>
+        <button type="button" class="sm-btn btn-add" onclick="addNewDrugCard()">+ Dori Qo'shish</button>
       </div>
 
       <!-- Quick Template Selector -->
       <div class="quick-templates">
         <span>Tezkor Shablonlar:</span>
-        <button class="chip" onclick="applyPreset('bronchitis')">🫁 Bronxit</button>
-        <button class="chip" onclick="applyPreset('gripp')">🤒 O'RVI / Gripp</button>
-        <button class="chip" onclick="applyPreset('gastritis')">🫄 Gastrit</button>
-        <button class="chip" onclick="clearAllDrugs()">🗑️ Tozalash</button>
+        <button type="button" class="chip" onclick="applyPreset('bronchitis')">🫁 Bronxit</button>
+        <button type="button" class="chip" onclick="applyPreset('gripp')">🤒 O'RVI / Gripp</button>
+        <button type="button" class="chip" onclick="applyPreset('gastritis')">🫄 Gastrit</button>
+        <button type="button" class="chip" onclick="clearAllDrugs()">🗑️ Tozalash</button>
       </div>
 
       <!-- DRUGS CONTAINER -->
@@ -189,10 +189,10 @@
 
       <div class="step-footer form-row">
         <div class="col-4">
-          <button class="btn btn-secondary btn-block" onclick="switchStep(1)">← Orqaga</button>
+          <button type="button" class="btn btn-secondary btn-block" onclick="switchStep(1)">← Orqaga</button>
         </div>
         <div class="col-8">
-          <button class="btn btn-primary btn-block" onclick="switchStep(3)">👁️ Ko'rish va Tasdiqlash</button>
+          <button type="button" class="btn btn-primary btn-block" onclick="switchStep(3)">👁️ Ko'rish va Tasdiqlash</button>
         </div>
       </div>
     </section>
@@ -202,16 +202,16 @@
       
       <!-- ACTION CONTROL BAR -->
       <div class="action-toolbar">
-        <button class="act-btn btn-save" onclick="savePrescriptionToHistory()">
+        <button type="button" class="act-btn btn-save" onclick="savePrescriptionToHistory()">
           <i>💾</i> Saqlash
         </button>
-        <button class="act-btn btn-pdf" onclick="exportToPDF()">
+        <button type="button" class="act-btn btn-pdf" onclick="exportToPDF()">
           <i>📄</i> PDF Yuklash
         </button>
-        <button class="act-btn btn-print" onclick="printPrescription()">
+        <button type="button" class="act-btn btn-print" onclick="printPrescription()">
           <i>🖨️</i> Chop Etish
         </button>
-        <button class="act-btn btn-share" onclick="shareTelegram()">
+        <button type="button" class="act-btn btn-share" onclick="shareTelegram()">
           <i>✈️</i> Telegram
         </button>
       </div>
@@ -297,9 +297,13 @@
 
               <!-- MUHR JOYI -->
               <div class="rx-official-stamp" id="paper_stamp_container">
-                <img id="paper_stamp_img" src="" alt="Muhr" style="display:none; width:100%; height:100%; object-fit:contain; transform:none !important;">
+                <img id="paper_stamp_img" src="" alt="Muhr" style="display:none; width:100%; height:100%; object-fit:contain;">
                 <div class="stamp-inner" id="paper_stamp_default">
-                  <!-- Standart muhr ko'rinishi -->
+                  <div class="stamp-circle">
+                    <span class="stamp-text-top">SHIFOKOR UCHUN</span>
+                    <span class="stamp-center">MUHR</span>
+                    <span class="stamp-text-bottom">DR.MED</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -312,21 +316,21 @@
       <div class="card signature-card">
         <div class="card-header">
           <h2>✍️ SHIFOKOR RAQAMLI IMZOSI</h2>
-          <button class="sm-btn" onclick="clearSignatureCanvas()">Tozalash</button>
+          <button type="button" class="sm-btn" onclick="clearSignatureCanvas()">Tozalash</button>
         </div>
         <div class="card-body">
           <p class="help-text">Ekranga barmog'ingiz yoki sichqoncha bilan imzo cheking:</p>
           <div class="canvas-wrapper">
             <canvas id="signatureCanvas" width="400" height="150"></canvas>
           </div>
-          <button class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="applySignatureToPaper()">
+          <button type="button" class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="applySignatureToPaper()">
             Imzoni Blankaga Tushirish
           </button>
         </div>
       </div>
 
       <div class="step-footer">
-        <button class="btn btn-secondary btn-block" onclick="switchStep(2)">← Tahrirlashga Qaytish</button>
+        <button type="button" class="btn btn-secondary btn-block" onclick="switchStep(2)">← Tahrirlashga Qaytish</button>
       </div>
     </section>
 
@@ -337,7 +341,7 @@
     <div class="modal-dialog">
       <div class="modal-header">
         <h3>⚙️ Shifokor va Klinika Sozlamalari</h3>
-        <button class="close-btn" onclick="closeModal('settingsModal')">✕</button>
+        <button type="button" class="close-btn" onclick="closeModal('settingsModal')">✕</button>
       </div>
       <div class="modal-body">
         <div class="card-title-sm">👨‍⚕️ SHIFOKOR PROFILI</div>
@@ -379,7 +383,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-primary btn-block" onclick="saveSettings()">Saqlash va Yangilash</button>
+        <button type="button" class="btn btn-primary btn-block" onclick="saveSettings()">Saqlash va Yangilash</button>
       </div>
     </div>
   </div>
@@ -389,7 +393,7 @@
     <div class="modal-dialog">
       <div class="modal-header">
         <h3>📜 Saqlangan Retseptlar Tarixi</h3>
-        <button class="close-btn" onclick="closeModal('historyModal')">✕</button>
+        <button type="button" class="close-btn" onclick="closeModal('historyModal')">✕</button>
       </div>
       <div class="modal-body">
         <div class="form-group">
@@ -400,7 +404,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-danger btn-sm" onclick="clearAllHistory()">Tarixni Tozalash</button>
+        <button type="button" class="btn btn-danger btn-sm" onclick="clearAllHistory()">Tarixni Tozalash</button>
       </div>
     </div>
   </div>
@@ -410,7 +414,7 @@
     <div class="modal-dialog">
       <div class="modal-header">
         <h3>🔍 ICD-10 Kasalliklar Kodi</h3>
-        <button class="close-btn" onclick="closeModal('icdModal')">✕</button>
+        <button type="button" class="close-btn" onclick="closeModal('icdModal')">✕</button>
       </div>
       <div class="modal-body">
         <div class="form-group">
@@ -428,7 +432,7 @@
     <div class="modal-dialog">
       <div class="modal-header">
         <h3>📋 Asosiy Menyu</h3>
-        <button class="close-btn" onclick="closeModal('menuModal')">✕</button>
+        <button type="button" class="close-btn" onclick="closeModal('menuModal')">✕</button>
       </div>
       <div class="modal-body">
         <ul class="nav-menu-list">
