@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>DR.MED – Pro Retsept Tizimi</title>
 
-  <!-- Google Fonts & Icons -->
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -108,7 +108,7 @@
         </div>
       </div>
 
-      <!-- Vital Ko'rsatkichlar -->
+      <!-- Vital Ko'rsatkichlar & Diagnoz -->
       <div class="card">
         <div class="card-header">
           <h2>🩺 VITAL KO'RSATKICHLAR & DIAGNOZ</h2>
@@ -168,15 +168,6 @@
       <div class="section-title">
         <h2>💊 RETSEPT TARKIBI (Rp.)</h2>
         <button type="button" class="sm-btn btn-add" onclick="addNewDrugCard()">+ Dori Qo'shish</button>
-      </div>
-
-      <!-- Quick Template Selector -->
-      <div class="quick-templates">
-        <span>Tezkor Shablonlar:</span>
-        <button type="button" class="chip" onclick="applyPreset('bronchitis')">🫁 Bronxit</button>
-        <button type="button" class="chip" onclick="applyPreset('gripp')">🤒 O'RVI / Gripp</button>
-        <button type="button" class="chip" onclick="applyPreset('gastritis')">🫄 Gastrit</button>
-        <button type="button" class="chip" onclick="clearAllDrugs()">🗑️ Tozalash</button>
       </div>
 
       <!-- DRUGS CONTAINER -->
@@ -374,8 +365,8 @@
           <input type="text" id="set_clinic_phone" placeholder="+998 (71) 200-00-11">
         </div>
 
-        <!-- SHIFOKOR VA KLINIKA MUHRI YUKLASH BO'LIMI -->
-        <div class="card-title-sm" style="margin-top:15px;">Stamp / MUHR SOZLAMASI</div>
+        <!-- STAMP UPLOAD -->
+        <div class="card-title-sm" style="margin-top:15px;">STAMP / MUHR SOZLAMASI</div>
         <div class="form-group">
           <label for="set_stamp_file">Shifokor Muhri Rasmi (PNG/JPG)</label>
           <input type="file" id="set_stamp_file" accept="image/*" onchange="uploadStampImage(event)">
