@@ -31,24 +31,7 @@ let clinicProfile = {
 };
 
 // DEFAULT DRUGS ARRAY
-let drugs = [
-  {
-    name: 'Amoxicillini',
-    dose: '0.5 g',
-    shape: 'Tab.',
-    count: '21 in caps.',
-    dtd: 'D.t.d. № 21 in caps.',
-    ds: 'Kuniga 3 mahal 1 kapsuladan, ovqatdan keyin 7 kun.'
-  },
-  {
-    name: 'Ambroxoli',
-    dose: '15 mg/5 ml',
-    shape: 'Syr.',
-    count: '100 ml',
-    dtd: '-',
-    ds: 'Kuniga 3 mahal 5 ml dan, ovqatdan keyin 5 kun.'
-  }
-];
+let drugs = [];
 
 // DYNAMIC ICD-10 DATABASE (icd10_uz.json faylidan yuklanadi)
 let icd10Data = [];
@@ -145,7 +128,6 @@ function renderDrugCards() {
       <div class="drug-card-head">
         <span class="drug-num">${idx + 1}. Rp.:</span>
         <div class="drug-card-actions">
-          <button class="sm-btn" onclick="duplicateDrug(${idx})">📋 Nusxa</button>
           <button class="sm-btn" style="color:var(--danger);" onclick="removeDrug(${idx})">🗑️ O'chirish</button>
         </div>
       </div>
@@ -162,12 +144,21 @@ function renderDrugCards() {
         <div class="form-group col-2">
           <label>Shakli</label>
           <select onchange="drugs[${idx}].shape=this.value; liveUpdate();">
-            <option value="Tab." ${d.shape==='Tab.'?'selected':''}>Tab.</option>
-            <option value="Syr." ${d.shape==='Syr.'?'selected':''}>Syr.</option>
-            <option value="Caps." ${d.shape==='Caps.'?'selected':''}>Caps.</option>
-            <option value="Sol." ${d.shape==='Sol.'?'selected':''}>Sol.</option>
-            <option value="Amp." ${d.shape==='Amp.'?'selected':''}>Amp.</option>
-            <option value="Ung." ${d.shape==='Ung.'?'selected':''}>Ung.</option>
+            <option value="Tab.">Tab.</option>
+<option value="Caps.">Caps.</option>
+<option value="Amp.">Amp.</option>
+<option value="Inj.">Inj.</option>
+<option value="Sol.">Sol.</option>
+<option value="Syr.">Syr.</option>
+<option value="Susp.">Susp.</option>
+<option value="Pulv.">Pulv.</option>
+<option value="Ung.">Ung.</option>
+<option value="Gel">Gel</option>
+<option value="Crem.">Crem.</option>
+<option value="Spray">Spray</option>
+<option value="Aeros.">Aeros.</option>
+<option value="Supp.">Supp.</option>
+<option value="Gtt.">Gtt.</option>
           </select>
         </div>
       </div>
@@ -178,8 +169,6 @@ function renderDrugCards() {
           <input type="text" value="${d.dtd}" placeholder="D.t.d. № 10" oninput="drugs[${idx}].dtd=this.value; liveUpdate();">
         </div>
         <div class="form-group col-6">
-          <label>Umumiy miqdori</label>
-          <input type="text" value="${d.count}" placeholder="10 tab." oninput="drugs[${idx}].count=this.value; liveUpdate();">
         </div>
       </div>
 
@@ -193,20 +182,20 @@ function renderDrugCards() {
 }
 
 function addNewDrugCard() {
-  drugs.push({ name: '', dose: '', shape: 'Tab.', count: '', dtd: 'D.t.d. № ', ds: '' });
-  renderDrugCards();
-  liveUpdate();
+    drugs.push({
+        name: '',
+        dose: '',
+        shape: 'Tab.',
+        dtd: '',
+        ds: ''
+    });
+
+    renderDrugCards();
+    liveUpdate();
 }
 
 function removeDrug(index) {
   drugs.splice(index, 1);
-  renderDrugCards();
-  liveUpdate();
-}
-
-function duplicateDrug(index) {
-  const clone = JSON.parse(JSON.stringify(drugs[index]));
-  drugs.splice(index + 1, 0, clone);
   renderDrugCards();
   liveUpdate();
 }
