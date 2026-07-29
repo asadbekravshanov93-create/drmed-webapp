@@ -647,3 +647,36 @@ function resetAppDefaults() {
     location.reload();
   }
 }
+function downloadPDF() {
+
+    liveUpdate();
+
+    const element = document.getElementById("prescriptionPaper");
+
+    if (!element) {
+        alert("Retsept topilmadi!");
+        return;
+    }
+
+    const opt = {
+        margin: 8,
+        filename: `Retsept_${document.getElementById("paper_rx_id").innerText}.pdf`,
+        image: {
+            type: "jpeg",
+            quality: 1
+        },
+        html2canvas: {
+            scale: 3,
+            useCORS: true,
+            scrollY: 0
+        },
+        jsPDF: {
+            unit: "mm",
+            format: "a4",
+            orientation: "portrait"
+        }
+    };
+
+    html2pdf().set(opt).from(element).save();
+
+}
