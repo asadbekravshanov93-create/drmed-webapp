@@ -40,6 +40,101 @@ let drugs = [];
 // DYNAMIC ICD-10 DATABASE
 let icd10Data = [];
 
+// DEFAULT DRUGS ARRAY
+let drugs = [];
+
+
+/* =========================================================
+   DR.MED — YANGI RETSEPT RAQAMI
+   ========================================================= */
+
+let currentPrescriptionId = null;
+
+
+function generateNewPrescriptionId() {
+
+    const year =
+        new Date().getFullYear();
+
+    let counter =
+        parseInt(
+            localStorage.getItem(
+                "drmed_rx_counter"
+            ) || "0",
+            10
+        );
+
+    counter += 1;
+
+    localStorage.setItem(
+        "drmed_rx_counter",
+        String(counter)
+    );
+
+    return (
+        "RX-" +
+        year +
+        "-" +
+        String(counter).padStart(
+            5,
+            "0"
+        )
+    );
+}
+
+
+function startNewPrescription() {
+
+    currentPrescriptionId =
+        generateNewPrescriptionId();
+
+
+    const rxEl =
+        document.getElementById(
+            "paper_rx_id"
+        );
+
+
+    if (rxEl) {
+
+        rxEl.innerText =
+            currentPrescriptionId;
+    }
+
+
+    // Eski QRni tozalash
+    const qrEl =
+        document.getElementById(
+            "paper_qr_code"
+        );
+
+
+    if (qrEl) {
+
+        qrEl.innerHTML =
+            "";
+    }
+
+
+    // PDF modulidagi eski QR tokenni bekor qilish
+    if (
+        window.DRMED_PDF &&
+        typeof window.DRMED_PDF.resetRecipe ===
+            "function"
+    ) {
+
+        window.DRMED_PDF.resetRecipe(
+            currentPrescriptionId
+        );
+    }
+
+
+    console.log(
+        "🆕 Yangi retsept:",
+        currentPrescriptionId
+    );
+}
+
 function loadICD10Database() {
   fetch('icd10_uz.json')
     .then(response => response.json())
@@ -107,7 +202,17 @@ function checkURLParamsAndRender() {
 /* ================= WIZARD NAVIGATION ================= */
 
 function switchStep(stepNum) {
-  currentStep = stepNum;
+
+    // 3-qadamdan yangi retseptga o'tilsa,
+    // yangi RX raqami yaratiladi
+    if (
+        stepNum === 1 &&
+        currentStep === 3
+    ) {
+        startNewPrescription();
+    }
+
+    currentStep = stepNum;
 
   document
     .querySelectorAll('.step-content')
