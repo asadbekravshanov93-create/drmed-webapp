@@ -1,2557 +1,4631 @@
-/* =========================================================
-   DR.MED — PDF ENGINE
-   pdf.js
-   ========================================================= */
+/* ==========================================================================
+   DR.MED PRO SYSTEM - MAIN APPLICATION LOGIC & TELEGRAM INTEGRATION
+   ========================================================================== */
 
-"use strict";
+// TELEGRAM WEB APP INITIALIZATION
+const tg = window.Telegram ? window.Telegram.WebApp : null;
 
-(function () {
-
-    let isGenerating = false;
-
-
-    /* =====================================================
-       DR.MED QR RETSEPT TIZIMI
-       ===================================================== */
-
-    let recipeQrToken = null;
-    let recipeQrUrl = null;
-    let qrForRecipeId = null;
+if (tg) {
+  tg.ready();
+  tg.expand();
+  document.body.classList.add('tg-theme');
+}
 
 
-    /* =====================================================
-       BACKEND MANZILI
-       ===================================================== */
+// ==========================================================================
+// GLOBAL STATE
+// ==========================================================================
 
-    const DRMED_BACKEND_URL =
-        window.DRMED_BACKEND_URL ||
-        "http://127.0.0.1:8080";
+let currentStep = 1;
+let currentGender = 'Erkak';
+let signatureDataURL = null;
+let customStampDataURL = null;
 
 
-    /* =====================================================
-       YORDAMCHI
-       ===================================================== */
+// ==========================================================================
+// DEFAULT DOCTOR & CLINIC SETTINGS
+// ==========================================================================
 
-    function get(id) {
+let doctorProfile = {
+  name: "Asrorov Asadbek Asliddinovich",
+  spec: "Shifokor-Terapevt",
+  id: "012345"
+};
 
-        return document.getElementById(
-            id
-        );
+let clinicProfile = {
+  name: "DR.MED Tibbiyot Markazi",
+  address: "Toshkent sh., Chilonzor tumani, Bunyodkor ko'chasi 12-uy",
+  phone: "+998 (71) 200-00-11"
+};
+
+
+// ==========================================================================
+// DEFAULT DRUGS ARRAY
+// ==========================================================================
+
+let drugs = [];
+
+
+// ==========================================================================
+// DR.MED — RETSEPT RAQAMI
+// ==========================================================================
+
+let currentPrescriptionId = null;
+
+
+/**
+ * Yangi retsept raqamini yaratadi.
+ *
+ * Format:
+ * RX-2026-00001
+ * RX-2026-00002
+ * RX-2026-00003
+ */
+function generateNewPrescriptionId() {
+
+  const year = new Date().getFullYear();
+
+  let counter = parseInt(
+    localStorage.getItem('drmed_rx_counter') || '0',
+    10
+  );
+
+  counter += 1;
+
+  localStorage.setItem(
+    'drmed_rx_counter',
+    String(counter)
+  );
+
+  return (
+    'RX-' +
+    year +
+    '-' +
+    String(counter).padStart(5, '0')
+  );
+}
+
+
+/**
+ * Yangi retseptni boshlaydi.
+ *
+ * Bu funksiya:
+ * 1. Yangi RX raqam yaratadi
+ * 2. Blankadagi RX raqamini yangilaydi
+ * 3. Eski QR kodni tozalaydi
+ * 4. PDF moduliga yangi retsept raqamini bildiradi
+ */
+function startNewPrescription() {
+
+  currentPrescriptionId =
+    generateNewPrescriptionId();
+
+
+  const rxIdEl =
+    document.getElementById(
+      'paper_rx_id'
+    );
+
+
+  if (rxIdEl) {
+
+    rxIdEl.innerText =
+      currentPrescriptionId;
+  }
+
+
+  /*
+   * QR moduliga yangi retsept boshlanganini bildiradi.
+   * Eski QR shu yerda tozalanadi va yangi RX uchun
+   * yangi QR token yaratiladi.
+   */
+  if (
+    window.DRMED_QR &&
+    typeof window.DRMED_QR.reset ===
+      'function'
+  ) {
+
+    try {
+
+      window.DRMED_QR.reset(
+        currentPrescriptionId
+      );
+
+    } catch (error) {
+
+      console.warn(
+        'DRMED_QR.reset xatosi:',
+        error
+      );
+
     }
 
-
-    function patientName() {
-
-        const el =
-            get("p_name");
+  }
 
 
-        if (
-            !el ||
-            !el.value.trim()
-        ) {
+  /*
+   * PDF moduliga yangi retsept boshlanganini bildiradi.
+   *
+   * Agar pdf.js mavjud bo'lsa ishlaydi.
+   */
+  if (
+    window.DRMED_PDF &&
+    typeof window.DRMED_PDF.resetRecipe ===
+      'function'
+  ) {
 
-            return "Bemor";
-        }
+    try {
 
+      window.DRMED_PDF.resetRecipe(
+        currentPrescriptionId
+      );
 
-        return el.value
-            .trim()
-            .replace(
-                /[<>:"/\\|?*\x00-\x1F]/g,
-                "_"
-            );
+    } catch (error) {
+
+      console.warn(
+        'DRMED_PDF.resetRecipe xatosi:',
+        error
+      );
+
     }
 
-
-    function fileName(format) {
-
-        return (
-            "DRMED_Retsept_" +
-            format.toUpperCase() +
-            "_" +
-            patientName() +
-            ".pdf"
-        );
-    }
+  }
 
 
-    /* =====================================================
-       QR — RETSEPT RAQAMINI OLISH
-       ===================================================== */
-
-    function getRecipeId() {
-
-        const rxEl =
-            get("paper_rx_id");
+  console.log(
+    '🆕 Yangi retsept:',
+    currentPrescriptionId
+  );
+}
 
 
-        const recipeId =
-            rxEl?.innerText?.trim() ||
-            "";
+/**
+ * Joriy retsept raqamini qaytaradi.
+ *
+ * Agar hali mavjud bo'lmasa,
+ * avtomatik yangi raqam yaratadi.
+ */
+function getCurrentPrescriptionId() {
+
+  if (!currentPrescriptionId) {
+
+    startNewPrescription();
+
+  }
+
+  return currentPrescriptionId;
+}
 
 
-        if (!recipeId) {
+// ==========================================================================
+// DYNAMIC ICD-10 DATABASE
+// ==========================================================================
 
-            throw new Error(
-                "Retsept raqami topilmadi."
-            );
-        }
-
-
-        return recipeId;
-    }
+let icd10Data = [];
 
 
-    /* =====================================================
-       QR RESET
-       YANGI RETSEPT BOSHLANGANDA ISHLAYDI
-       ===================================================== */
+function loadICD10Database() {
 
-    function resetRecipeQr(
-        newRecipeId
-    ) {
+  fetch('icd10_uz.json')
 
-        recipeQrToken =
-            null;
+    .then(
+      response =>
+        response.json()
+    )
 
-        recipeQrUrl =
-            null;
+    .then(
+      data => {
 
-        qrForRecipeId =
-            newRecipeId ||
-            null;
-
-
-        const qrElement =
-            get(
-                "paper_qr_code"
-            );
-
-
-        if (qrElement) {
-
-            qrElement.innerHTML =
-                "";
-        }
-
+        icd10Data =
+          data;
 
         console.log(
-            "♻️ QR reset:",
-            newRecipeId
+          `✅ ICD-10 O'zbekcha bazasi yuklandi: ${icd10Data.length} ta tashxis.`
         );
+
+      }
+    )
+
+    .catch(
+      err => {
+
+        console.error(
+          "❌ ICD-10 bazasini yuklashda xatolik:",
+          err
+        );
+
+      }
+    );
+
+}
+
+
+// ==========================================================================
+// INITIALIZATION ON LOAD
+// ==========================================================================
+
+window.addEventListener(
+  'DOMContentLoaded',
+  () => {
+
+    loadSettingsFromStorage();
+
+    loadICD10Database();
+
+    renderDrugCards();
+
+    initSignatureCanvas();
+
+    checkURLParamsAndRender();
+
+
+    /*
+     * Agar yangi retsept bo'lmasa,
+     * avtomatik yaratamiz.
+     */
+    if (!currentPrescriptionId) {
+
+      startNewPrescription();
+
     }
 
 
-    /* =====================================================
-       QR TOKEN OLISH
-       ===================================================== */
+    liveUpdate();
 
-    async function ensureRecipeQrToken() {
-
-        const recipeId =
-            getRecipeId();
+  }
+);
 
 
-        /*
-         * Shu retsept uchun token allaqachon
-         * olingan bo'lsa qayta olmaymiz.
-         */
+// ==========================================================================
+// URL PARAMETERS CHECK FOR QR VIEW
+// ==========================================================================
 
-        if (
-            recipeQrToken &&
-            qrForRecipeId ===
-                recipeId &&
-            recipeQrUrl
-        ) {
+function checkURLParamsAndRender() {
 
-            return {
-
-                token:
-                    recipeQrToken,
-
-                url:
-                    recipeQrUrl,
-
-                recipeId:
-                    recipeId
-            };
-        }
+  const urlParams =
+    new URLSearchParams(
+      window.location.search
+    );
 
 
-        const response =
-            await fetch(
-                `${DRMED_BACKEND_URL}/api/create-recipe-token`,
-                {
-                    method:
-                        "POST",
-
-                    headers: {
-
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body:
-                        JSON.stringify({
-
-                            recipe_id:
-                                recipeId
-
-                        })
-                }
-            );
+  const viewRxId =
+    urlParams.get(
+      'rx_id'
+    );
 
 
-        if (!response.ok) {
+  if (!viewRxId) {
 
-            throw new Error(
-                `QR server xatosi: ${response.status}`
-            );
-        }
+    return;
 
-
-        const result =
-            await response.json();
+  }
 
 
-        if (
-            !result.ok ||
-            !result.token ||
-            !result.url
-        ) {
-
-            throw new Error(
-                result.error ||
-                "QR token yaratilmadi."
-            );
-        }
+  const history =
+    JSON.parse(
+      localStorage.getItem(
+        'drmed_history'
+      ) || '[]'
+    );
 
 
-        recipeQrToken =
-            result.token;
+  const targetRx =
+    history.find(
+      item =>
+        item.id ===
+        viewRxId
+    );
 
 
-        recipeQrUrl =
-            result.url;
+  if (!targetRx) {
+
+    console.warn(
+      'QR orqali so‘ralgan retsept topilmadi:',
+      viewRxId
+    );
+
+    return;
+
+  }
 
 
-        qrForRecipeId =
-            recipeId;
+  /*
+   * QR orqali eski retsept ochilganda
+   * yangi RX raqam yaratmaymiz.
+   *
+   * Aynan QR ichidagi RX raqamni
+   * saqlab qolamiz.
+   */
+  currentPrescriptionId =
+    targetRx.id;
 
 
-        console.log(
-            "✅ DR.MED QR token yaratildi:",
-            recipeQrUrl
+  const rxIdEl =
+    document.getElementById(
+      'paper_rx_id'
+    );
+
+
+  if (rxIdEl) {
+
+    rxIdEl.innerText =
+      currentPrescriptionId;
+
+  }
+
+
+  const pNameEl =
+    document.getElementById(
+      'p_name'
+    );
+
+
+  if (pNameEl) {
+
+    pNameEl.value =
+      targetRx.patientName ||
+      '';
+
+  }
+
+
+  const pDiagEl =
+    document.getElementById(
+      'p_diag'
+    );
+
+
+  if (pDiagEl) {
+
+    pDiagEl.value =
+      targetRx.diag ||
+      '';
+
+  }
+
+
+  if (targetRx.drugs) {
+
+    drugs =
+      targetRx.drugs;
+
+  }
+
+
+  renderDrugCards();
+
+  liveUpdate();
+
+
+  /*
+   * QR orqali kelgan retseptni
+   * 3-qadamda ko'rsatamiz.
+   *
+   * switchStep() ichidagi
+   * "3 -> 1" yangi retsept logikasi
+   * bu yerda ishga tushmaydi.
+   */
+  switchStep(3);
+
+}
+
+
+// ==========================================================================
+// WIZARD NAVIGATION
+// ==========================================================================
+
+function switchStep(stepNum) {
+
+  /*
+   * Faqat foydalanuvchi 3-qadamdan
+   * 1-qadamga qaytganda yangi retsept
+   * yaratiladi.
+   *
+   * 1 -> 2
+   * 2 -> 3
+   * 2 -> 1
+   *
+   * mavjud retsept raqamini saqlaydi.
+   *
+   * 3 -> 1
+   * yangi retsept yaratadi.
+   */
+  if (
+    stepNum === 1 &&
+    currentStep === 3
+  ) {
+
+    startNewPrescription();
+
+  }
+
+
+  currentStep =
+    stepNum;
+
+
+  document
+    .querySelectorAll(
+      '.step-content'
+    )
+    .forEach(
+      el => {
+
+        el.classList.remove(
+          'active'
+        );
+
+      }
+    );
+
+
+  document
+    .querySelectorAll(
+      '.wizard-tab'
+    )
+    .forEach(
+      el => {
+
+        el.classList.remove(
+          'active'
+        );
+
+      }
+    );
+
+
+  const stepEl =
+    document.getElementById(
+      `step${stepNum}`
+    );
+
+
+  const tabEl =
+    document.getElementById(
+      `tab${stepNum}`
+    );
+
+
+  if (stepEl) {
+
+    stepEl.classList.add(
+      'active'
+    );
+
+  }
+
+
+  if (tabEl) {
+
+    tabEl.classList.add(
+      'active'
+    );
+
+  }
+
+
+  /*
+   * 3-qadamga o'tilganda
+   * blankani yangilaymiz.
+   */
+  if (
+    stepNum === 3
+  ) {
+
+    liveUpdate();
+
+  }
+
+
+  window.scrollTo({
+
+    top: 0,
+
+    behavior: 'smooth'
+
+  });
+
+
+  // Telegram Haptic Feedback
+  if (
+    tg &&
+    tg.HapticFeedback
+  ) {
+
+    tg.HapticFeedback
+      .impactOccurred(
+        'light'
+      );
+
+  }
+
+}
+
+
+// ==========================================================================
+// GENDER
+// ==========================================================================
+
+function selectGender(
+  gender
+) {
+
+  currentGender =
+    gender;
+
+
+  const male =
+    document.getElementById(
+      'gender_m'
+    );
+
+
+  const female =
+    document.getElementById(
+      'gender_f'
+    );
+
+
+  if (male) {
+
+    male.classList.toggle(
+      'active',
+      gender === 'Erkak'
+    );
+
+  }
+
+
+  if (female) {
+
+    female.classList.toggle(
+      'active',
+      gender === 'Ayol'
+    );
+
+  }
+
+
+  liveUpdate();
+
+}
+
+
+// ==========================================================================
+// AGE CALCULATION
+// ==========================================================================
+
+function calculateAge() {
+
+  const birthEl =
+    document.getElementById(
+      'p_birth'
+    );
+
+
+  if (!birthEl) {
+
+    return;
+
+  }
+
+
+  const birthVal =
+    birthEl.value;
+
+
+  if (!birthVal) {
+
+    return;
+
+  }
+
+
+  const birthDate =
+    new Date(
+      birthVal
+    );
+
+
+  const diff =
+    Date.now() -
+    birthDate.getTime();
+
+
+  const ageDate =
+    new Date(
+      diff
+    );
+
+
+  const calculatedAge =
+    Math.abs(
+      ageDate.getUTCFullYear() -
+      1970
+    );
+
+
+  const ageEl =
+    document.getElementById(
+      'p_age'
+    );
+
+
+  if (ageEl) {
+
+    ageEl.value =
+      calculatedAge;
+
+  }
+
+}
+
+
+// ==========================================================================
+// DRUG BUILDER LOGIC
+// ==========================================================================
+
+function renderDrugCards() {
+
+  const container =
+    document.getElementById(
+      'drugsListContainer'
+    );
+
+
+  if (!container) {
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    '';
+
+
+  drugs.forEach(
+    (
+      d,
+      idx
+    ) => {
+
+      const card =
+        document.createElement(
+          'div'
         );
 
 
-        return {
+      card.className =
+        'drug-card';
 
-            token:
-                recipeQrToken,
 
-            url:
-                recipeQrUrl,
+      card.innerHTML = `
 
-            recipeId:
-                recipeId
-        };
+        <div class="drug-card-head">
+
+          <span class="drug-num">
+            ${idx + 1}. Rp.:
+          </span>
+
+          <div class="drug-card-actions">
+
+            <button
+              class="sm-btn"
+              style="color:var(--danger);"
+              onclick="removeDrug(${idx})"
+              type="button"
+            >
+              🗑️ O'chirish
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <div class="form-row">
+
+          <div class="form-group col-7">
+
+            <label>
+              Dori nomi (Lat)
+              <span class="req">*</span>
+            </label>
+
+            <input
+              type="text"
+              value="${d.name || ''}"
+              placeholder="Masalan: Paracetamoli"
+              oninput="drugs[${idx}].name=this.value; liveUpdate();"
+            >
+
+          </div>
+
+
+          <div class="form-group col-3">
+
+            <label>
+              Dozasi
+            </label>
+
+            <input
+              type="text"
+              value="${d.dose || ''}"
+              placeholder="500 mg"
+              oninput="drugs[${idx}].dose=this.value; liveUpdate();"
+            >
+
+          </div>
+
+
+          <div class="form-group col-2">
+
+            <label>
+              Shakli
+            </label>
+
+            <select
+              onchange="drugs[${idx}].shape=this.value; liveUpdate();"
+            >
+
+              <option value="Tab.">
+                Tab.
+              </option>
+
+              <option value="Caps.">
+                Caps.
+              </option>
+
+              <option value="Amp.">
+                Amp.
+              </option>
+
+              <option value="Inj.">
+                Inj.
+              </option>
+
+              <option value="Sol.">
+                Sol.
+              </option>
+
+              <option value="Syr.">
+                Syr.
+              </option>
+
+              <option value="Susp.">
+                Susp.
+              </option>
+
+              <option value="Pulv.">
+                Pulv.
+              </option>
+
+              <option value="Ung.">
+                Ung.
+              </option>
+
+              <option value="Gel">
+                Gel
+              </option>
+
+              <option value="Crem.">
+                Crem.
+              </option>
+
+              <option value="Spray">
+                Spray
+              </option>
+
+              <option value="Aeros.">
+                Aeros.
+              </option>
+
+              <option value="Supp.">
+                Supp.
+              </option>
+
+              <option value="Gtt.">
+                Gtt.
+              </option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+
+        <div class="form-row">
+
+          <div class="form-group col-6">
+
+            <label>
+              D.t.d. (Reseptura ko'rsatmasi)
+            </label>
+
+            <input
+              type="text"
+              value="${d.dtd || ''}"
+              placeholder="D.t.d. № 10"
+              oninput="drugs[${idx}].dtd=this.value; liveUpdate();"
+            >
+
+          </div>
+
+
+          <div class="form-group col-6">
+          </div>
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>
+            S. (Qabul qilish usuli)
+          </label>
+
+          <input
+            type="text"
+            value="${d.ds || ''}"
+            placeholder="Kuniga 2 mahal 1 tabletkadan..."
+            oninput="drugs[${idx}].ds=this.value; liveUpdate();"
+          >
+
+        </div>
+
+      `;
+
+
+      container.appendChild(
+        card
+      );
+
     }
+  );
+
+}
 
 
-    /* =====================================================
-       QR KODNI RETSEPTGA CHIZISH
-       PDF UCHUN PNG IMGGA AYLANTIRILADI
-       ===================================================== */
+// ==========================================================================
+// ADD DRUG
+// ==========================================================================
 
-    async function renderRecipeQr(
-        rootElement
-    ) {
+function addNewDrugCard() {
 
-        if (!rootElement) {
+  drugs.push({
 
-            console.warn(
-                "⚠️ paper_qr_code topilmadi."
-            );
+    name: '',
 
-            return null;
-        }
+    dose: '',
+
+    shape: 'Tab.',
+
+    dtd: '',
+
+    ds: ''
+
+  });
 
 
-        const qrData =
-            await ensureRecipeQrToken();
+  renderDrugCards();
 
+  liveUpdate();
+
+}
+
+
+// ==========================================================================
+// REMOVE DRUG
+// ==========================================================================
+
+function removeDrug(
+  index
+) {
+
+  drugs.splice(
+    index,
+    1
+  );
+
+
+  renderDrugCards();
+
+  liveUpdate();
+
+}
+
+
+// ==========================================================================
+// CLEAR DRUGS
+// ==========================================================================
+
+function clearAllDrugs() {
+
+  if (
+    confirm(
+      "Barcha dorilarni o'chirishga ishonchingiz komilmi?"
+    )
+  ) {
+
+    drugs = [];
+
+    renderDrugCards();
+
+    liveUpdate();
+
+  }
+
+}
+
+
+// ==========================================================================
+// PRESET PRE-DEFINED CLINICAL CASES
+// ==========================================================================
+
+function applyPreset(
+  type
+) {
+
+  if (
+    type ===
+    'bronchitis'
+  ) {
+
+    drugs = [
+
+      {
+        name: 'Amoxicillini',
+        dose: '0.5 g',
+        shape: 'Caps.',
+        count: '21 caps',
+        dtd: 'D.t.d. № 21',
+        ds: 'Kuniga 3 mahal 1 kapsuladan, 7 kun.'
+      },
+
+      {
+        name: 'Ambroxoli',
+        dose: '30 mg',
+        shape: 'Tab.',
+        count: '20 tab',
+        dtd: 'D.t.d. № 20',
+        ds: 'Kuniga 3 mahal 1 tabletkadan ovqatdan keyin.'
+      }
+
+    ];
+
+  }
+
+  else if (
+    type ===
+    'gripp'
+  ) {
+
+    drugs = [
+
+      {
+        name: 'Paracetamoli',
+        dose: '500 mg',
+        shape: 'Tab.',
+        count: '10 tab',
+        dtd: 'D.t.d. № 10',
+        ds: 'Harorat 38°C dan oshganda 1 tabletka.'
+      },
+
+      {
+        name: 'Acid Ascorbinici',
+        dose: '500 mg',
+        shape: 'Tab.',
+        count: '20 tab',
+        dtd: 'D.t.d. № 20',
+        ds: 'Kuniga 2 mahal 1 tabletkadan.'
+      }
+
+    ];
+
+  }
+
+  else if (
+    type ===
+    'gastritis'
+  ) {
+
+    drugs = [
+
+      {
+        name: 'Omeprazoli',
+        dose: '20 mg',
+        shape: 'Caps.',
+        count: '14 caps',
+        dtd: 'D.t.d. № 14',
+        ds: 'Kuniga 1 mahal ertalab ovqatdan 30 daqiqa oldin.'
+      }
+
+    ];
+
+  }
+
+
+  renderDrugCards();
+
+  liveUpdate();
+
+}
+
+
+// ==========================================================================
+// LIVE BLANK UPDATER
+// ==========================================================================
+
+function liveUpdate() {
+
+  // ------------------------------------------------------------------------
+  // Patient Details
+  // ------------------------------------------------------------------------
+
+  const pName =
+    document.getElementById(
+      'p_name'
+    )
+      ? document.getElementById(
+          'p_name'
+        ).value
+      : '';
+
+
+  const pBirth =
+    document.getElementById(
+      'p_birth'
+    )
+      ? document.getElementById(
+          'p_birth'
+        ).value
+      : '';
+
+
+  const pAge =
+    document.getElementById(
+      'p_age'
+    )
+      ? document.getElementById(
+          'p_age'
+        ).value
+      : '0';
+
+
+  const pAddress =
+    document.getElementById(
+      'p_address'
+    )
+      ? document.getElementById(
+          'p_address'
+        ).value
+      : '';
+
+
+  const pCard =
+    document.getElementById(
+      'p_card'
+    )
+      ? document.getElementById(
+          'p_card'
+        ).value
+      : '';
+
+
+  if (
+    document.getElementById(
+      'paper_p_name'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_p_name'
+    ).innerText =
+      pName || '—';
+
+  }
+
+
+  if (
+    document.getElementById(
+      'paper_p_birth'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_p_birth'
+    ).innerText =
+      pBirth || '—';
+
+  }
+
+
+  if (
+    document.getElementById(
+      'paper_p_age'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_p_age'
+    ).innerText =
+      pAge || '0';
+
+  }
+
+
+  if (
+    document.getElementById(
+      'paper_p_gender'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_p_gender'
+    ).innerText =
+      currentGender;
+
+  }
+
+
+  if (
+    document.getElementById(
+      'paper_p_address'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_p_address'
+    ).innerText =
+      pAddress || '—';
+
+  }
+
+
+  if (
+    document.getElementById(
+      'paper_p_card'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_p_card'
+    ).innerText =
+      pCard || '—';
+
+  }
+
+
+  // ------------------------------------------------------------------------
+  // Diagnosis
+  // ------------------------------------------------------------------------
+
+  if (
+    document.getElementById(
+      'paper_p_icd'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_p_icd'
+    ).innerText =
+      document.getElementById(
+        'p_icd'
+      )
+        ? document.getElementById(
+            'p_icd'
+          ).value || '—'
+        : '—';
+
+  }
+
+
+  if (
+    document.getElementById(
+      'paper_p_diag'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_p_diag'
+    ).innerText =
+      document.getElementById(
+        'p_diag'
+      )
+        ? document.getElementById(
+            'p_diag'
+          ).value || '—'
+        : '—';
+
+  }
+
+
+  if (
+    document.getElementById(
+      'paper_p_allergy'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_p_allergy'
+    ).innerText =
+      document.getElementById(
+        'p_allergy'
+      )
+        ? document.getElementById(
+            'p_allergy'
+          ).value ||
+          'Yo\'q'
+        : 'Yo\'q';
+
+  }
+
+
+  if (
+    document.getElementById(
+      'paper_p_note'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_p_note'
+    ).innerText =
+      document.getElementById(
+        'p_note'
+      )
+        ? document.getElementById(
+            'p_note'
+          ).value ||
+          'Ko\'rsatma bo\'yicha qabul qilinsin.'
+        : 'Ko\'rsatma bo\'yicha qabul qilinsin.';
+
+  }
+
+
+  // ------------------------------------------------------------------------
+  // Doctor & Clinic
+  // ------------------------------------------------------------------------
+
+  if (
+    document.getElementById(
+      'paper_doc_name'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_doc_name'
+    ).innerText =
+      doctorProfile.name;
+
+  }
+
+
+  if (
+    document.getElementById(
+      'paper_doc_spec'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_doc_spec'
+    ).innerText =
+      doctorProfile.spec;
+
+  }
+
+
+  if (
+    document.getElementById(
+      'paper_doc_id'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_doc_id'
+    ).innerText =
+      doctorProfile.id;
+
+  }
+
+
+  if (
+    document.getElementById(
+      'paper_clinic_name'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_clinic_name'
+    ).innerText =
+      clinicProfile.name;
+
+  }
+
+
+  if (
+    document.getElementById(
+      'paper_clinic_address'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_clinic_address'
+    ).innerText =
+      clinicProfile.address;
+
+  }
+
+
+  if (
+    document.getElementById(
+      'paper_clinic_phone'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_clinic_phone'
+    ).innerText =
+      clinicProfile.phone;
+
+  }
+
+
+  // ------------------------------------------------------------------------
+  // Today Date
+  // ------------------------------------------------------------------------
+
+  const today =
+    new Date();
+
+
+  const formattedDate =
+    `${String(
+      today.getDate()
+    ).padStart(2, '0')}.${String(
+      today.getMonth() + 1
+    ).padStart(2, '0')}.${today.getFullYear()}`;
+
+
+  if (
+    document.getElementById(
+      'paper_rx_date'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_rx_date'
+    ).innerText =
+      formattedDate;
+
+  }
+
+
+  // ------------------------------------------------------------------------
+  // Drugs Render in Paper
+  // ------------------------------------------------------------------------
+
+  const paperDrugsContainer =
+    document.getElementById(
+      'paper_drugs_list'
+    );
+
+
+  if (paperDrugsContainer) {
+
+    paperDrugsContainer.innerHTML =
+      '';
+
+
+    drugs.forEach(
+      (
+        d,
+        idx
+      ) => {
 
         if (
-            typeof window.QRCode !==
-            "function"
+          d.name &&
+          d.name.trim() !== ''
         ) {
 
-            throw new Error(
-                "QRCode kutubxonasi yuklanmagan."
-            );
-        }
-
-
-        rootElement.innerHTML =
-            "";
-
-
-        /*
-         * QRCode.js vaqtinchalik elementda
-         * yaratiladi.
-         */
-
-        const temp =
+          const item =
             document.createElement(
-                "div"
+              'div'
             );
 
 
-        Object.assign(
-            temp.style,
-            {
-
-                position:
-                    "fixed",
-
-                left:
-                    "-10000px",
-
-                top:
-                    "0",
-
-                width:
-                    "120px",
-
-                height:
-                    "120px",
-
-                background:
-                    "#ffffff"
-            }
-        );
+          item.className =
+            'rx-drug-item';
 
 
-        document.body.appendChild(
-            temp
-        );
+          item.innerHTML = `
+
+            <strong>
+              ${idx + 1}. Rp.:
+              ${d.shape || ''}
+              ${d.name}
+              ${d.dose || ''}
+            </strong>
+
+            <div class="rx-drug-sub">
+
+              ${
+                d.dtd !== '-' &&
+                d.dtd !== ''
+                  ? d.dtd + '<br>'
+                  : ''
+              }
+
+              ${
+                d.count
+                  ? 'Miqdori: ' +
+                    d.count +
+                    '<br>'
+                  : ''
+              }
+
+              <b>S.</b>
+              ${d.ds || ''}
+
+            </div>
+
+          `;
 
 
-        new window.QRCode(
-            temp,
-            {
+          paperDrugsContainer.appendChild(
+            item
+          );
 
-                text:
-                    qrData.url,
-
-                width:
-                    120,
-
-                height:
-                    120,
-
-                colorDark:
-                    "#000000",
-
-                colorLight:
-                    "#ffffff",
-
-                correctLevel:
-                    window.QRCode.CorrectLevel
-                        ? window.QRCode.CorrectLevel.H
-                        : 2
-            }
-        );
-
-
-        /*
-         * QRCode.js yaratib bo'lishini kutamiz.
-         */
-
-        await new Promise(
-            resolve =>
-                setTimeout(
-                    resolve,
-                    200
-                )
-        );
-
-
-        let qrImage =
-            temp.querySelector(
-                "img"
-            );
-
-
-        const qrCanvas =
-            temp.querySelector(
-                "canvas"
-            );
-
-
-        /*
-         * Agar canvas yaratilgan bo'lsa,
-         * PNGga aylantiramiz.
-         */
-
-        if (
-            !qrImage &&
-            qrCanvas
-        ) {
-
-            const dataUrl =
-                qrCanvas.toDataURL(
-                    "image/png"
-                );
-
-
-            qrImage =
-                document.createElement(
-                    "img"
-                );
-
-
-            qrImage.src =
-                dataUrl;
         }
 
+      }
+    );
 
-        if (!qrImage) {
-
-            temp.remove();
-
-
-            throw new Error(
-                "QR rasmi yaratilmadi."
-            );
-        }
+  }
 
 
-        /*
-         * Yakuniy IMG.
-         * Bu clone qilinayotganda ham
-         * PDF ichiga tushadi.
-         */
+  // ------------------------------------------------------------------------
+  // Stamp Handling
+  // ------------------------------------------------------------------------
 
-        const finalQrImage =
-            document.createElement(
-                "img"
-            );
+  const stampImgEl =
+    document.getElementById(
+      'paper_stamp_img'
+    );
 
 
-        finalQrImage.src =
-            qrImage.src;
+  const stampDefaultEl =
+    document.getElementById(
+      'paper_stamp_default'
+    );
 
 
-        finalQrImage.width =
-            120;
+  if (stampImgEl) {
 
-        finalQrImage.height =
-            120;
-
-
-        Object.assign(
-            finalQrImage.style,
-            {
-
-                width:
-                    "120px",
-
-                height:
-                    "120px",
-
-                display:
-                    "block",
-
-                background:
-                    "#ffffff"
-            }
-        );
-
-
-        rootElement.innerHTML =
-            "";
-
-
-        rootElement.appendChild(
-            finalQrImage
-        );
-
-
-        temp.remove();
-
-
-        /*
-         * IMG yuklanishini kutamiz.
-         */
-
-        if (
-            !finalQrImage.complete
-        ) {
-
-            await new Promise(
-                resolve => {
-
-                    finalQrImage.onload =
-                        resolve;
-
-                    finalQrImage.onerror =
-                        resolve;
-                }
-            );
-        }
-
-
-        console.log(
-            "✅ QR kod retseptga joylashtirildi:",
-            qrData.url
-        );
-
-
-        return qrData;
-    }
-
-
-    /* =====================================================
-       PDFNI QR SERVERGA SAQLASH
-       ===================================================== */
-
-    async function storePdfForQr(
-        result
+    if (
+      customStampDataURL
     ) {
 
-        if (!result?.blob) {
-
-            throw new Error(
-                "PDF Blob topilmadi."
-            );
-        }
+      stampImgEl.src =
+        customStampDataURL;
 
 
-        const qrData =
-            await ensureRecipeQrToken();
+      stampImgEl.style.display =
+        'block';
 
 
-        const base64 =
-            await blobToBase64(
-                result.blob
-            );
+      if (stampDefaultEl) {
+
+        stampDefaultEl.style.display =
+          'none';
+
+      }
+
+    }
+
+    else {
+
+      stampImgEl.style.display =
+        'none';
 
 
-        const patientNameValue =
-            document.getElementById(
-                "p_name"
-            )?.value?.trim() ||
-            "";
+      if (stampDefaultEl) {
+
+        stampDefaultEl.style.display =
+          'block';
+
+      }
+
+    }
+
+  }
 
 
-        const diagnosis =
-            document.getElementById(
-                "p_diag"
-            )?.value?.trim() ||
-            "";
+  // ------------------------------------------------------------------------
+  // RETSEPT RAQAMI
+  // ------------------------------------------------------------------------
+
+  const rxIdElement =
+    document.getElementById(
+      'paper_rx_id'
+    );
 
 
-        const response =
-            await fetch(
-                `${DRMED_BACKEND_URL}/api/store-recipe-pdf`,
-                {
-                    method:
-                        "POST",
+  if (rxIdElement) {
 
-                    headers: {
+    rxIdElement.innerText =
+      getCurrentPrescriptionId();
 
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body:
-                        JSON.stringify({
-
-                            token:
-                                qrData.token,
-
-                            recipe_id:
-                                qrData.recipeId,
-
-                            pdf:
-                                base64,
-
-                            filename:
-                                result.fileName,
-
-                            patient_name:
-                                patientNameValue,
-
-                            diagnosis:
-                                diagnosis
-
-                        })
-                }
-            );
+  }
 
 
-        if (!response.ok) {
+  // ------------------------------------------------------------------------
+  // QR CODE
+  // QR endi alohida qr.js modulida boshqariladi.
+  // ------------------------------------------------------------------------
 
-            throw new Error(
-                `PDF server xatosi: ${response.status}`
-            );
-        }
+}
+/* ================= STAMP IMAGE UPLOAD LOGIC ================= */
 
+function uploadStampImage(event) {
 
-        const data =
-            await response.json();
+  const file =
+    event.target.files[0];
 
+  if (file) {
 
-        if (!data.ok) {
-
-            throw new Error(
-                data.error ||
-                "PDF serverga saqlanmadi."
-            );
-        }
+    const reader =
+      new FileReader();
 
 
-        console.log(
-            "✅ Retsept QR serverga saqlandi:",
-            data.qr_url
+    reader.onload =
+      function(e) {
+
+        customStampDataURL =
+          e.target.result;
+
+
+        localStorage.setItem(
+          'drmed_stamp',
+          customStampDataURL
         );
 
 
-        return data;
-    }
+        liveUpdate();
+
+      };
 
 
-    /* =====================================================
-       BLOB → BASE64
-       ===================================================== */
+    reader.readAsDataURL(
+      file
+    );
 
-    function blobToBase64(
-        blob
+  }
+
+}
+/* ==========================================================================
+   SIGNATURE CANVAS
+   ========================================================================== */
+
+function initSignatureCanvas() {
+
+  const canvas =
+    document.getElementById(
+      'signatureCanvas'
+    );
+
+  if (!canvas) {
+    return;
+  }
+
+
+  const ctx =
+    canvas.getContext('2d');
+
+  let drawing = false;
+
+
+  function getPosition(event) {
+
+    const rect =
+      canvas.getBoundingClientRect();
+
+
+    if (
+      event.touches &&
+      event.touches.length
     ) {
 
-        return new Promise(
-            (resolve, reject) => {
+      return {
 
-                const reader =
-                    new FileReader();
+        x:
+          event.touches[0].clientX -
+          rect.left,
 
+        y:
+          event.touches[0].clientY -
+          rect.top
 
-                reader.onloadend =
-                    () => {
+      };
 
-                        const result =
-                            reader.result;
-
-
-                        if (
-                            typeof result !==
-                            "string"
-                        ) {
-
-                            reject(
-                                new Error(
-                                    "PDFni Base64ga aylantirib bo'lmadi."
-                                )
-                            );
-
-
-                            return;
-                        }
-
-
-                        const comma =
-                            result.indexOf(",");
-
-
-                        resolve(
-                            comma >= 0
-                                ? result.slice(
-                                    comma + 1
-                                )
-                                : result
-                        );
-                    };
-
-
-                reader.onerror =
-                    () => {
-
-                        reject(
-                            new Error(
-                                "PDF faylini o'qib bo'lmadi."
-                            )
-                        );
-                    };
-
-
-                reader.readAsDataURL(
-                    blob
-                );
-            }
-        );
-    }
-        /* =====================================================
-       LOADING
-       ===================================================== */
-
-    function showLoading(
-        text
-    ) {
-
-        let loader =
-            document.getElementById(
-                "drmedPdfLoading"
-            );
-
-
-        if (!loader) {
-
-            loader =
-                document.createElement(
-                    "div"
-                );
-
-
-            loader.id =
-                "drmedPdfLoading";
-
-
-            loader.innerHTML = `
-                <div class="drmed-pdf-loading-box">
-
-                    <div class="drmed-pdf-spinner"></div>
-
-                    <div id="drmedPdfLoadingText">
-                        PDF tayyorlanmoqda...
-                    </div>
-
-                </div>
-            `;
-
-
-            Object.assign(
-                loader.style,
-                {
-
-                    position:
-                        "fixed",
-
-                    inset:
-                        "0",
-
-                    zIndex:
-                        "999999",
-
-                    background:
-                        "rgba(15,23,42,.55)",
-
-                    display:
-                        "flex",
-
-                    alignItems:
-                        "center",
-
-                    justifyContent:
-                        "center"
-                }
-            );
-
-
-            const box =
-                loader.querySelector(
-                    ".drmed-pdf-loading-box"
-                );
-
-
-            Object.assign(
-                box.style,
-                {
-
-                    background:
-                        "#ffffff",
-
-                    padding:
-                        "28px 35px",
-
-                    borderRadius:
-                        "18px",
-
-                    textAlign:
-                        "center",
-
-                    minWidth:
-                        "230px",
-
-                    boxShadow:
-                        "0 20px 70px rgba(0,0,0,.30)"
-                }
-            );
-
-
-            const spinner =
-                loader.querySelector(
-                    ".drmed-pdf-spinner"
-                );
-
-
-            Object.assign(
-                spinner.style,
-                {
-
-                    width:
-                        "40px",
-
-                    height:
-                        "40px",
-
-                    border:
-                        "4px solid #e2e8f0",
-
-                    borderTopColor:
-                        "#0d9488",
-
-                    borderRadius:
-                        "50%",
-
-                    margin:
-                        "0 auto 15px",
-
-                    animation:
-                        "drmedPdfSpin .8s linear infinite"
-                }
-            );
-
-
-            const style =
-                document.createElement(
-                    "style"
-                );
-
-
-            style.textContent = `
-                @keyframes drmedPdfSpin {
-
-                    from {
-                        transform:
-                            rotate(0deg);
-                    }
-
-                    to {
-                        transform:
-                            rotate(360deg);
-                    }
-
-                }
-            `;
-
-
-            document.head.appendChild(
-                style
-            );
-
-
-            document.body.appendChild(
-                loader
-            );
-        }
-
-
-        const textElement =
-            document.getElementById(
-                "drmedPdfLoadingText"
-            );
-
-
-        if (textElement) {
-
-            textElement.innerText =
-                text ||
-                "PDF tayyorlanmoqda...";
-        }
-
-
-        loader.style.display =
-            "flex";
     }
 
 
-    function hideLoading() {
+    return {
 
-        const loader =
-            document.getElementById(
-                "drmedPdfLoading"
-            );
+      x:
+        event.clientX -
+        rect.left,
 
+      y:
+        event.clientY -
+        rect.top
 
-        if (loader) {
-
-            loader.style.display =
-                "none";
-        }
-    }
-
-
-    /* =====================================================
-       PDF FORMAT MODAL
-       ===================================================== */
-
-    function openPdfFormatModal() {
-
-        const modal =
-            document.getElementById(
-                "pdfFormatModal"
-            );
-
-
-        if (!modal) {
-
-            console.warn(
-                "pdfFormatModal topilmadi."
-            );
-
-
-            return;
-        }
-
-
-        modal.classList.add(
-            "active"
-        );
-
-
-        modal.style.display =
-            "flex";
-    }
-
-
-    function closePdfFormatModal() {
-
-        const modal =
-            document.getElementById(
-                "pdfFormatModal"
-            );
-
-
-        if (!modal) {
-
-            return;
-        }
-
-
-        modal.classList.remove(
-            "active"
-        );
-
-
-        modal.style.display =
-            "none";
-    }
-
-
-    /* =====================================================
-       WAIT FOR RENDER
-       ===================================================== */
-
-    function waitForRender(
-        milliseconds
-    ) {
-
-        return new Promise(
-            resolve => {
-
-                setTimeout(
-                    resolve,
-                    milliseconds
-                );
-            }
-        );
-    }
-
-
-    /* =====================================================
-       CREATE PRESCRIPTION CLONE
-       ===================================================== */
-
-    async function createPrescriptionClone() {
-
-        const original =
-            document.getElementById(
-                "printablePaper"
-            );
-
-
-        if (!original) {
-
-            throw new Error(
-                "printablePaper topilmadi."
-            );
-        }
-
-
-        /*
-         * Avval ekrandagi retseptni
-         * yangilaymiz.
-         */
-
-        if (
-            typeof window.liveUpdate ===
-            "function"
-        ) {
-
-            try {
-
-                window.liveUpdate();
-
-            } catch (error) {
-
-                console.warn(
-                    "liveUpdate xatosi:",
-                    error
-                );
-            }
-        }
-
-
-        /*
-         * QR token olamiz va QRni
-         * ekrandagi retseptga joylaymiz.
-         */
-
-        await renderRecipeQr(
-            document.getElementById(
-                "paper_qr_code"
-            )
-        );
-
-
-        /*
-         * Browserga QR va retseptni
-         * render qilish uchun vaqt beramiz.
-         */
-
-        await waitForRender(
-            200
-        );
-
-
-        /*
-         * Endi printablePaper clone qilinadi.
-         */
-
-        const clone =
-            original.cloneNode(
-                true
-            );
-
-
-        clone.id =
-            "drmedPdfClone";
-
-
-        /*
-         * Clone ekranda ko‘rinmasin,
-         * lekin html2canvas uni ko‘ra olsin.
-         */
-
-        Object.assign(
-            clone.style,
-            {
-
-                position:
-                    "fixed",
-
-                left:
-                    "-10000px",
-
-                top:
-                    "0",
-
-                width:
-                    "794px",
-
-                minWidth:
-                    "794px",
-
-                maxWidth:
-                    "794px",
-
-                height:
-                    "auto",
-
-                margin:
-                    "0",
-
-                padding:
-                    "0",
-
-                background:
-                    "#ffffff",
-
-                color:
-                    "#000000",
-
-                display:
-                    "block",
-
-                visibility:
-                    "visible",
-
-                opacity:
-                    "1",
-
-                transform:
-                    "none",
-
-                overflow:
-                    "visible",
-
-                boxSizing:
-                    "border-box"
-            }
-        );
-
-
-        document.body.appendChild(
-            clone
-        );
-
-
-        /*
-         * Clone ichidagi QR.
-         *
-         * Muhim:
-         * renderRecipeQr() originaldagi QRni
-         * emas, clone ichidagi QRni ham
-         * qayta yaratadi.
-         *
-         * Shuning uchun QR PDFga tushadi.
-         */
-
-        const cloneQr =
-            clone.querySelector(
-                "#paper_qr_code"
-            );
-
-
-        if (cloneQr) {
-
-            cloneQr.innerHTML =
-                "";
-
-
-            /*
-             * Original QR URL allaqachon
-             * token bilan yaratilgan.
-             */
-
-            if (
-                recipeQrUrl &&
-                typeof window.QRCode ===
-                    "function"
-            ) {
-
-                const tempQr =
-                    document.createElement(
-                        "div"
-                    );
-
-
-                Object.assign(
-                    tempQr.style,
-                    {
-
-                        position:
-                            "absolute",
-
-                        left:
-                            "-10000px",
-
-                        top:
-                            "0",
-
-                        width:
-                            "120px",
-
-                        height:
-                            "120px",
-
-                        background:
-                            "#ffffff"
-                    }
-                );
-
-
-                document.body.appendChild(
-                    tempQr
-                );
-
-
-                new window.QRCode(
-                    tempQr,
-                    {
-
-                        text:
-                            recipeQrUrl,
-
-                        width:
-                            120,
-
-                        height:
-                            120,
-
-                        colorDark:
-                            "#000000",
-
-                        colorLight:
-                            "#ffffff",
-
-                        correctLevel:
-                            window.QRCode.CorrectLevel
-                                ? window.QRCode.CorrectLevel.H
-                                : 2
-                    }
-                );
-
-
-                await waitForRender(
-                    150
-                );
-
-
-                const qrCanvas =
-                    tempQr.querySelector(
-                        "canvas"
-                    );
-
-
-                const qrImg =
-                    tempQr.querySelector(
-                        "img"
-                    );
-
-
-                let qrDataUrl =
-                    null;
-
-
-                if (qrCanvas) {
-
-                    qrDataUrl =
-                        qrCanvas.toDataURL(
-                            "image/png"
-                        );
-
-                } else if (qrImg) {
-
-                    qrDataUrl =
-                        qrImg.src;
-                }
-
-
-                if (qrDataUrl) {
-
-                    const finalQr =
-                        document.createElement(
-                            "img"
-                        );
-
-
-                    finalQr.src =
-                        qrDataUrl;
-
-
-                    finalQr.width =
-                        120;
-
-                    finalQr.height =
-                        120;
-
-
-                    Object.assign(
-                        finalQr.style,
-                        {
-
-                            width:
-                                "120px",
-
-                            height:
-                                "120px",
-
-                            display:
-                                "block",
-
-                            background:
-                                "#ffffff"
-                        }
-                    );
-
-
-                    cloneQr.appendChild(
-                        finalQr
-                    );
-
-
-                    /*
-                     * IMG yuklanishini kutamiz.
-                     */
-
-                    if (
-                        !finalQr.complete
-                    ) {
-
-                        await new Promise(
-                            resolve => {
-
-                                finalQr.onload =
-                                    resolve;
-
-                                finalQr.onerror =
-                                    resolve;
-                            }
-                        );
-                    }
-                }
-
-
-                tempQr.remove();
-            }
-        }
-
-
-        /*
-         * Clone ichidagi rasmlarni kutamiz.
-         */
-
-        const images =
-            Array.from(
-                clone.querySelectorAll(
-                    "img"
-                )
-            );
-
-
-        await Promise.all(
-            images.map(
-                function (img) {
-
-                    if (
-                        img.complete
-                    ) {
-
-                        return Promise.resolve();
-                    }
-
-
-                    return new Promise(
-                        function (
-                            resolve
-                        ) {
-
-                            let finished =
-                                false;
-
-
-                            function done() {
-
-                                if (
-                                    finished
-                                ) {
-
-                                    return;
-                                }
-
-
-                                finished =
-                                    true;
-
-
-                                resolve();
-                            }
-
-
-                            img.onload =
-                                done;
-
-
-                            img.onerror =
-                                done;
-
-
-                            setTimeout(
-                                done,
-                                5000
-                            );
-                        }
-                    );
-                }
-            )
-        );
-
-
-        /*
-         * Browser paint.
-         */
-
-        await new Promise(
-            resolve =>
-                requestAnimationFrame(
-                    () => {
-
-                        requestAnimationFrame(
-                            resolve
-                        );
-
-                    }
-                )
-        );
-
-
-        await waitForRender(
-            250
-        );
-
-
-        return clone;
-    }
-
-
-    /* =====================================================
-       CREATE CANVAS
-       ===================================================== */
-
-    async function createCanvas(
-        clone
-    ) {
-
-        if (
-            typeof window.html2canvas !==
-            "function"
-        ) {
-
-            throw new Error(
-                "html2canvas yuklanmagan."
-            );
-        }
-
-
-        /*
-         * Clone haqiqatan DOMda ekanini
-         * tekshiramiz.
-         */
-
-        if (
-            !clone ||
-            !document.body.contains(
-                clone
-            )
-        ) {
-
-            throw new Error(
-                "PDF clone DOMga joylashtirilmadi."
-            );
-        }
-
-
-        /*
-         * PDF render vaqtida QR
-         * va boshqa rasmlar ko‘rinadigan
-         * bo‘lishi kerak.
-         */
-
-        clone.style.visibility =
-            "visible";
-
-        clone.style.opacity =
-            "1";
-
-        clone.style.display =
-            "block";
-
-
-        const canvas =
-            await window.html2canvas(
-                clone,
-                {
-
-                    scale:
-                        2,
-
-                    useCORS:
-                        true,
-
-                    allowTaint:
-                        false,
-
-                    backgroundColor:
-                        "#ffffff",
-
-                    logging:
-                        false,
-
-                    imageTimeout:
-                        15000,
-
-                    scrollX:
-                        0,
-
-                    scrollY:
-                        0,
-
-
-                    onclone:
-                        function (
-                            clonedDocument
-                        ) {
-
-                            const paper =
-                                clonedDocument.getElementById(
-                                    "drmedPdfClone"
-                                );
-
-
-                            if (!paper) {
-
-                                return;
-                            }
-
-
-                            /*
-                             * PDF clone uchun
-                             * aniq o‘lcham.
-                             */
-
-                            paper.style.position =
-                                "absolute";
-
-                            paper.style.left =
-                                "0";
-
-                            paper.style.top =
-                                "0";
-
-                            paper.style.width =
-                                "794px";
-
-                            paper.style.minWidth =
-                                "794px";
-
-                            paper.style.maxWidth =
-                                "794px";
-
-                            paper.style.height =
-                                "auto";
-
-                            paper.style.margin =
-                                "0";
-
-                            paper.style.padding =
-                                "0";
-
-                            paper.style.visibility =
-                                "visible";
-
-                            paper.style.opacity =
-                                "1";
-
-                            paper.style.display =
-                                "block";
-
-                            paper.style.background =
-                                "#ffffff";
-
-                            paper.style.transform =
-                                "none";
-
-
-                            /*
-                             * Clone ichidagi
-                             * barcha IMGlarni
-                             * ko‘rsatamiz.
-                             */
-
-                            const clonedImages =
-                                paper.querySelectorAll(
-                                    "img"
-                                );
-
-
-                            clonedImages.forEach(
-                                function (
-                                    img
-                                ) {
-
-                                    img.style.visibility =
-                                        "visible";
-
-                                    img.style.opacity =
-                                        "1";
-
-                                    img.style.display =
-                                        "block";
-                                }
-                            );
-                        }
-                }
-            );
-
-
-        if (
-            !canvas ||
-            canvas.width <= 0 ||
-            canvas.height <= 0
-        ) {
-
-            throw new Error(
-                "Retsept canvasga aylantirilmadi."
-            );
-        }
-
-
-        return canvas;
-    }
-
-
-    /* =====================================================
-       A4 PDF
-       ===================================================== */
-
-    function makeA4(
-        canvas
-    ) {
-
-        if (
-            !window.jspdf ||
-            !window.jspdf.jsPDF
-        ) {
-
-            throw new Error(
-                "jsPDF yuklanmagan."
-            );
-        }
-
-
-        const jsPDF =
-            window.jspdf.jsPDF;
-
-
-        const pdf =
-            new jsPDF(
-                {
-
-                    orientation:
-                        "portrait",
-
-                    unit:
-                        "mm",
-
-                    format:
-                        "a4",
-
-                    compress:
-                        true
-                }
-            );
-
-
-        const pageWidth =
-            210;
-
-
-        const pageHeight =
-            297;
-
-
-        const margin =
-            5;
-
-
-        const availableWidth =
-            pageWidth -
-            margin * 2;
-
-
-        const availableHeight =
-            pageHeight -
-            margin * 2;
-
-
-        let width =
-            availableWidth;
-
-
-        let height =
-            canvas.height *
-            width /
-            canvas.width;
-
-
-        /*
-         * Retsept A4 sahifadan
-         * chiqib ketmasin.
-         */
-
-        if (
-            height >
-            availableHeight
-        ) {
-
-            const ratio =
-                availableHeight /
-                height;
-
-
-            width *=
-                ratio;
-
-
-            height *=
-                ratio;
-        }
-
-
-        const x =
-            (
-                pageWidth -
-                width
-            ) / 2;
-
-
-        const y =
-            margin;
-
-
-        const image =
-            canvas.toDataURL(
-                "image/jpeg",
-                0.95
-            );
-
-
-        pdf.addImage(
-            image,
-            "JPEG",
-            x,
-            y,
-            width,
-            height,
-            undefined,
-            "FAST"
-        );
-
-
-        return pdf;
-    }
-
-
-    /* =====================================================
-       A5 LANDSCAPE
-       RETSEPT CHAP YARMIDA
-       O‘NG TOMON BO‘SH
-       ===================================================== */
-
-    function makeA5(
-        canvas
-    ) {
-
-        if (
-            !window.jspdf ||
-            !window.jspdf.jsPDF
-        ) {
-
-            throw new Error(
-                "jsPDF yuklanmagan."
-            );
-        }
-
-
-        const jsPDF =
-            window.jspdf.jsPDF;
-
-
-        const pdf =
-            new jsPDF(
-                {
-
-                    orientation:
-                        "landscape",
-
-                    unit:
-                        "mm",
-
-                    format:
-                        "a5",
-
-                    compress:
-                        true
-                }
-            );
-
-
-        /*
-         * A5 landscape:
-         *
-         * 210 × 148 mm
-         *
-         * Retsept:
-         * chap 105 mm
-         *
-         * O‘ng 105 mm:
-         * BO‘SH
-         */
-
-        const pageWidth =
-            210;
-
-
-        const pageHeight =
-            148;
-
-
-        const halfWidth =
-            105;
-
-
-        const margin =
-            4;
-
-
-        const availableWidth =
-            halfWidth -
-            margin * 2;
-
-
-        const availableHeight =
-            pageHeight -
-            margin * 2;
-
-
-        let width =
-            availableWidth;
-
-
-        let height =
-            canvas.height *
-            width /
-            canvas.width;
-
-
-        if (
-            height >
-            availableHeight
-        ) {
-
-            const ratio =
-                availableHeight /
-                height;
-
-
-            width *=
-                ratio;
-
-
-            height *=
-                ratio;
-        }
-
-
-        const x =
-            margin;
-
-
-        const y =
-            (
-                pageHeight -
-                height
-            ) / 2;
-
-
-        const image =
-            canvas.toDataURL(
-                "image/jpeg",
-                0.95
-            );
-
-
-        pdf.addImage(
-            image,
-            "JPEG",
-            x,
-            y,
-            width,
-            height,
-            undefined,
-            "FAST"
-        );
-
-
-        return pdf;
-    }
-    
-    /* =====================================================
-       UNIVERSAL PDF FILE ACTION
-       iPhone / iPad / Android:
-       native Share Sheet
-       Desktop:
-       normal file download
-       ===================================================== */
-
-    async function presentPdfFile(
-        blob,
-        name,
-        shareText = "DR.MED elektron retsept"
-    ) {
-
-        if (!blob || blob.size <= 0) {
-            throw new Error(
-                "PDF fayli bo'sh."
-            );
-        }
-
-        const file =
-            new File(
-                [blob],
-                name,
-                {
-                    type:
-                        "application/pdf",
-                    lastModified:
-                        Date.now()
-                }
-            );
-
-        /*
-         * iPhone / iPad / Android:
-         * aynan tizimning Share Sheet oynasini ochamiz.
-         *
-         * Foydalanuvchi shu oynadan:
-         * Telegram, Messages, Mail, AirDrop,
-         * Files va boshqa ilovani tanlaydi.
-         */
-        if (
-            typeof navigator.share ===
-                "function"
-        ) {
-
-            let fileShareSupported =
-                true;
-
-            if (
-                typeof navigator.canShare ===
-                    "function"
-            ) {
-
-                try {
-
-                    fileShareSupported =
-                        navigator.canShare(
-                            {
-                                files:
-                                    [file]
-                            }
-                        );
-
-                } catch (shareCheckError) {
-
-                    console.warn(
-                        "Native file share tekshiruvi:",
-                        shareCheckError
-                    );
-
-                    fileShareSupported =
-                        false;
-                }
-            }
-
-            if (fileShareSupported) {
-
-                await navigator.share(
-                    {
-                        title:
-                            "DR.MED Elektron Retsept",
-
-                        text:
-                            shareText,
-
-                        files:
-                            [file]
-                    }
-                );
-
-                return {
-                    mode:
-                        "native-share",
-                    file:
-                        file
-                };
-            }
-        }
-
-        /*
-         * Desktop / native Share mavjud bo'lmagan
-         * brauzerlar uchun oddiy yuklash.
-         */
-        const url =
-            URL.createObjectURL(
-                blob
-            );
-
-        try {
-
-            const link =
-                document.createElement(
-                    "a"
-                );
-
-            link.href =
-                url;
-
-            link.download =
-                name;
-
-            link.rel =
-                "noopener";
-
-            link.style.display =
-                "none";
-
-            document.body.appendChild(
-                link
-            );
-
-            link.click();
-
-            link.remove();
-
-        } finally {
-
-            setTimeout(
-                function () {
-
-                    URL.revokeObjectURL(
-                        url
-                    );
-
-                },
-                5000
-            );
-        }
-
-        return {
-            mode:
-                "download",
-            file:
-                file
-        };
-    }
-
-
-    /* =====================================================
-       ASOSIY PDF EXPORT
-       ===================================================== */
-
-    async function exportToPDF(
-        format
-    ) {
-
-        if (isGenerating) {
-
-            return;
-        }
-
-
-        isGenerating =
-            true;
-
-
-        let clone =
-            null;
-
-
-        try {
-
-            closePdfFormatModal();
-
-
-            /*
-             * QR tokenni oldindan olamiz.
-             * Shunda PDF render qilinishidan oldin
-             * QR tayyor bo'ladi.
-             */
-
-            await ensureRecipeQrToken();
-
-
-            showLoading(
-                format === "a5"
-                    ? "A5 PDF tayyorlanmoqda..."
-                    : "A4 PDF tayyorlanmoqda..."
-            );
-
-
-            /*
-             * Retsept + QR clone.
-             */
-
-            clone =
-                await createPrescriptionClone();
-
-
-            /*
-             * Canvas.
-             */
-
-            const canvas =
-                await createCanvas(
-                    clone
-                );
-
-
-            /*
-             * A4 yoki A5.
-             */
-
-            let pdf;
-
-
-            if (
-                String(format).toLowerCase() ===
-                "a5"
-            ) {
-
-                pdf =
-                    makeA5(
-                        canvas
-                    );
-
-            } else {
-
-                pdf =
-                    makeA4(
-                        canvas
-                    );
-            }
-
-
-            if (!pdf) {
-
-                throw new Error(
-                    "PDF yaratilmadi."
-                );
-            }
-
-
-            /*
-             * PDF Blob.
-             */
-
-            const pdfBlob =
-                pdf.output(
-                    "blob"
-                );
-
-
-            if (
-                !pdfBlob ||
-                pdfBlob.size <= 0
-            ) {
-
-                throw new Error(
-                    "PDF fayli bo'sh yaratildi."
-                );
-            }
-
-
-            /*
-             * PDF tayyor bo'ldi.
-             *
-             * MUHIM:
-             * PDFni avval backendga yuborib kutmaymiz.
-             * Shuning uchun backend/QR serverdagi xato
-             * qurilmaga PDF chiqarishni bloklamaydi.
-             *
-             * QR serverga saqlash alohida fon vazifasi.
-             */
-            storePdfForQr(
-                {
-                    blob:
-                        pdfBlob,
-
-                    fileName:
-                        fileName(
-                            format
-                        )
-                }
-            ).catch(
-                function (saveError) {
-
-                    console.warn(
-                        "QR PDF serverga saqlanmadi, lekin PDF yuklash davom etadi:",
-                        saveError
-                    );
-                }
-            );
-
-
-            /*
-             * iPhone / iPad / Android:
-             * aynan tizimning Share Sheet oynasi.
-             *
-             * Desktop:
-             * oddiy PDF yuklash.
-             */
-            showLoading(
-                "PDF tayyor..."
-            );
-
-
-            hideLoading();
-
-            await presentPdfFile(
-                pdfBlob,
-                fileName(
-                    format
-                ),
-                "DR.MED elektron retsept"
-            );
-
-
-        } catch (error) {
-
-            console.error(
-                "DR.MED PDF ERROR:",
-                error
-            );
-
-
-            hideLoading();
-
-
-            alert(
-                "❌ PDF yuklanmadi.\n\n" +
-                (
-                    error?.message ||
-                    "Noma'lum xatolik."
-                )
-            );
-
-
-        } finally {
-
-            /*
-             * Clone'ni o'chiramiz.
-             */
-
-            if (clone) {
-
-                try {
-
-                    clone.remove();
-
-                } catch (removeError) {
-
-                    console.warn(
-                        "Clone remove xatosi:",
-                        removeError
-                    );
-                }
-            }
-
-
-            isGenerating =
-                false;
-        }
-    }
-
-
-    /* =====================================================
-       TELEGRAM / SHARE
-       ===================================================== */
-
-    async function shareTelegram() {
-
-        if (isGenerating) {
-
-            return;
-        }
-
-
-        isGenerating =
-            true;
-
-
-        let clone =
-            null;
-
-
-        try {
-
-            showLoading(
-                "PDF tayyorlanmoqda..."
-            );
-
-
-            /*
-             * QR token.
-             */
-
-            await ensureRecipeQrToken();
-
-
-            /*
-             * Retsept clone.
-             */
-
-            clone =
-                await createPrescriptionClone();
-
-
-            /*
-             * Canvas.
-             */
-
-            const canvas =
-                await createCanvas(
-                    clone
-                );
-
-
-            /*
-             * Telegram uchun A4.
-             *
-             * Sizdagi mavjud Telegram
-             * funksiyasi saqlanadi.
-             */
-
-            const pdf =
-                makeA4(
-                    canvas
-                );
-
-
-            const blob =
-                pdf.output(
-                    "blob"
-                );
-
-
-            if (
-                !blob ||
-                blob.size <= 0
-            ) {
-
-                throw new Error(
-                    "Telegram uchun PDF yaratilmadi."
-                );
-            }
-
-
-            /*
-             * QR serverga saqlash Share oynasini
-             * BLOKLAMASIN.
-             *
-             * Native Share alohida ishlaydi.
-             */
-            storePdfForQr(
-                {
-                    blob:
-                        blob,
-
-                    fileName:
-                        fileName(
-                            "a4"
-                        )
-                }
-            ).catch(
-                function (saveError) {
-
-                    console.warn(
-                        "QR PDF serverga saqlanmadi, Share davom etadi:",
-                        saveError
-                    );
-                }
-            );
-
-
-            /*
-             * Telegram tugmasi Telegramni
-             * to'g'ridan-to'g'ri ochmaydi.
-             *
-             * iPhone/iPad/Androidda aynan
-             * tizim Share Sheet ochiladi.
-             * Foydalanuvchi undan Telegramni tanlaydi.
-             *
-             * Desktopda esa PDF yuklanadi.
-             */
-            hideLoading();
-
-            await presentPdfFile(
-                blob,
-                fileName(
-                    "a4"
-                ),
-                "DR.MED elektron retsept"
-            );
-
-
-        } catch (error) {
-
-            console.error(
-                "DR.MED SHARE ERROR:",
-                error
-            );
-
-
-            hideLoading();
-
-
-            if (
-                error?.name ===
-                "AbortError"
-            ) {
-
-                return;
-            }
-
-
-            alert(
-                "❌ Telegram/Share ishlamadi.\n\n" +
-                (
-                    error?.message ||
-                    "Noma'lum xatolik."
-                )
-            );
-
-
-        } finally {
-
-            if (clone) {
-
-                try {
-
-                    clone.remove();
-
-                } catch (removeError) {
-
-                    console.warn(
-                        "Share clone remove xatosi:",
-                        removeError
-                    );
-                }
-            }
-
-
-            isGenerating =
-                false;
-        }
-    }
-
-
-    /* =====================================================
-       WINDOW GLOBAL FUNCTIONS
-       ===================================================== */
-
-    window.openPdfFormatModal =
-        openPdfFormatModal;
-
-
-    window.closePdfFormatModal =
-        closePdfFormatModal;
-
-
-    window.exportToPDF =
-        exportToPDF;
-
-
-    window.shareTelegram =
-        shareTelegram;
-
-
-    /* =====================================================
-       DR.MED PDF MODULE
-       APP.JS UCHUN
-       ===================================================== */
-
-    window.DRMED_PDF = {
-
-        /*
-         * Yangi retsept boshlanganda
-         * app.js shu funksiyani chaqiradi.
-         */
-
-        resetRecipe:
-            resetRecipeQr,
-
-
-        /*
-         * PDF format oynasi.
-         */
-
-        openFormatModal:
-            openPdfFormatModal,
-
-
-        closeFormatModal:
-            closePdfFormatModal,
-
-
-        /*
-         * A4.
-         */
-
-        downloadA4:
-            function () {
-
-                return exportToPDF(
-                    "a4"
-                );
-            },
-
-
-        /*
-         * A5.
-         */
-
-        downloadA5:
-            function () {
-
-                return exportToPDF(
-                    "a5"
-                );
-            },
-
-
-        /*
-         * Umumiy export.
-         */
-
-        export:
-            exportToPDF,
-
-
-        /*
-         * Telegram / Share.
-         */
-
-        share:
-            shareTelegram
     };
 
+  }
 
-    /* =====================================================
-       MODUL YUKLANGAN
-       ===================================================== */
 
-    console.log(
-        "✅ DR.MED PDF MODULE LOADED"
+  function startDrawing(event) {
+
+    event.preventDefault();
+
+    drawing = true;
+
+
+    const pos =
+      getPosition(event);
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      pos.x,
+      pos.y
+    );
+
+  }
+
+
+  function draw(event) {
+
+    if (!drawing) {
+      return;
+    }
+
+
+    event.preventDefault();
+
+
+    const pos =
+      getPosition(event);
+
+
+    ctx.lineWidth =
+      2;
+
+
+    ctx.lineCap =
+      'round';
+
+
+    ctx.strokeStyle =
+      '#111827';
+
+
+    ctx.lineTo(
+      pos.x,
+      pos.y
     );
 
 
-    console.log(
-        "✅ DR.MED QR SYSTEM READY"
+    ctx.stroke();
+
+  }
+
+
+  function stopDrawing(event) {
+
+    if (!drawing) {
+      return;
+    }
+
+
+    event.preventDefault();
+
+    drawing = false;
+
+
+    signatureDataURL =
+      canvas.toDataURL(
+        'image/png'
+      );
+
+
+    const paperSignature =
+      document.getElementById(
+        'paper_signature_img'
+      );
+
+
+    if (paperSignature) {
+
+      paperSignature.src =
+        signatureDataURL;
+
+      paperSignature.style.display =
+        'block';
+
+    }
+
+  }
+
+
+  canvas.addEventListener(
+    'mousedown',
+    startDrawing
+  );
+
+
+  canvas.addEventListener(
+    'mousemove',
+    draw
+  );
+
+
+  canvas.addEventListener(
+    'mouseup',
+    stopDrawing
+  );
+
+
+  canvas.addEventListener(
+    'mouseleave',
+    stopDrawing
+  );
+
+
+  canvas.addEventListener(
+    'touchstart',
+    startDrawing,
+    {
+      passive: false
+    }
+  );
+
+
+  canvas.addEventListener(
+    'touchmove',
+    draw,
+    {
+      passive: false
+    }
+  );
+
+
+  canvas.addEventListener(
+    'touchend',
+    stopDrawing,
+    {
+      passive: false
+    }
+  );
+
+}
+
+
+/* ==========================================================================
+   CLEAR SIGNATURE
+   ========================================================================== */
+
+function clearSignature() {
+
+  const canvas =
+    document.getElementById(
+      'signatureCanvas'
     );
 
 
-})();
+  if (canvas) {
+
+    const ctx =
+      canvas.getContext('2d');
+
+
+    ctx.clearRect(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+  }
+
+
+  signatureDataURL =
+    null;
+
+
+  const paperSignature =
+    document.getElementById(
+      'paper_signature_img'
+    );
+
+
+  if (paperSignature) {
+
+    paperSignature.src =
+      '';
+
+    paperSignature.style.display =
+      'none';
+
+  }
+
+}
+
+
+/* ==========================================================================
+   SETTINGS
+   ========================================================================== */
+
+function loadSettingsFromStorage() {
+
+  try {
+
+    const savedDoctor =
+      localStorage.getItem(
+        'drmed_doctor_profile'
+      );
+
+
+    const savedClinic =
+      localStorage.getItem(
+        'drmed_clinic_profile'
+      );
+
+
+    const savedStamp =
+      localStorage.getItem(
+        'drmed_stamp'
+      );
+
+
+    if (savedDoctor) {
+
+      const parsedDoctor =
+        JSON.parse(
+          savedDoctor
+        );
+
+
+      if (parsedDoctor) {
+
+        doctorProfile =
+          {
+            ...doctorProfile,
+            ...parsedDoctor
+          };
+
+      }
+
+    }
+
+
+    if (savedClinic) {
+
+      const parsedClinic =
+        JSON.parse(
+          savedClinic
+        );
+
+
+      if (parsedClinic) {
+
+        clinicProfile =
+          {
+            ...clinicProfile,
+            ...parsedClinic
+          };
+
+      }
+
+    }
+
+
+    if (savedStamp) {
+
+      customStampDataURL =
+        savedStamp;
+
+    }
+
+
+  }
+
+  catch (error) {
+
+    console.error(
+      'Sozlamalarni yuklash xatosi:',
+      error
+    );
+
+  }
+
+}
+
+
+/* ==========================================================================
+   SAVE SETTINGS
+   ========================================================================== */
+
+function saveDoctorSettings() {
+
+  const nameEl =
+    document.getElementById(
+      'doctor_name'
+    );
+
+
+  const specEl =
+    document.getElementById(
+      'doctor_spec'
+    );
+
+
+  const idEl =
+    document.getElementById(
+      'doctor_id'
+    );
+
+
+  if (nameEl) {
+
+    doctorProfile.name =
+      nameEl.value.trim();
+
+  }
+
+
+  if (specEl) {
+
+    doctorProfile.spec =
+      specEl.value.trim();
+
+  }
+
+
+  if (idEl) {
+
+    doctorProfile.id =
+      idEl.value.trim();
+
+  }
+
+
+  localStorage.setItem(
+    'drmed_doctor_profile',
+    JSON.stringify(
+      doctorProfile
+    )
+  );
+
+
+  liveUpdate();
+
+}
+
+
+function saveClinicSettings() {
+
+  const nameEl =
+    document.getElementById(
+      'clinic_name'
+    );
+
+
+  const addressEl =
+    document.getElementById(
+      'clinic_address'
+    );
+
+
+  const phoneEl =
+    document.getElementById(
+      'clinic_phone'
+    );
+
+
+  if (nameEl) {
+
+    clinicProfile.name =
+      nameEl.value.trim();
+
+  }
+
+
+  if (addressEl) {
+
+    clinicProfile.address =
+      addressEl.value.trim();
+
+  }
+
+
+  if (phoneEl) {
+
+    clinicProfile.phone =
+      phoneEl.value.trim();
+
+  }
+
+
+  localStorage.setItem(
+    'drmed_clinic_profile',
+    JSON.stringify(
+      clinicProfile
+    )
+  );
+
+
+  liveUpdate();
+
+}
+
+
+/* ==========================================================================
+   HISTORY
+   ========================================================================== */
+
+function getPrescriptionHistory() {
+
+  try {
+
+    return JSON.parse(
+      localStorage.getItem(
+        'drmed_history'
+      ) || '[]'
+    );
+
+  }
+
+  catch (error) {
+
+    console.error(
+      'Retsept tarixini o‘qishda xato:',
+      error
+    );
+
+    return [];
+
+  }
+
+}
+
+
+/* ==========================================================================
+   SAVE PRESCRIPTION
+   ========================================================================== */
+
+function savePrescriptionToHistory() {
+
+  liveUpdate();
+
+
+  const pName =
+    document.getElementById(
+      'p_name'
+    )?.value?.trim() ||
+    'Nomaʼlum bemor';
+
+
+  const pBirth =
+    document.getElementById(
+      'p_birth'
+    )?.value ||
+    '';
+
+
+  const pAge =
+    document.getElementById(
+      'p_age'
+    )?.value ||
+    '';
+
+
+  const pAddress =
+    document.getElementById(
+      'p_address'
+    )?.value ||
+    '';
+
+
+  const pCard =
+    document.getElementById(
+      'p_card'
+    )?.value ||
+    '';
+
+
+  const pICD =
+    document.getElementById(
+      'p_icd'
+    )?.value ||
+    '';
+
+
+  const pDiag =
+    document.getElementById(
+      'p_diag'
+    )?.value ||
+    '';
+
+
+  const pAllergy =
+    document.getElementById(
+      'p_allergy'
+    )?.value ||
+    '';
+
+
+  const pNote =
+    document.getElementById(
+      'p_note'
+    )?.value ||
+    '';
+
+
+  const prescription = {
+
+    id:
+      getCurrentPrescriptionId(),
+
+    patientName:
+      pName,
+
+    birth:
+      pBirth,
+
+    age:
+      pAge,
+
+    gender:
+      currentGender,
+
+    address:
+      pAddress,
+
+    card:
+      pCard,
+
+    icd:
+      pICD,
+
+    diag:
+      pDiag,
+
+    allergy:
+      pAllergy,
+
+    note:
+      pNote,
+
+    drugs:
+      JSON.parse(
+        JSON.stringify(
+          drugs
+        )
+      ),
+
+    doctor:
+      JSON.parse(
+        JSON.stringify(
+          doctorProfile
+        )
+      ),
+
+    clinic:
+      JSON.parse(
+        JSON.stringify(
+          clinicProfile
+        )
+      ),
+
+    signature:
+      signatureDataURL,
+
+    stamp:
+      customStampDataURL,
+
+    createdAt:
+      new Date().toISOString()
+
+  };
+
+
+  const history =
+    getPrescriptionHistory();
+
+
+  /*
+   * Agar aynan shu RX oldin mavjud bo‘lsa,
+   * uni yangilaymiz.
+   */
+  const existingIndex =
+    history.findIndex(
+      item =>
+        item.id ===
+        prescription.id
+    );
+
+
+  if (
+    existingIndex >= 0
+  ) {
+
+    history[
+      existingIndex
+    ] =
+      prescription;
+
+  }
+
+  else {
+
+    history.unshift(
+      prescription
+    );
+
+  }
+
+
+  localStorage.setItem(
+    'drmed_history',
+    JSON.stringify(
+      history
+    )
+  );
+
+
+  renderHistoryList();
+
+
+  console.log(
+    '✅ Retsept tarixga saqlandi:',
+    prescription.id
+  );
+
+
+  return prescription;
+
+}
+
+
+/* ==========================================================================
+   HISTORY LIST
+   ========================================================================== */
+
+function renderHistoryList() {
+
+  const container =
+    document.getElementById(
+      'historyList'
+    );
+
+
+  if (!container) {
+    return;
+  }
+
+
+  const history =
+    getPrescriptionHistory();
+
+
+  container.innerHTML =
+    '';
+
+
+  if (
+    history.length === 0
+  ) {
+
+    container.innerHTML = `
+
+      <div class="empty-state">
+
+        <div class="empty-icon">
+          📋
+        </div>
+
+        <div>
+          Hozircha saqlangan retseptlar yo‘q.
+        </div>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  history.forEach(
+    prescription => {
+
+      const item =
+        document.createElement(
+          'div'
+        );
+
+
+      item.className =
+        'history-item';
+
+
+      const created =
+        prescription.createdAt
+          ? new Date(
+              prescription.createdAt
+            ).toLocaleString(
+              'uz-UZ'
+            )
+          : '';
+
+
+      item.innerHTML = `
+
+        <div class="history-main">
+
+          <div class="history-title">
+
+            ${escapeHTML(
+              prescription.patientName ||
+              'Nomaʼlum bemor'
+            )}
+
+          </div>
+
+
+          <div class="history-meta">
+
+            <span>
+              ${escapeHTML(
+                prescription.id ||
+                ''
+              )}
+            </span>
+
+            <span>
+              ${escapeHTML(
+                created
+              )}
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="history-actions">
+
+          <button
+            type="button"
+            class="sm-btn"
+            onclick="loadFromHistory('${escapeJS(
+              prescription.id
+            )}')"
+          >
+            Ochish
+          </button>
+
+
+          <button
+            type="button"
+            class="sm-btn"
+            style="color:var(--danger);"
+            onclick="deleteFromHistory('${escapeJS(
+              prescription.id
+            )}')"
+          >
+            O‘chirish
+          </button>
+
+        </div>
+
+      `;
+
+
+      container.appendChild(
+        item
+      );
+
+    }
+  );
+
+}
+
+
+/* ==========================================================================
+   LOAD FROM HISTORY
+   ========================================================================== */
+
+function loadFromHistory(
+  prescriptionId
+) {
+
+  const history =
+    getPrescriptionHistory();
+
+
+  const prescription =
+    history.find(
+      item =>
+        item.id ===
+        prescriptionId
+    );
+
+
+  if (!prescription) {
+
+    alert(
+      'Retsept topilmadi.'
+    );
+
+    return;
+
+  }
+
+
+  currentPrescriptionId =
+    prescription.id;
+
+
+  const rxIdEl =
+    document.getElementById(
+      'paper_rx_id'
+    );
+
+
+  if (rxIdEl) {
+
+    rxIdEl.innerText =
+      currentPrescriptionId;
+
+  }
+
+
+  const pNameEl =
+    document.getElementById(
+      'p_name'
+    );
+
+
+  if (pNameEl) {
+
+    pNameEl.value =
+      prescription.patientName ||
+      '';
+
+  }
+
+
+  const pBirthEl =
+    document.getElementById(
+      'p_birth'
+    );
+
+
+  if (pBirthEl) {
+
+    pBirthEl.value =
+      prescription.birth ||
+      '';
+
+  }
+
+
+  const pAgeEl =
+    document.getElementById(
+      'p_age'
+    );
+
+
+  if (pAgeEl) {
+
+    pAgeEl.value =
+      prescription.age ||
+      '';
+
+  }
+
+
+  currentGender =
+    prescription.gender ||
+    'Erkak';
+
+
+  const pAddressEl =
+    document.getElementById(
+      'p_address'
+    );
+
+
+  if (pAddressEl) {
+
+    pAddressEl.value =
+      prescription.address ||
+      '';
+
+  }
+
+
+  const pCardEl =
+    document.getElementById(
+      'p_card'
+    );
+
+
+  if (pCardEl) {
+
+    pCardEl.value =
+      prescription.card ||
+      '';
+
+  }
+
+
+  const pICDEl =
+    document.getElementById(
+      'p_icd'
+    );
+
+
+  if (pICDEl) {
+
+    pICDEl.value =
+      prescription.icd ||
+      '';
+
+  }
+
+
+  const pDiagEl =
+    document.getElementById(
+      'p_diag'
+    );
+
+
+  if (pDiagEl) {
+
+    pDiagEl.value =
+      prescription.diag ||
+      '';
+
+  }
+
+
+  const pAllergyEl =
+    document.getElementById(
+      'p_allergy'
+    );
+
+
+  if (pAllergyEl) {
+
+    pAllergyEl.value =
+      prescription.allergy ||
+      '';
+
+  }
+
+
+  const pNoteEl =
+    document.getElementById(
+      'p_note'
+    );
+
+
+  if (pNoteEl) {
+
+    pNoteEl.value =
+      prescription.note ||
+      '';
+
+  }
+
+
+  drugs =
+    JSON.parse(
+      JSON.stringify(
+        prescription.drugs ||
+        []
+      )
+    );
+
+
+  signatureDataURL =
+    prescription.signature ||
+    null;
+
+
+  customStampDataURL =
+    prescription.stamp ||
+    null;
+
+
+  if (
+    prescription.doctor
+  ) {
+
+    doctorProfile =
+      {
+        ...doctorProfile,
+        ...prescription.doctor
+      };
+
+  }
+
+
+  if (
+    prescription.clinic
+  ) {
+
+    clinicProfile =
+      {
+        ...clinicProfile,
+        ...prescription.clinic
+      };
+
+  }
+
+
+  renderDrugCards();
+
+  liveUpdate();
+
+
+  /*
+   * QR moduliga eski RX qayta ochilganini
+   * bildiradi.
+   *
+   * Bu yerda yangi RX yaratmaymiz.
+   */
+  if (
+    window.DRMED_QR &&
+    typeof window.DRMED_QR.reset ===
+      'function'
+  ) {
+
+    try {
+
+      window.DRMED_QR.reset(
+        currentPrescriptionId
+      );
+
+      /*
+       * Eski retsept ochilgach,
+       * shu RX uchun QRni qayta yaratamiz.
+       */
+      setTimeout(
+        () => {
+
+          if (
+            window.DRMED_QR &&
+            typeof window.DRMED_QR.refresh ===
+              'function'
+          ) {
+
+            window.DRMED_QR.refresh();
+
+          }
+
+        },
+        150
+      );
+
+    }
+
+    catch (error) {
+
+      console.warn(
+        'History QR reset xatosi:',
+        error
+      );
+
+    }
+
+  }
+
+
+  switchStep(3);
+
+}
+
+
+/* ==========================================================================
+   DELETE HISTORY ITEM
+   ========================================================================== */
+
+function deleteFromHistory(
+  prescriptionId
+) {
+
+  if (
+    !confirm(
+      'Ushbu retseptni tarixdan o‘chirishni xohlaysizmi?'
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  const history =
+    getPrescriptionHistory();
+
+
+  const filtered =
+    history.filter(
+      item =>
+        item.id !==
+        prescriptionId
+    );
+
+
+  localStorage.setItem(
+    'drmed_history',
+    JSON.stringify(
+      filtered
+    )
+  );
+
+
+  renderHistoryList();
+
+}
+
+
+/* ==========================================================================
+   CLEAR ALL HISTORY
+   ========================================================================== */
+
+function clearPrescriptionHistory() {
+
+  if (
+    !confirm(
+      'Barcha saqlangan retseptlarni o‘chirishni xohlaysizmi?'
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  localStorage.removeItem(
+    'drmed_history'
+  );
+
+
+  renderHistoryList();
+
+}
+
+
+/* ==========================================================================
+   HTML SAFETY HELPERS
+   ========================================================================== */
+
+function escapeHTML(
+  value
+) {
+
+  if (
+    value === null ||
+    value === undefined
+  ) {
+
+    return '';
+
+  }
+
+
+  return String(
+    value
+  )
+    .replace(
+      /&/g,
+      '&amp;'
+    )
+    .replace(
+      /</g,
+      '&lt;'
+    )
+    .replace(
+      />/g,
+      '&gt;'
+    )
+    .replace(
+      /"/g,
+      '&quot;'
+    )
+    .replace(
+      /'/g,
+      '&#039;'
+    );
+
+}
+
+
+function escapeJS(
+  value
+) {
+
+  return String(
+    value || ''
+  )
+    .replace(
+      /\\/g,
+      '\\\\'
+    )
+    .replace(
+      /'/g,
+      "\\'"
+    )
+    .replace(
+      /\r/g,
+      '\\r'
+    )
+    .replace(
+      /\n/g,
+      '\\n'
+    );
+
+}
+/* ==========================================================================
+   ICD-10 SEARCH
+   ========================================================================== */
+
+function searchICD10() {
+
+  const input =
+    document.getElementById(
+      'icdSearchInput'
+    );
+
+
+  const results =
+    document.getElementById(
+      'icdResults'
+    );
+
+
+  if (!input || !results) {
+
+    return;
+
+  }
+
+
+  const query =
+    input.value
+      .trim()
+      .toLowerCase();
+
+
+  results.innerHTML =
+    '';
+
+
+  if (!query) {
+
+    return;
+
+  }
+
+
+  if (
+    !Array.isArray(
+      icd10Data
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  const filtered =
+    icd10Data
+      .filter(
+        item => {
+
+          const code =
+            String(
+              item.code ||
+              item.Code ||
+              ''
+            )
+              .toLowerCase();
+
+
+          const name =
+            String(
+              item.name ||
+              item.title ||
+              item.description ||
+              item.Name ||
+              ''
+            )
+              .toLowerCase();
+
+
+          return (
+            code.includes(query) ||
+            name.includes(query)
+          );
+
+        }
+      )
+      .slice(
+        0,
+        50
+      );
+
+
+  if (
+    filtered.length === 0
+  ) {
+
+    results.innerHTML = `
+
+      <div class="empty-state">
+
+        ICD-10 bo'yicha natija topilmadi.
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  filtered.forEach(
+    item => {
+
+      const code =
+        item.code ||
+        item.Code ||
+        '';
+
+
+      const name =
+        item.name ||
+        item.title ||
+        item.description ||
+        item.Name ||
+        '';
+
+
+      const row =
+        document.createElement(
+          'button'
+        );
+
+
+      row.type =
+        'button';
+
+
+      row.className =
+        'icd-result-item';
+
+
+      row.innerHTML = `
+
+        <strong>
+          ${escapeHTML(code)}
+        </strong>
+
+        <span>
+          ${escapeHTML(name)}
+        </span>
+
+      `;
+
+
+      row.addEventListener(
+        'click',
+        () => {
+
+          selectICD(
+            code,
+            name
+          );
+
+        }
+      );
+
+
+      results.appendChild(
+        row
+      );
+
+    }
+  );
+
+}
+
+
+/* ==========================================================================
+   SELECT ICD-10
+   ========================================================================== */
+
+function selectICD(
+  code,
+  name
+) {
+
+  const codeEl =
+    document.getElementById(
+      'p_icd'
+    );
+
+
+  const diagEl =
+    document.getElementById(
+      'p_diag'
+    );
+
+
+  if (codeEl) {
+
+    codeEl.value =
+      code || '';
+
+  }
+
+
+  if (diagEl) {
+
+    diagEl.value =
+      name || '';
+
+  }
+
+
+  closeModal(
+    'icdModal'
+  );
+
+
+  liveUpdate();
+
+}
+
+
+/* ==========================================================================
+   ICD MODAL
+   ========================================================================== */
+
+function openICDModal() {
+
+  const modal =
+    document.getElementById(
+      'icdModal'
+    );
+
+
+  if (!modal) {
+
+    return;
+
+  }
+
+
+  modal.classList.add(
+    'active'
+  );
+
+
+  const input =
+    document.getElementById(
+      'icdSearchInput'
+    );
+
+
+  if (input) {
+
+    input.value =
+      '';
+
+
+    setTimeout(
+      () => {
+
+        input.focus();
+
+      },
+      100
+    );
+
+  }
+
+
+  const results =
+    document.getElementById(
+      'icdResults'
+    );
+
+
+  if (results) {
+
+    results.innerHTML =
+      '';
+
+  }
+
+}
+
+
+function closeModal(
+  modalId
+) {
+
+  const modal =
+    document.getElementById(
+      modalId
+    );
+
+
+  if (!modal) {
+
+    return;
+
+  }
+
+
+  modal.classList.remove(
+    'active'
+  );
+
+}
+
+
+/* ==========================================================================
+   MODAL OUTSIDE CLICK
+   ========================================================================== */
+
+document.addEventListener(
+  'click',
+  event => {
+
+    if (
+      event.target.classList &&
+      event.target.classList.contains(
+        'modal-overlay'
+      )
+    ) {
+
+      event.target.classList.remove(
+        'active'
+      );
+
+    }
+
+  }
+);
+
+
+/* ==========================================================================
+   EXPORT & PRINT
+   ========================================================================== */
+
+/*
+ * PDF yaratish uchun asosiy engine:
+ *
+ *     pdf.js
+ *
+ * app.js pdf.jsni o'zgartirmaydi.
+ *
+ * pdf.js mavjud bo'lsa:
+ *     DRMED_PDF.openFormatModal()
+ *
+ * fallback:
+ *     html2pdf
+ */
+
+/* ==========================================================================
+   PRINT
+   ========================================================================== */
+
+function printPrescription() {
+
+  liveUpdate();
+
+  window.print();
+
+}
+
+
+/* ==========================================================================
+   TELEGRAM / UNIVERSAL SHARE
+   ========================================================================== */
+
+/*
+ * PDF.jsdagi share funksiyasi ishlatiladi.
+ *
+ * Bu:
+ *
+ * iPhone
+ * iPad
+ * Android
+ * Android tablet
+ * Desktop
+ *
+ * qurilmalar uchun PDF.jsdagi mavjud
+ * Share mexanizmini ishlatadi.
+ */
+
+async function shareTelegram() {
+
+  liveUpdate();
+
+
+  /*
+   * Birinchi navbatda PDF.js.
+   */
+
+  if (
+    window.DRMED_PDF &&
+    typeof window.DRMED_PDF.share ===
+      'function'
+  ) {
+
+    try {
+
+      return await
+        window.DRMED_PDF.share();
+
+    }
+
+    catch (error) {
+
+      console.error(
+        'PDF Telegram Share xatosi:',
+        error
+      );
+
+
+      /*
+       * User Share oynasini yopgan bo'lsa,
+       * xabar bermaymiz.
+       */
+
+      if (
+        error?.name ===
+        'AbortError'
+      ) {
+
+        return;
+
+      }
+
+    }
+
+  }
+
+
+  /*
+   * Telegram WebApp fallback.
+   */
+
+  if (
+    tg &&
+    typeof tg.sendData ===
+      'function'
+  ) {
+
+    try {
+
+      tg.sendData(
+
+        JSON.stringify({
+
+          action:
+            'share_rx',
+
+          rx_id:
+            getCurrentPrescriptionId(),
+
+          patient:
+            document.getElementById(
+              'p_name'
+            )?.value ||
+            ''
+
+        })
+
+      );
+
+
+      return;
+
+    }
+
+    catch (error) {
+
+      console.error(
+        'Telegram sendData xatosi:',
+        error
+      );
+
+    }
+
+  }
+
+
+  /*
+   * Oddiy browser Share fallback.
+   */
+
+  if (
+    typeof navigator.share ===
+      'function'
+  ) {
+
+    try {
+
+      await navigator.share({
+
+        title:
+          'DR.MED Elektron Retsept',
+
+        text:
+          'DR.MED elektron retsept'
+
+      });
+
+
+      return;
+
+    }
+
+    catch (error) {
+
+      if (
+        error?.name ===
+        'AbortError'
+      ) {
+
+        return;
+
+      }
+
+    }
+
+  }
+
+
+  alert(
+    'Bu qurilmada Share funksiyasi mavjud emas.'
+  );
+
+}
+
+
+/* ==========================================================================
+   UNIVERSAL PDF DOWNLOAD
+   ========================================================================== */
+
+/*
+ * HTMLdagi PDF Yuklash tugmasi shu funksiyani chaqiradi.
+ *
+ * Muhim:
+ *
+ * Eski koddagi:
+ *
+ *     window.DRMED_PDF.download()
+ *
+ * OLIB TASHLANDI.
+ *
+ * Chunki pdf.jsda "download" API mavjud emas.
+ *
+ * Mavjud API:
+ *
+ *     openFormatModal
+ *     downloadA4
+ *     downloadA5
+ */
+
+async function downloadPDF() {
+
+  liveUpdate();
+
+
+  /*
+   * Eng yaxshi variant:
+   *
+   * PDF.js format oynasi.
+   */
+
+  if (
+    window.DRMED_PDF &&
+    typeof window.DRMED_PDF.openFormatModal ===
+      'function'
+  ) {
+
+    try {
+
+      return await
+        window.DRMED_PDF.openFormatModal();
+
+    }
+
+    catch (error) {
+
+      console.error(
+        'Universal PDF download xatosi:',
+        error
+      );
+
+
+      if (
+        error?.name ===
+        'AbortError'
+      ) {
+
+        return;
+
+      }
+
+    }
+
+  }
+
+
+  /*
+   * Format oynasi ishlamasa:
+   *
+   * A4.
+   */
+
+  if (
+    window.DRMED_PDF &&
+    typeof window.DRMED_PDF.downloadA4 ===
+      'function'
+  ) {
+
+    try {
+
+      return await
+        window.DRMED_PDF.downloadA4();
+
+    }
+
+    catch (error) {
+
+      console.error(
+        'A4 PDF xatosi:',
+        error
+      );
+
+    }
+
+  }
+
+
+  /*
+   * Fallback — html2pdf.
+   */
+
+  const element =
+    document.getElementById(
+      'prescriptionPaper'
+    ) ||
+    document.getElementById(
+      'printablePaper'
+    ) ||
+    document.querySelector(
+      '.rx-paper'
+    );
+
+
+  if (!element) {
+
+    alert(
+      'Retsept topilmadi!'
+    );
+
+    return;
+
+  }
+
+
+  const rxId =
+    getCurrentPrescriptionId();
+
+
+  const opt = {
+
+    margin:
+      8,
+
+    filename:
+      `Retsept_${rxId}.pdf`,
+
+    image: {
+
+      type:
+        'jpeg',
+
+      quality:
+        1
+
+    },
+
+    html2canvas: {
+
+      scale:
+        3,
+
+      useCORS:
+        true,
+
+      scrollY:
+        0
+
+    },
+
+    jsPDF: {
+
+      unit:
+        'mm',
+
+      format:
+        'a4',
+
+      orientation:
+        'portrait'
+
+    }
+
+  };
+
+
+  if (
+    window.html2pdf
+  ) {
+
+    return html2pdf()
+      .set(opt)
+      .from(element)
+      .save();
+
+  }
+
+
+  alert(
+    "PDF kutubxonasi yuklanmagan. Iltimos qayta urinib ko'ring."
+  );
+
+}
+
+
+/* ==========================================================================
+   UI BUTTON BINDINGS
+   ========================================================================== */
+
+window.addEventListener(
+  'DOMContentLoaded',
+  () => {
+
+    /*
+     * Telegram Share tugmasi
+     */
+
+    const shareButton =
+      document.getElementById(
+        'telegramShareButton'
+      ) ||
+      document.querySelector(
+        '.btn-share'
+      );
+
+
+    if (shareButton) {
+
+      shareButton.addEventListener(
+        'click',
+        async event => {
+
+          event.preventDefault();
+
+          event.stopPropagation();
+
+
+          await shareTelegram();
+
+        },
+        false
+      );
+
+    }
+
+
+    /*
+     * Tarixni render qilish.
+     */
+
+    renderHistoryList();
+
+  }
+);
+
+
+/* ==========================================================================
+   WINDOW GLOBAL API
+   ========================================================================== */
+
+/*
+ * HTML onclick="" ishlatadigan funksiyalar
+ * global bo'lishi kerak.
+ */
+
+window.switchStep =
+  switchStep;
+
+
+window.selectGender =
+  selectGender;
+
+
+window.calculateAge =
+  calculateAge;
+
+
+window.addNewDrugCard =
+  addNewDrugCard;
+
+
+window.removeDrug =
+  removeDrug;
+
+
+window.clearAllDrugs =
+  clearAllDrugs;
+
+
+window.applyPreset =
+  applyPreset;
+
+
+window.uploadStampImage =
+  uploadStampImage;
+
+
+window.clearSignature =
+  clearSignature;
+
+
+window.saveDoctorSettings =
+  saveDoctorSettings;
+
+
+window.saveClinicSettings =
+  saveClinicSettings;
+
+
+window.savePrescriptionToHistory =
+  savePrescriptionToHistory;
+
+
+window.renderHistoryList =
+  renderHistoryList;
+
+
+window.loadFromHistory =
+  loadFromHistory;
+
+
+window.deleteFromHistory =
+  deleteFromHistory;
+
+
+window.clearPrescriptionHistory =
+  clearPrescriptionHistory;
+
+
+window.searchICD10 =
+  searchICD10;
+
+
+window.selectICD =
+  selectICD;
+
+
+window.openICDModal =
+  openICDModal;
+
+
+window.closeModal =
+  closeModal;
+
+
+window.printPrescription =
+  printPrescription;
+
+
+window.shareTelegram =
+  shareTelegram;
+
+
+window.downloadPDF =
+  downloadPDF;
+
+/* ==========================================================================
+   MISSING INDEX.HTML FUNCTIONS
+   ========================================================================== */
+
+
+/* ==========================================================================
+   OPEN MODAL
+   ========================================================================== */
+
+function openModal(
+  modalId
+) {
+
+  const modal =
+    document.getElementById(
+      modalId
+    );
+
+
+  if (!modal) {
+
+    console.warn(
+      'Modal topilmadi:',
+      modalId
+    );
+
+    return;
+
+  }
+
+
+  modal.classList.add(
+    'active'
+  );
+
+
+  /*
+   * History ochilganda ro'yxatni yangilaymiz.
+   */
+
+  if (
+    modalId ===
+    'historyModal'
+  ) {
+
+    renderHistoryList();
+
+  }
+
+
+  /*
+   * Settings ochilganda mavjud
+   * ma'lumotlarni inputlarga qo'yamiz.
+   */
+
+  if (
+    modalId ===
+    'settingsModal'
+  ) {
+
+    loadSettingsIntoForm();
+
+  }
+
+}
+
+
+/* ==========================================================================
+   CLOSE MODAL
+   ========================================================================== */
+
+function closeModal(
+  modalId
+) {
+
+  const modal =
+    document.getElementById(
+      modalId
+    );
+
+
+  if (!modal) {
+
+    return;
+
+  }
+
+
+  modal.classList.remove(
+    'active'
+  );
+
+}
+
+
+/* ==========================================================================
+   LOAD SETTINGS INTO FORM
+   ========================================================================== */
+
+function loadSettingsIntoForm() {
+
+  const doctorName =
+    document.getElementById(
+      'doctor_name'
+    );
+
+
+  const doctorSpec =
+    document.getElementById(
+      'doctor_spec'
+    );
+
+
+  const doctorId =
+    document.getElementById(
+      'doctor_id'
+    );
+
+
+  const clinicName =
+    document.getElementById(
+      'clinic_name'
+    );
+
+
+  const clinicAddress =
+    document.getElementById(
+      'clinic_address'
+    );
+
+
+  const clinicPhone =
+    document.getElementById(
+      'clinic_phone'
+    );
+
+
+  if (doctorName) {
+
+    doctorName.value =
+      doctorProfile.name ||
+      '';
+
+  }
+
+
+  if (doctorSpec) {
+
+    doctorSpec.value =
+      doctorProfile.spec ||
+      '';
+
+  }
+
+
+  if (doctorId) {
+
+    doctorId.value =
+      doctorProfile.id ||
+      '';
+
+  }
+
+
+  if (clinicName) {
+
+    clinicName.value =
+      clinicProfile.name ||
+      '';
+
+  }
+
+
+  if (clinicAddress) {
+
+    clinicAddress.value =
+      clinicProfile.address ||
+      '';
+
+  }
+
+
+  if (clinicPhone) {
+
+    clinicPhone.value =
+      clinicProfile.phone ||
+      '';
+
+  }
+
+}
+
+
+/* ==========================================================================
+   SAVE SETTINGS
+   ========================================================================== */
+
+function saveSettings() {
+
+  /*
+   * Shifokor ma'lumotlari
+   */
+
+  const doctorName =
+    document.getElementById(
+      'doctor_name'
+    );
+
+
+  const doctorSpec =
+    document.getElementById(
+      'doctor_spec'
+    );
+
+
+  const doctorId =
+    document.getElementById(
+      'doctor_id'
+    );
+
+
+  if (doctorName) {
+
+    doctorProfile.name =
+      doctorName.value.trim();
+
+  }
+
+
+  if (doctorSpec) {
+
+    doctorProfile.spec =
+      doctorSpec.value.trim();
+
+  }
+
+
+  if (doctorId) {
+
+    doctorProfile.id =
+      doctorId.value.trim();
+
+  }
+
+
+  /*
+   * Klinika ma'lumotlari
+   */
+
+  const clinicName =
+    document.getElementById(
+      'clinic_name'
+    );
+
+
+  const clinicAddress =
+    document.getElementById(
+      'clinic_address'
+    );
+
+
+  const clinicPhone =
+    document.getElementById(
+      'clinic_phone'
+    );
+
+
+  if (clinicName) {
+
+    clinicProfile.name =
+      clinicName.value.trim();
+
+  }
+
+
+  if (clinicAddress) {
+
+    clinicProfile.address =
+      clinicAddress.value.trim();
+
+  }
+
+
+  if (clinicPhone) {
+
+    clinicProfile.phone =
+      clinicPhone.value.trim();
+
+  }
+
+
+  /*
+   * LocalStorage
+   */
+
+  localStorage.setItem(
+    'drmed_doctor_profile',
+    JSON.stringify(
+      doctorProfile
+    )
+  );
+
+
+  localStorage.setItem(
+    'drmed_clinic_profile',
+    JSON.stringify(
+      clinicProfile
+    )
+  );
+
+
+  /*
+   * Blankani yangilash
+   */
+
+  liveUpdate();
+
+
+  /*
+   * Modalni yopish
+   */
+
+  closeModal(
+    'settingsModal'
+  );
+
+
+  /*
+   * Telegram haptic
+   */
+
+  if (
+    tg &&
+    tg.HapticFeedback
+  ) {
+
+    tg.HapticFeedback
+      .notificationOccurred(
+        'success'
+      );
+
+  }
+
+
+  alert(
+    'Sozlamalar saqlandi.'
+  );
+
+}
+
+
+/* ==========================================================================
+   CLEAR PATIENT FORM
+   ========================================================================== */
+
+function clearPatientForm() {
+
+  const fields = [
+
+    'p_name',
+
+    'p_age',
+
+    'p_birth',
+
+    'p_phone',
+
+    'p_card',
+
+    'p_address',
+
+    'p_icd',
+
+    'p_diag',
+
+    'p_allergy',
+
+    'p_note'
+
+  ];
+
+
+  fields.forEach(
+    id => {
+
+      const el =
+        document.getElementById(
+          id
+        );
+
+
+      if (el) {
+
+        el.value =
+          '';
+
+      }
+
+    }
+  );
+
+
+  /*
+   * Jinsni default holatga qaytaramiz.
+   */
+
+  currentGender =
+    'Erkak';
+
+
+  const male =
+    document.getElementById(
+      'gender_m'
+    );
+
+
+  const female =
+    document.getElementById(
+      'gender_f'
+    );
+
+
+  if (male) {
+
+    male.classList.add(
+      'active'
+    );
+
+  }
+
+
+  if (female) {
+
+    female.classList.remove(
+      'active'
+    );
+
+  }
+
+
+  /*
+   * Dorilarni tozalash.
+   */
+
+  drugs = [];
+
+
+  renderDrugCards();
+
+
+  /*
+   * Imzoni tozalash.
+   */
+
+  clearSignatureCanvas();
+
+
+  /*
+   * Yangi retsept raqami.
+   *
+   * QR ham yangi RXga o'tadi.
+   */
+
+  startNewPrescription();
+
+
+  liveUpdate();
+
+}
+
+
+/* ==========================================================================
+   CLEAR SIGNATURE CANVAS
+   ========================================================================== */
+
+function clearSignatureCanvas() {
+
+  const canvas =
+    document.getElementById(
+      'signatureCanvas'
+    );
+
+
+  if (canvas) {
+
+    const ctx =
+      canvas.getContext(
+        '2d'
+      );
+
+
+    ctx.clearRect(
+
+      0,
+
+      0,
+
+      canvas.width,
+
+      canvas.height
+
+    );
+
+  }
+
+
+  signatureDataURL =
+    null;
+
+
+  const paperSignature =
+    document.getElementById(
+      'paper_signature_img'
+    );
+
+
+  if (paperSignature) {
+
+    paperSignature.removeAttribute(
+      'src'
+    );
+
+
+    paperSignature.style.display =
+      'none';
+
+  }
+
+
+  /*
+   * Agar eski ID ishlatilgan bo'lsa,
+   * uni ham tozalaymiz.
+   */
+
+  const oldPaperSignature =
+    document.getElementById(
+      'paper_sig_img'
+    );
+
+
+  if (oldPaperSignature) {
+
+    oldPaperSignature.removeAttribute(
+      'src'
+    );
+
+
+    oldPaperSignature.style.display =
+      'none';
+
+  }
+
+}
+
+
+/* ==========================================================================
+   APPLY SIGNATURE TO PAPER
+   ========================================================================== */
+
+function applySignatureToPaper() {
+
+  const canvas =
+    document.getElementById(
+      'signatureCanvas'
+    );
+
+
+  if (!canvas) {
+
+    alert(
+      'Imzo oynasi topilmadi.'
+    );
+
+    return;
+
+  }
+
+
+  /*
+   * Canvasdan PNG olamiz.
+   */
+
+  signatureDataURL =
+    canvas.toDataURL(
+      'image/png'
+    );
+
+
+  if (!signatureDataURL) {
+
+    alert(
+      'Avval imzo qo‘ying.'
+    );
+
+    return;
+
+  }
+
+
+  /*
+   * Yangi ID
+   */
+
+  const paperSignature =
+    document.getElementById(
+      'paper_signature_img'
+    );
+
+
+  if (paperSignature) {
+
+    paperSignature.src =
+      signatureDataURL;
+
+
+    paperSignature.style.display =
+      'block';
+
+  }
+
+
+  /*
+   * Eski ID bo‘lsa ham ishlasin.
+   */
+
+  const oldPaperSignature =
+    document.getElementById(
+      'paper_sig_img'
+    );
+
+
+  if (oldPaperSignature) {
+
+    oldPaperSignature.src =
+      signatureDataURL;
+
+
+    oldPaperSignature.style.display =
+      'block';
+
+  }
+
+
+  /*
+   * Saqlab qo'yamiz.
+   */
+
+  localStorage.setItem(
+    'drmed_signature',
+    signatureDataURL
+  );
+
+
+  liveUpdate();
+
+
+  if (
+    tg &&
+    tg.HapticFeedback
+  ) {
+
+    tg.HapticFeedback
+      .impactOccurred(
+        'light'
+      );
+
+  }
+
+}
+
+
+/* ==========================================================================
+   CLEAR ALL HISTORY
+   ========================================================================== */
+
+function clearAllHistory() {
+
+  if (
+    !confirm(
+      'Barcha retseptlar tarixini o‘chirishni xohlaysizmi?'
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  localStorage.removeItem(
+    'drmed_history'
+  );
+
+
+  renderHistoryList();
+
+
+  /*
+   * Agar history modal ochiq bo'lsa,
+   * bo'sh holatni ko'rsatamiz.
+   */
+
+  const container =
+    document.getElementById(
+      'historyList'
+    );
+
+
+  if (
+    container &&
+    !container.innerHTML.trim()
+  ) {
+
+    container.innerHTML = `
+
+      <div class="empty-state">
+
+        <div class="empty-icon">
+          📋
+        </div>
+
+        <div>
+          Hozircha saqlangan retseptlar yo‘q.
+        </div>
+
+      </div>
+
+    `;
+
+  }
+
+
+  if (
+    tg &&
+    tg.HapticFeedback
+  ) {
+
+    tg.HapticFeedback
+      .notificationOccurred(
+        'success'
+      );
+
+  }
+
+}
+
+
+/* ==========================================================================
+   RESET APPLICATION DEFAULTS
+   ========================================================================== */
+
+function resetAppDefaults() {
+
+  if (
+    !confirm(
+      "Dasturni dastlabki holatga qaytarmoqchimisiz?\n\nBarcha saqlangan sozlamalar va retseptlar o‘chiriladi."
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  localStorage.clear();
+
+
+  /*
+   * Global state ham tozalanadi.
+   */
+
+  drugs = [];
+
+
+  signatureDataURL =
+    null;
+
+
+  customStampDataURL =
+    null;
+
+
+  currentPrescriptionId =
+    null;
+
+
+  currentGender =
+    'Erkak';
+
+
+  /*
+   * Sahifani qayta yuklaymiz.
+   */
+
+  location.reload();
+
+}
+
+
+/* ==========================================================================
+   GLOBAL API — INDEX.HTML UCHUN
+   ========================================================================== */
+
+window.openModal =
+  openModal;
+
+
+window.closeModal =
+  closeModal;
+
+
+window.saveSettings =
+  saveSettings;
+
+
+window.clearPatientForm =
+  clearPatientForm;
+
+
+window.clearSignatureCanvas =
+  clearSignatureCanvas;
+
+
+window.applySignatureToPaper =
+  applySignatureToPaper;
+
+
+window.clearAllHistory =
+  clearAllHistory;
+
+
+window.resetAppDefaults =
+  resetAppDefaults;
+  
+/* ==========================================================================
+   DR.MED APP READY
+   ========================================================================== */
+
+console.log(
+  '✅ DR.MED APP.JS LOADED'
+);
+
+
+console.log(
+  '✅ QR: qr.js orqali boshqariladi'
+);
+
+
+console.log(
+  '✅ PDF: pdf.js orqali boshqariladi'
+);
+
+
+console.log(
+  '✅ PDF Download API: openFormatModal / downloadA4 / downloadA5'
+);
+
+
+console.log(
+  '✅ Share API: DRMED_PDF.share()'
+);
