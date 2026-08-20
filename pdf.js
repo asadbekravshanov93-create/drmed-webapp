@@ -755,9 +755,26 @@
              * YUKLASH
              */
 
-            pdf.save(
-                fileName(format)
-            );
+            const pdfBlob = pdf.output("blob");
+
+const pdfUrl = URL.createObjectURL(pdfBlob);
+
+const downloadLink = document.createElement("a");
+
+downloadLink.href = pdfUrl;
+downloadLink.download = fileName(format);
+
+downloadLink.style.display = "none";
+
+document.body.appendChild(downloadLink);
+
+downloadLink.click();
+
+downloadLink.remove();
+
+setTimeout(() => {
+    URL.revokeObjectURL(pdfUrl);
+}, 5000);
 
 
             /*
