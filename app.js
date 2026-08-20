@@ -3242,6 +3242,210 @@ document.addEventListener(
  */
 
 /* ==========================================================================
+   EXPORT & PRINT
+   ========================================================================== */
+
+/*
+ * PDF export compatibility layer.
+ *
+ * app.js PDF yaratishning o'zini bajarmaydi.
+ * Asosiy PDF engine pdf.js ichidagi DRMED_PDF API hisoblanadi.
+ *
+ * Qo'llab-quvvatlanadigan API:
+ *   - openFormatModal()
+ *   - downloadA4()
+ *   - downloadA5()
+ *
+ * exportToPDF() eski HTML tugmalari/onclick kodlari uchun
+ * ham saqlanadi. Shu sababli mavjud UI qismlari buzilmaydi.
+ */
+
+async function exportToPDF(format = 'modal') {
+
+  liveUpdate();
+
+  if (
+    (!format || format === 'modal') &&
+    window.DRMED_PDF &&
+    typeof window.DRMED_PDF.openFormatModal ===
+      'function'
+  ) {
+
+    try {
+
+      return await
+        window.DRMED_PDF.openFormatModal();
+
+    }
+
+    catch (error) {
+
+      console.error(
+        'DRMED PDF format modal xatosi:',
+        error
+      );
+
+      if (
+        error?.name ===
+        'AbortError'
+      ) {
+
+        return;
+
+      }
+
+    }
+
+  }
+
+
+  if (
+    String(format).toLowerCase() === 'a5' &&
+    window.DRMED_PDF &&
+    typeof window.DRMED_PDF.downloadA5 ===
+      'function'
+  ) {
+
+    try {
+
+      return await
+        window.DRMED_PDF.downloadA5();
+
+    }
+
+    catch (error) {
+
+      console.error(
+        'DRMED PDF A5 xatosi:',
+        error
+      );
+
+    }
+
+  }
+
+
+  if (
+    window.DRMED_PDF &&
+    typeof window.DRMED_PDF.downloadA4 ===
+      'function'
+  ) {
+
+    try {
+
+      return await
+        window.DRMED_PDF.downloadA4();
+
+    }
+
+    catch (error) {
+
+      console.error(
+        'DRMED PDF A4 xatosi:',
+        error
+      );
+
+    }
+
+  }
+
+
+  const element =
+    document.getElementById(
+      'prescriptionPaper'
+    ) ||
+    document.getElementById(
+      'printablePaper'
+    ) ||
+    document.querySelector(
+      '.rx-paper'
+    );
+
+
+  if (!element) {
+
+    alert(
+      'Retsept topilmadi!'
+    );
+
+    return;
+
+  }
+
+
+  const rxId =
+    getCurrentPrescriptionId();
+
+
+  const opt = {
+
+    margin:
+      8,
+
+    filename:
+      `Retsept_${rxId}.pdf`,
+
+    image: {
+
+      type:
+        'jpeg',
+
+      quality:
+        1
+
+    },
+
+    html2canvas: {
+
+      scale:
+        3,
+
+      useCORS:
+        true,
+
+      scrollY:
+        0
+
+    },
+
+    jsPDF: {
+
+      unit:
+        'mm',
+
+      format:
+        String(format).toLowerCase() === 'a5'
+          ? 'a5'
+          : 'a4',
+
+      orientation:
+        'portrait'
+
+    }
+
+  };
+
+
+  if (
+    window.html2pdf
+  ) {
+
+    return html2pdf()
+      .set(opt)
+      .from(element)
+      .save();
+
+  }
+
+
+  alert(
+    "PDF kutubxonasi yuklanmagan. Iltimos qayta urinib ko'ring."
+  );
+
+}
+
+
+/* ==========================================================================
    PRINT
    ========================================================================== */
 
@@ -4601,6 +4805,25 @@ window.clearAllHistory =
 
 window.resetAppDefaults =
   resetAppDefaults;
+
+
+/*
+ * PDF / Share global API.
+ *
+ * Eski index.html inline onclick kodlari bilan
+ * yangi pdf.js moduli o'rtasidagi compatibility.
+ */
+window.exportToPDF =
+  exportToPDF;
+
+window.downloadPDF =
+  downloadPDF;
+
+window.printPrescription =
+  printPrescription;
+
+window.shareTelegram =
+  shareTelegram;
   
 /* ==========================================================================
    DR.MED APP READY
