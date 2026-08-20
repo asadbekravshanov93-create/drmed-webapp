@@ -40,11 +40,16 @@ let drugs = [];
 // DYNAMIC ICD-10 DATABASE
 let icd10Data = [];
 
+// DEFAULT DRUGS ARRAY
+let drugs = [];
+
+
 /* =========================================================
    DR.MED — YANGI RETSEPT RAQAMI
    ========================================================= */
 
 let currentPrescriptionId = null;
+
 
 function generateNewPrescriptionId() {
 
@@ -77,6 +82,7 @@ function generateNewPrescriptionId() {
     );
 }
 
+
 function startNewPrescription() {
 
     currentPrescriptionId =
@@ -108,6 +114,7 @@ function startNewPrescription() {
         qrEl.innerHTML =
             "";
     }
+
 
     // PDF modulidagi eski QR tokenni bekor qilish
     if (
@@ -674,13 +681,26 @@ function liveUpdate() {
     formattedDate
   );
 
-const rxIdEl =
-  document.getElementById('paper_rx_id');
+  const rxIdEl =
+    document.getElementById('paper_rx_id');
 
-const currentRxId =
-  rxIdEl
-    ? rxIdEl.innerText.trim()
-    : '';
+  if (
+    rxIdEl &&
+    (
+      !rxIdEl.innerText ||
+      rxIdEl.innerText === '—' ||
+      rxIdEl.innerText === ''
+    )
+  ) {
+    rxIdEl.innerText =
+      'RX-' +
+      Math.floor(
+        100000 + Math.random() * 900000
+      );
+  }
+
+  const currentRxId =
+    rxIdEl?.innerText || 'RX-000000';
 
   const paperDrugsContainer =
     document.getElementById('paper_drugs_list');
@@ -768,6 +788,36 @@ const currentRxId =
         stampDefaultEl.style.display =
           'block';
       }
+    }
+  }
+
+  // QR
+  const qrContainer =
+    document.getElementById('paper_qr_code');
+
+  if (qrContainer) {
+
+    qrContainer.innerHTML = '';
+
+    const baseUrl =
+      window.location.origin +
+      window.location.pathname;
+
+    const pdfViewUrl =
+      `${baseUrl}?rx_id=${currentRxId}` +
+      `&patient=${encodeURIComponent(
+        pName || 'bemor'
+      )}`;
+
+    if (window.QRCode) {
+
+      new QRCode(qrContainer, {
+        text: pdfViewUrl,
+        width: 64,
+        height: 64,
+        correctLevel:
+          QRCode.CorrectLevel.M
+      });
     }
   }
 }
