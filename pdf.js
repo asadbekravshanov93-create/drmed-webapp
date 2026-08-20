@@ -1471,3 +1471,49 @@
 
 
 })();
+/* =========================================================
+   DR.MED PDF MODULE
+   app.js bilan bog'lash
+   ========================================================= */
+
+window.DRMED_PDF = {
+
+    openFormatModal: function () {
+        if (typeof openPdfFormatModal === 'function') {
+            openPdfFormatModal();
+        } else {
+            alert("PDF format moduli topilmadi.");
+        }
+    },
+
+    closeFormatModal: function () {
+        if (typeof closePdfFormatModal === 'function') {
+            closePdfFormatModal();
+        }
+    },
+
+    download: async function (format) {
+        if (typeof downloadPDF === 'function') {
+            return await downloadPDF(format);
+        }
+
+        alert("PDF yaratish funksiyasi topilmadi.");
+    },
+
+    preview: async function (format) {
+        if (typeof previewPDF === 'function') {
+            return await previewPDF(format);
+        }
+
+        alert("PDF preview funksiyasi topilmadi.");
+    },
+
+    share: async function () {
+        if (typeof shareTelegram === 'function') {
+            return await shareTelegram();
+        }
+
+        alert("Telegram PDF funksiyasi topilmadi.");
+    }
+
+};
