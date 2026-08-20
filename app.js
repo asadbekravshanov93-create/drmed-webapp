@@ -36,6 +36,70 @@ let clinicProfile = {
 // DEFAULT DRUGS ARRAY
 let drugs = [];
 
+/* =========================================================
+   DR.MED — RETSEPT RAQAMI
+   ========================================================= */
+
+let currentPrescriptionId = null;
+
+
+function generateNewPrescriptionId() {
+
+  const year = new Date().getFullYear();
+
+  let counter = parseInt(
+    localStorage.getItem('drmed_rx_counter') || '0',
+    10
+  );
+
+  counter += 1;
+
+  localStorage.setItem(
+    'drmed_rx_counter',
+    String(counter)
+  );
+
+  return (
+    'RX-' +
+    year +
+    '-' +
+    String(counter).padStart(5, '0')
+  );
+}
+
+
+function startNewPrescription() {
+
+  currentPrescriptionId =
+    generateNewPrescriptionId();
+
+  const rxIdEl =
+    document.getElementById('paper_rx_id');
+
+  if (rxIdEl) {
+
+    rxIdEl.innerText =
+      currentPrescriptionId;
+
+  }
+
+  console.log(
+    '🆕 Yangi retsept:',
+    currentPrescriptionId
+  );
+}
+
+
+function getCurrentPrescriptionId() {
+
+  if (!currentPrescriptionId) {
+
+    startNewPrescription();
+
+  }
+
+  return currentPrescriptionId;
+}
 
 // DYNAMIC ICD-10 DATABASE
 let icd10Data = [];
@@ -81,6 +145,10 @@ window.addEventListener('DOMContentLoaded', () => {
   initSignatureCanvas();
 
   checkURLParamsAndRender();
+
+  if (!currentPrescriptionId) {
+    startNewPrescription();
+  }
 
   liveUpdate();
 
@@ -145,6 +213,20 @@ function checkURLParamsAndRender() {
 /* ================= WIZARD NAVIGATION ================= */
 
 function switchStep(stepNum) {
+
+  /*
+   * 3-qadamdan 1-qadamga o'tilsa,
+   * yangi retsept boshlanadi.
+   */
+
+  if (
+    stepNum === 1 &&
+    currentStep === 3
+  ) {
+
+    startNewPrescription();
+
+  }
 
   currentStep =
     stepNum;
@@ -992,133 +1074,6 @@ function liveUpdate() {
   }
 
 
-  /* =========================================================
-   DR.MED — RETSEPT RAQAMI
-   ========================================================= */
-
-let currentPrescriptionId = null;
-
-
-function generateNewPrescriptionId() {
-
-  const year =
-    new Date().getFullYear();
-
-
-  let counter =
-    parseInt(
-      localStorage.getItem(
-        'drmed_rx_counter'
-      ) || '0',
-      10
-    );
-
-
-  counter += 1;
-
-
-  localStorage.setItem(
-    'drmed_rx_counter',
-    String(counter)
-  );
-
-
-  return (
-    'RX-' +
-    year +
-    '-' +
-    String(counter).padStart(
-      5,
-      '0'
-    )
-  );
-}
-
-
-function ensurePrescriptionId() {
-
-  const rxIdEl =
-    document.getElementById(
-      'paper_rx_id'
-    );
-
-
-  if (!rxIdEl) {
-
-    return '';
-  }
-
-
-  /*
-   * Agar hozirgi retseptda raqam bor bo‘lsa,
-   * uni o‘zgartirmaymiz.
-   */
-
-  if (
-    currentPrescriptionId &&
-    rxIdEl.innerText.trim() ===
-      currentPrescriptionId
-  ) {
-
-    return currentPrescriptionId;
-  }
-
-
-  /*
-   * HTMLdagi eski statik RX raqamini
-   * faqat birinchi ishga tushishda
-   * yangi raqamga almashtiramiz.
-   */
-
-  if (
-    !currentPrescriptionId
-  ) {
-
-    currentPrescriptionId =
-      generateNewPrescriptionId();
-
-    rxIdEl.innerText =
-      currentPrescriptionId;
-  }
-
-
-  return currentPrescriptionId;
-}
-
-
-const currentRxId =
-  ensurePrescriptionId();
-
-
-/* =========================================================
-   YANGI RETSEPT BOSHLASH
-   ========================================================= */
-
-function startNewPrescription() {
-
-  currentPrescriptionId =
-    generateNewPrescriptionId();
-
-
-  const rxIdEl =
-    document.getElementById(
-      'paper_rx_id'
-    );
-
-
-  if (rxIdEl) {
-
-    rxIdEl.innerText =
-      currentPrescriptionId;
-  }
-
-
-  console.log(
-    '🆕 Yangi retsept:',
-    currentPrescriptionId
-  );
-}
-
   // Drugs Render in Paper
 
   const paperDrugsContainer =
@@ -1245,56 +1200,69 @@ function startNewPrescription() {
   }
 
 
-  // Dynamic QR Code Generation
+  /* ================= DINAMIK QR CODE ================= */
 
-  const qrContainer =
-    document.getElementById(
-      'paper_qr_code'
+const qrContainer =
+  document.getElementById(
+    'paper_qr_code'
+  );
+
+if (qrContainer) {
+
+  /*
+   * Har doim aynan joriy retsept raqamini olamiz.
+   */
+  const currentRxId =
+    getCurrentPrescriptionId();
+
+
+  /*
+   * Eski QR kodni tozalaymiz.
+   */
+  qrContainer.innerHTML = '';
+
+
+  /*
+   * QR orqali ochiladigan manzil.
+   */
+  const baseUrl =
+    window.location.origin +
+    window.location.pathname;
+
+    const currentRxId =
+  getCurrentPrescriptionId();
+
+  const pdfViewUrl =
+    `${baseUrl}?rx_id=${encodeURIComponent(
+      currentRxId
+    )}` +
+    `&patient=${encodeURIComponent(
+      pName || 'bemor'
+    )}`;
+
+
+  /*
+   * QR yaratish.
+   */
+  if (window.QRCode) {
+
+    new QRCode(
+      qrContainer,
+      {
+        text: pdfViewUrl,
+
+        width: 64,
+
+        height: 64,
+
+        correctLevel:
+          QRCode.CorrectLevel.M
+      }
     );
 
-
-  if (qrContainer) {
-
-    qrContainer.innerHTML =
-      '';
-
-
-    const baseUrl =
-      window.location.origin +
-      window.location.pathname;
-
-
-    const pdfViewUrl =
-      `${baseUrl}?rx_id=${currentRxId}` +
-      `&patient=${encodeURIComponent(
-        pName || 'bemor'
-      )}`;
-
-
-    if (window.QRCode) {
-
-      new QRCode(
-        qrContainer,
-        {
-
-          text:
-            pdfViewUrl,
-
-          width:
-            64,
-
-          height:
-            64,
-
-          correctLevel:
-            QRCode.CorrectLevel.M
-
-        }
-      );
-
-    }
-
   }
+
+}
 
 }
 
@@ -2151,10 +2119,13 @@ function loadFromHistory(index) {
       )
     ) {
 
-      document.getElementById(
-        'paper_rx_id'
-      ).innerText =
-        item.id;
+      currentPrescriptionId =
+  item.id;
+
+document.getElementById(
+  'paper_rx_id'
+).innerText =
+  currentPrescriptionId;
 
     }
 
