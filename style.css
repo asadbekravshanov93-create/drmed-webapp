@@ -6,56 +6,135 @@
   --primary: #007a63;
   --primary-dark: #005a49;
   --primary-light: #e6f2f0;
+
   --secondary: #475569;
   --accent: #2563eb;
+
   --danger: #dc2626;
   --success: #16a34a;
+
   --bg-main: #f1f5f9;
   --card-bg: #ffffff;
+
   --border-color: #cbd5e1;
+
   --text-main: #0f172a;
   --text-muted: #64748b;
+
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
+
   --shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
-/* Telegram Theme Variables Integration */
+
+/* ==========================================================================
+   TELEGRAM THEME
+   ========================================================================== */
+
 body.tg-theme {
-  --bg-main: var(--tg-theme-secondary-bg-color, #f1f5f9);
-  --card-bg: var(--tg-theme-bg-color, #ffffff);
-  --text-main: var(--tg-theme-text-color, #0f172a);
-  --text-muted: var(--tg-theme-hint-color, #64748b);
-  --primary: var(--tg-theme-button-color, #007a63);
+  --bg-main: var(
+    --tg-theme-secondary-bg-color,
+    #f1f5f9
+  );
+
+  --card-bg: var(
+    --tg-theme-bg-color,
+    #ffffff
+  );
+
+  --text-main: var(
+    --tg-theme-text-color,
+    #0f172a
+  );
+
+  --text-muted: var(
+    --tg-theme-hint-color,
+    #64748b
+  );
+
+  --primary: var(
+    --tg-theme-button-color,
+    #007a63
+  );
 }
+
+
+/* ==========================================================================
+   GLOBAL
+   ========================================================================== */
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+
   -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background-color: var(--bg-main);
   color: var(--text-main);
+
   line-height: 1.4;
+
   padding-bottom: 30px;
+
+  min-height: 100vh;
+
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* HEADER */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+img {
+  max-width: 100%;
+}
+
+
+/* ==========================================================================
+   HEADER
+   ========================================================================== */
+
 .app-header {
   background: var(--card-bg);
-  border-bottom: 1px solid var(--border-color);
+
+  border-bottom:
+    1px solid var(--border-color);
+
   padding: 12px 16px;
+
   display: flex;
   justify-content: space-between;
   align-items: center;
+
   position: sticky;
   top: 0;
+
   z-index: 100;
+
   box-shadow: var(--shadow);
 }
 
@@ -63,31 +142,47 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+
+  min-width: 0;
 }
 
 .brand-logo {
   width: 36px;
   height: 36px;
+
+  flex: 0 0 36px;
+
   background: var(--primary);
   color: #fff;
+
   font-size: 24px;
   font-weight: 900;
+
   border-radius: var(--radius-sm);
+
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+.brand-info {
+  min-width: 0;
+}
+
 .brand-info h1 {
   font-size: 16px;
   font-weight: 800;
+
   color: var(--primary);
+
   line-height: 1.1;
 }
 
 .brand-info p {
   font-size: 10px;
+
   color: var(--text-muted);
+
   font-weight: 600;
 }
 
@@ -98,57 +193,99 @@ body {
 
 .icon-btn {
   background: #f8fafc;
-  border: 1px solid var(--border-color);
+
+  border:
+    1px solid var(--border-color);
+
   width: 36px;
   height: 36px;
+
   border-radius: var(--radius-sm);
+
   font-size: 16px;
+
   cursor: pointer;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
 }
 
 .icon-btn:active {
   transform: scale(0.95);
-  background: var(--primary-light);
+
+  background:
+    var(--primary-light);
 }
 
-/* WIZARD TABS */
+
+/* ==========================================================================
+   WIZARD
+   ========================================================================== */
+
 .wizard-nav {
   display: flex;
+
   background: var(--card-bg);
-  border-bottom: 1px solid var(--border-color);
+
+  border-bottom:
+    1px solid var(--border-color);
+
   position: sticky;
+
   top: 61px;
+
   z-index: 90;
 }
 
 .wizard-tab {
   flex: 1;
+
   background: none;
+
   border: none;
+
   padding: 12px 6px;
+
   font-size: 12px;
   font-weight: 700;
+
   color: var(--text-muted);
-  border-bottom: 3px solid transparent;
+
+  border-bottom:
+    3px solid transparent;
+
   cursor: pointer;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   gap: 6px;
-  transition: all 0.2s ease;
+
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .tab-num {
   width: 20px;
   height: 20px;
+
+  flex: 0 0 20px;
+
   border-radius: 50%;
+
   background: #e2e8f0;
+
   color: var(--text-muted);
+
   font-size: 11px;
+
   display: flex;
   align-items: center;
   justify-content: center;
@@ -156,7 +293,9 @@ body {
 
 .wizard-tab.active {
   color: var(--primary);
-  border-bottom-color: var(--primary);
+
+  border-bottom-color:
+    var(--primary);
 }
 
 .wizard-tab.active .tab-num {
@@ -164,11 +303,19 @@ body {
   color: #ffffff;
 }
 
-/* MAIN LAYOUT */
+
+/* ==========================================================================
+   MAIN
+   ========================================================================== */
+
 .app-main {
+  width: 100%;
   max-width: 650px;
+
   margin: 15px auto;
-  padding: 0 12px;
+
+  padding:
+    0 12px;
 }
 
 .step-content {
@@ -177,47 +324,85 @@ body {
 
 .step-content.active {
   display: block;
-  animation: fadeIn 0.25s ease-in-out;
+
+  animation:
+    fadeIn 0.25s ease-in-out;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* CARDS & FORMS */
+
+/* ==========================================================================
+   CARDS
+   ========================================================================== */
+
 .card {
   background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+
+  border:
+    1px solid var(--border-color);
+
+  border-radius:
+    var(--radius-md);
+
   padding: 14px;
+
   margin-bottom: 14px;
-  box-shadow: var(--shadow);
+
+  box-shadow:
+    var(--shadow);
 }
 
 .card-header {
   display: flex;
+
   justify-content: space-between;
   align-items: center;
+
   margin-bottom: 12px;
-  border-bottom: 1px solid #f1f5f9;
+
+  border-bottom:
+    1px solid #f1f5f9;
+
   padding-bottom: 8px;
 }
 
 .card-header h2 {
   font-size: 12px;
+
   font-weight: 800;
+
   color: var(--primary);
+
   text-transform: uppercase;
+
   letter-spacing: 0.5px;
 }
 
 .card-title-sm {
   font-size: 11px;
+
   font-weight: 800;
+
   color: var(--primary);
+
   text-transform: uppercase;
 }
+
+
+/* ==========================================================================
+   FORMS
+   ========================================================================== */
 
 .form-group {
   margin-bottom: 10px;
@@ -225,44 +410,77 @@ body {
 
 .form-group label {
   display: block;
+
   font-size: 11px;
+
   font-weight: 700;
+
   color: #475569;
+
   margin-bottom: 4px;
 }
 
-.req { color: var(--danger); }
+.req {
+  color: var(--danger);
+}
 
 .form-group input,
 .form-group select,
 .form-group textarea {
   width: 100%;
-  padding: 9px 11px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
+
+  padding:
+    9px 11px;
+
+  border:
+    1px solid var(--border-color);
+
+  border-radius:
+    var(--radius-sm);
+
   font-size: 13px;
+
   color: var(--text-main);
+
   background: #ffffff;
+
   outline: none;
-  transition: border 0.2s ease;
+
+  transition:
+    border 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
 }
 
 .form-group input[type="file"] {
   padding: 6px;
+
   background: #f8fafc;
+
   cursor: pointer;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px var(--primary-light);
+  border-color:
+    var(--primary);
+
+  box-shadow:
+    0 0 0 2px
+    var(--primary-light);
 }
 
 .form-row {
   display: flex;
+
   gap: 8px;
+
+  width: 100%;
 }
 
 .col-2 { flex: 2; }
@@ -273,338 +491,768 @@ body {
 .col-7 { flex: 7; }
 .col-8 { flex: 8; }
 
+
+/* ==========================================================================
+   GENDER
+   ========================================================================== */
+
 .segmented-control {
   display: flex;
+
   gap: 6px;
 }
 
 .segment-btn {
   flex: 1;
+
   padding: 8px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
+
+  border:
+    1px solid var(--border-color);
+
+  border-radius:
+    var(--radius-sm);
+
   background: #fff;
+
   font-size: 12px;
+
   font-weight: 700;
+
   color: var(--text-muted);
+
   cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .segment-btn.active {
   background: var(--primary);
+
   color: #fff;
-  border-color: var(--primary);
+
+  border-color:
+    var(--primary);
 }
+
+
+/* ==========================================================================
+   INPUT WITH BUTTON
+   ========================================================================== */
 
 .input-with-btn {
   display: flex;
+
   gap: 4px;
 }
 
+.input-with-btn input {
+  flex: 1;
+}
+
 .btn-input-act {
-  background: var(--primary-light);
-  border: 1px solid var(--border-color);
-  padding: 0 10px;
-  border-radius: var(--radius-sm);
+  flex: 0 0 auto;
+
+  background:
+    var(--primary-light);
+
+  border:
+    1px solid var(--border-color);
+
+  padding:
+    0 10px;
+
+  border-radius:
+    var(--radius-sm);
+
   cursor: pointer;
 }
 
-/* BUTTONS */
+
+/* ==========================================================================
+   BUTTONS
+   ========================================================================== */
+
 .btn {
-  padding: 10px 16px;
-  border-radius: var(--radius-sm);
+  padding:
+    10px 16px;
+
+  border-radius:
+    var(--radius-sm);
+
   font-size: 13px;
+
   font-weight: 700;
+
   border: none;
+
   cursor: pointer;
+
   display: inline-flex;
+
   align-items: center;
   justify-content: center;
+
   gap: 6px;
-  transition: all 0.2s ease;
+
+  transition:
+    transform 0.15s ease,
+    opacity 0.2s ease,
+    background 0.2s ease;
 }
 
-.btn-block { width: 100%; }
-.btn-lg { padding: 12px 20px; font-size: 14px; }
-.btn-sm { padding: 6px 10px; font-size: 11px; }
+.btn:active {
+  transform: scale(0.98);
+}
 
-.btn-primary { background: var(--primary); color: #ffffff; }
-.btn-primary:active { background: var(--primary-dark); }
+.btn:disabled {
+  cursor: wait;
 
-.btn-secondary { background: #e2e8f0; color: #334155; }
-.btn-danger { background: var(--danger); color: #ffffff; }
+  opacity: 0.7;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.btn-lg {
+  padding:
+    12px 20px;
+
+  font-size: 14px;
+}
+
+.btn-sm {
+  padding:
+    6px 10px;
+
+  font-size: 11px;
+}
+
+.btn-primary {
+  background:
+    var(--primary);
+
+  color: #ffffff;
+}
+
+.btn-primary:active {
+  background:
+    var(--primary-dark);
+}
+
+.btn-secondary {
+  background: #e2e8f0;
+
+  color: #334155;
+}
+
+.btn-danger {
+  background:
+    var(--danger);
+
+  color: #ffffff;
+}
 
 .sm-btn {
   background: none;
-  border: 1px solid var(--border-color);
-  padding: 4px 8px;
+
+  border:
+    1px solid var(--border-color);
+
+  padding:
+    4px 8px;
+
   border-radius: 4px;
+
   font-size: 10px;
+
   font-weight: 700;
+
   cursor: pointer;
+
   color: var(--text-muted);
 }
 
 .btn-add {
-  background: var(--primary-light);
+  background:
+    var(--primary-light);
+
   color: var(--primary);
-  border-color: var(--primary);
+
+  border-color:
+    var(--primary);
 }
 
-/* STEP 2: DRUGS BUILDER */
+
+/* ==========================================================================
+   STEP 2 — DRUG BUILDER
+   ========================================================================== */
+
 .section-title {
   display: flex;
+
   justify-content: space-between;
   align-items: center;
+
   margin-bottom: 10px;
 }
 
 .section-title h2 {
   font-size: 13px;
+
   font-weight: 800;
+
   color: var(--primary);
 }
 
 .quick-templates {
   display: flex;
+
   align-items: center;
+
   gap: 6px;
+
   overflow-x: auto;
+
   padding-bottom: 8px;
+
   margin-bottom: 10px;
+
+  scrollbar-width: thin;
 }
 
 .quick-templates span {
   font-size: 10px;
+
   font-weight: 700;
+
   color: var(--text-muted);
+
   white-space: nowrap;
 }
 
 .chip {
   background: #ffffff;
-  border: 1px solid var(--border-color);
-  padding: 4px 10px;
+
+  border:
+    1px solid var(--border-color);
+
+  padding:
+    4px 10px;
+
   border-radius: 20px;
+
   font-size: 11px;
+
   font-weight: 600;
+
   white-space: nowrap;
+
   cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.chip:active {
+  background:
+    var(--primary-light);
+
+  border-color:
+    var(--primary);
 }
 
 .drug-card {
   background: #ffffff;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+
+  border:
+    1px solid var(--border-color);
+
+  border-radius:
+    var(--radius-md);
+
   padding: 12px;
+
   margin-bottom: 12px;
+
   position: relative;
-  box-shadow: var(--shadow);
+
+  box-shadow:
+    var(--shadow);
 }
 
 .drug-card-head {
   display: flex;
+
   justify-content: space-between;
   align-items: center;
+
   margin-bottom: 8px;
 }
 
 .drug-num {
   font-size: 12px;
+
   font-weight: 900;
+
   color: var(--primary);
 }
 
 .drug-card-actions {
   display: flex;
+
   gap: 6px;
 }
 
 .add-more-box {
-  border: 2px dashed var(--border-color);
-  border-radius: var(--radius-md);
+  border:
+    2px dashed var(--border-color);
+
+  border-radius:
+    var(--radius-md);
+
   padding: 14px;
+
   text-align: center;
+
   color: var(--primary);
+
   font-weight: 700;
+
   font-size: 13px;
+
   cursor: pointer;
-  background: rgba(0, 122, 99, 0.02);
+
+  background:
+    rgba(0, 122, 99, 0.02);
+
   margin-bottom: 15px;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
 }
 
-/* STEP 3: PREVIEW & BLANK DESIGN */
+.add-more-box:active {
+  background:
+    var(--primary-light);
+
+  border-color:
+    var(--primary);
+}
+
+
+/* ==========================================================================
+   STEP 3 — ACTION TOOLBAR
+   ========================================================================== */
+
 .action-toolbar {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
   gap: 6px;
+
   margin-bottom: 12px;
 }
 
+
+/*
+   MUHIM:
+   4 ta tugma bir xil o'lchamda.
+   PDF tugmasi ham qolganlari bilan aynan bir xil.
+*/
+
 .act-btn {
+  width: 100%;
+
+  min-width: 0;
+
+  min-height: 66px;
+
+  padding:
+    10px 4px;
+
   border: none;
-  padding: 10px 4px;
-  border-radius: var(--radius-sm);
+
+  border-radius:
+    var(--radius-sm);
+
   font-size: 11px;
+
   font-weight: 700;
-  color: #ffffff;
+
+  line-height: 1.15;
+
+  color: #ffffff !important;
+
   cursor: pointer;
+
   display: flex;
+
   flex-direction: column;
+
   align-items: center;
-  gap: 2px;
+
+  justify-content: center;
+
+  gap: 4px;
+
+  text-align: center;
+
+  white-space: normal;
+
+  transition:
+    transform 0.15s ease,
+    opacity 0.2s ease,
+    filter 0.2s ease;
+
+  -webkit-appearance: none;
+  appearance: none;
 }
 
-.btn-save { background: #0284c7; }
-.btn-pdf { background: #059669; }
-.btn-print { background: #6366f1; }
-.btn-share { background: #0284c7; }
+.act-btn i {
+  font-style: normal;
+
+  font-size: 18px;
+
+  line-height: 1;
+}
+
+.act-btn:active {
+  transform: scale(0.97);
+}
+
+.act-btn:disabled {
+  cursor: wait;
+
+  opacity: 0.7;
+}
+
+
+/* SAVE */
+
+.btn-save {
+  background:
+    #0284c7 !important;
+
+  color:
+    #ffffff !important;
+}
+
+
+/* PDF */
+
+.btn-pdf {
+  background:
+    #059669 !important;
+
+  color:
+    #ffffff !important;
+}
+
+
+/* PRINT */
+
+.btn-print {
+  background:
+    #6366f1 !important;
+
+  color:
+    #ffffff !important;
+}
+
+
+/* TELEGRAM */
+
+.btn-share {
+  background:
+    #0284c7 !important;
+
+  color:
+    #ffffff !important;
+}
+
+
+/* ==========================================================================
+   PAPER CONTAINER
+   ========================================================================== */
 
 .paper-container {
   overflow-x: auto;
+
   background: #cbd5e1;
+
   padding: 10px;
-  border-radius: var(--radius-md);
+
+  border-radius:
+    var(--radius-md);
+
   margin-bottom: 15px;
+
+  -webkit-overflow-scrolling: touch;
 }
 
-/* RX PRINT BLANKA FORM */
+
+/* ==========================================================================
+   RX PAPER
+   ========================================================================== */
+
 .rx-paper {
   background: #ffffff;
+
   width: 100% !important;
+
   max-width: 100% !important;
+
   margin: 0 auto;
+
   padding: 24px;
+
   border-radius: 4px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+
+  box-shadow:
+    0 4px 15px
+    rgba(0, 0, 0, 0.15);
+
   font-size: 13px;
+
   color: #0f172a;
+
   position: relative;
+
   box-sizing: border-box;
+
+  overflow: hidden;
 }
+
+
+/* ==========================================================================
+   RX HEADER
+   ========================================================================== */
 
 .rx-header {
   display: flex;
+
   justify-content: space-between;
+
   align-items: flex-start;
+
+  gap: 15px;
 }
 
 .rx-clinic-brand {
   display: flex;
+
   gap: 12px;
+
   align-items: center;
+
+  min-width: 0;
 }
 
 .rx-medical-cross {
   font-size: 38px;
+
   color: var(--primary);
+
   font-weight: 900;
+
   line-height: 1;
+
+  flex: 0 0 auto;
+}
+
+.rx-clinic-details {
+  min-width: 0;
 }
 
 .rx-clinic-details h3 {
   font-size: 16px;
+
   font-weight: 900;
+
   color: var(--primary);
 }
 
 .rx-clinic-details p {
   font-size: 11px;
+
   color: #475569;
+
   line-height: 1.3;
 }
 
 .rx-meta {
   text-align: right;
+
+  flex: 0 0 auto;
 }
 
 .rx-qr-code {
   display: flex;
+
   justify-content: flex-end;
+
   margin-bottom: 4px;
+
   width: 64px;
+
   height: 64px;
+
   margin-left: auto;
 }
 
 .rx-qr-code img,
 .rx-qr-code canvas {
   width: 64px !important;
+
   height: 64px !important;
+
+  display: block;
 }
 
 .rx-id-text {
   font-size: 9px;
+
   color: #64748b;
 }
 
 .rx-id-text strong {
   display: block;
+
   font-size: 11px;
+
   color: #0f172a;
 }
 
 .rx-divider {
   height: 2px;
-  background: var(--primary);
+
+  background:
+    var(--primary);
+
   margin: 12px 0;
 }
 
+
+/* ==========================================================================
+   RX PATIENT INFO
+   ========================================================================== */
+
 .rx-info-grid {
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
+
+  grid-template-columns:
+    1.2fr 1fr;
+
   gap: 12px;
+
   font-size: 12px;
+
   margin-bottom: 12px;
+
   line-height: 1.5;
+}
+
+.rx-field {
+  min-width: 0;
 }
 
 .rx-field span {
   color: #64748b;
 }
 
+
+/* ==========================================================================
+   DOCTOR BANNER
+   ========================================================================== */
+
 .rx-doctor-banner {
   background: #f8fafc;
-  border: 1px solid #cbd5e1;
-  padding: 8px 12px;
+
+  border:
+    1px solid #cbd5e1;
+
+  padding:
+    8px 12px;
+
   border-radius: 4px;
+
   font-size: 12px;
+
   display: flex;
+
   justify-content: space-between;
+
+  gap: 15px;
+
   margin-bottom: 12px;
 }
 
+
+/* ==========================================================================
+   RX TITLE
+   ========================================================================== */
+
 .rx-title-banner {
   text-align: center;
+
   margin: 12px 0;
 }
 
 .rx-title-banner span {
   font-size: 18px;
+
   font-weight: 900;
+
   letter-spacing: 6px;
+
   color: #0f172a;
 }
 
 .rx-title-banner small {
   display: block;
+
   font-size: 9px;
+
   color: #64748b;
 }
 
+
+/* ==========================================================================
+   DRUGS ON PAPER
+   ========================================================================== */
+
 .rx-drugs-body {
-  border: 1.5px solid #cbd5e1;
+  border:
+    1.5px solid #cbd5e1;
+
   border-radius: 6px;
+
   padding: 14px;
+
   min-height: 180px;
+
   background: #fafafa;
+
   margin-bottom: 12px;
 }
 
 .rx-drug-item {
   margin-bottom: 12px;
+
   font-size: 13px;
+
   line-height: 1.4;
+
+  overflow-wrap: anywhere;
 }
 
 .rx-drug-item strong {
@@ -613,259 +1261,990 @@ body {
 
 .rx-drug-sub {
   padding-left: 16px;
+
   color: #334155;
+
   font-size: 12px;
+
   margin-top: 2px;
+
+  overflow-wrap: anywhere;
 }
+
+
+/* ==========================================================================
+   INSTRUCTION
+   ========================================================================== */
 
 .rx-instruction-box {
   font-size: 11px;
+
   margin-bottom: 14px;
 }
 
 .rx-instruction-box p {
   color: #334155;
+
   padding-left: 8px;
+
   font-size: 11px;
+
+  line-height: 1.4;
 }
+
+
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
 
 .rx-footer {
   display: flex;
+
   justify-content: space-between;
+
   align-items: flex-end;
+
+  gap: 15px;
+
   margin-top: 12px;
-  border-top: 1px solid #f1f5f9;
+
+  border-top:
+    1px solid #f1f5f9;
+
   padding-top: 10px;
 }
 
 .rx-validity p {
   font-size: 10px;
+
   color: #475569;
 }
 
 .rx-validity .small-text {
   font-size: 8.5px;
+
   color: #94a3b8;
 }
 
 .rx-stamps-wrapper {
   display: flex;
+
   align-items: flex-end;
+
   gap: 15px;
 }
 
-/* SHIFOKOR IMZOSI BO'LIMI */
+
+/* ==========================================================================
+   SIGNATURE
+   ========================================================================== */
+
 .rx-sig-block {
   display: flex;
+
   flex-direction: column;
+
   align-items: center;
+
   justify-content: center;
+
   text-align: center;
+
   font-size: 10px;
 }
 
 .rx-sig-block span {
   display: block;
+
   margin-bottom: 2px;
 }
 
 .sig-img-holder {
   width: 110px;
+
   height: 42px;
+
   display: flex;
+
   align-items: center;
+
   justify-content: center;
+
   text-align: center;
+
   position: relative;
 }
 
 .sig-placeholder {
-  font-family: 'Brush Script MT', cursive;
+  font-family:
+    'Brush Script MT',
+    cursive;
+
   font-size: 16px;
+
   color: #002b80;
+
   text-decoration: underline;
+
   display: inline-block;
 }
 
 #paper_sig_img {
   max-width: 100%;
+
   max-height: 40px;
+
   object-fit: contain;
+
   display: block;
+
   margin: 0 auto;
 }
 
-/* MUHR JOYI (TO'G'RILANDI) */
+
+/* ==========================================================================
+   STAMP
+   ========================================================================== */
+
 .rx-official-stamp {
   width: 80px;
+
   height: 80px;
-  border: 2px dashed #0056b3;
+
+  flex: 0 0 80px;
+
+  border:
+    2px dashed #0056b3;
+
   border-radius: 50%;
+
   display: flex;
+
   align-items: center;
+
   justify-content: center;
-  transform: none !important; /* Burilish va qiyshayish taqiqlandi */
+
+  transform: none !important;
+
   overflow: hidden;
+
   position: relative;
+
   background: transparent;
 }
 
 .rx-official-stamp img#paper_stamp_img {
   width: 100%;
+
   height: 100%;
+
   object-fit: contain;
-  transform: none !important; /* Rasm qiyshaymay tekis joylashishi uchun */
+
+  transform: none !important;
+
   display: block;
 }
 
 .stamp-inner {
   width: 100%;
+
   height: 100%;
+
   display: flex;
+
   align-items: center;
+
   justify-content: center;
+
   text-align: center;
+
   color: #0056b3;
+
   font-size: 7px;
+
   font-weight: 800;
+
   line-height: 1.1;
+
   pointer-events: none;
 }
 
-/* SIGNATURE CANVAS */
+
+/* ==========================================================================
+   SIGNATURE CANVAS
+   ========================================================================== */
+
 .signature-card .canvas-wrapper {
-  border: 1px dashed var(--border-color);
-  border-radius: var(--radius-sm);
+  border:
+    1px dashed var(--border-color);
+
+  border-radius:
+    var(--radius-sm);
+
   background: #fafafa;
+
   display: flex;
+
   justify-content: center;
+
+  overflow: hidden;
 }
 
 #signatureCanvas {
   width: 100%;
+
   max-width: 400px;
+
   height: 120px;
+
   touch-action: none;
+
   cursor: crosshair;
+
+  display: block;
 }
 
 .help-text {
   font-size: 10px;
+
   color: var(--text-muted);
+
   margin-bottom: 6px;
 }
 
-/* MODALS */
+
+/* ==========================================================================
+   MODALS
+   ========================================================================== */
+
 .modal-backdrop {
   display: none;
+
   position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(15, 23, 42, 0.6);
+
+  inset: 0;
+
+  background:
+    rgba(15, 23, 42, 0.6);
+
   backdrop-filter: blur(2px);
+
   z-index: 200;
+
   align-items: center;
+
   justify-content: center;
+
   padding: 15px;
 }
 
 .modal-backdrop.active {
   display: flex;
-  animation: fadeIn 0.2s ease;
+
+  animation:
+    fadeIn 0.2s ease;
 }
 
 .modal-dialog {
-  background: var(--card-bg);
+  background:
+    var(--card-bg);
+
   width: 100%;
+
   max-width: 480px;
-  border-radius: var(--radius-lg);
+
+  border-radius:
+    var(--radius-lg);
+
   overflow: hidden;
+
   max-height: 85vh;
+
   display: flex;
+
   flex-direction: column;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+
+  box-shadow:
+    0 10px 25px
+    rgba(0, 0, 0, 0.2);
 }
 
 .modal-header {
-  background: var(--primary);
+  background:
+    var(--primary);
+
   color: #ffffff;
-  padding: 12px 16px;
+
+  padding:
+    12px 16px;
+
   display: flex;
+
   justify-content: space-between;
+
   align-items: center;
 }
 
 .modal-header h3 {
   font-size: 13px;
+
   font-weight: 800;
 }
 
 .close-btn {
   background: none;
+
   border: none;
+
   color: #fff;
+
   font-size: 18px;
+
   cursor: pointer;
+
+  line-height: 1;
 }
 
 .modal-body {
   padding: 15px;
+
   overflow-y: auto;
+
+  -webkit-overflow-scrolling: touch;
 }
 
 .modal-footer {
-  padding: 10px 15px;
-  border-top: 1px solid var(--border-color);
+  padding:
+    10px 15px;
+
+  border-top:
+    1px solid var(--border-color);
+
   background: #f8fafc;
 }
 
-/* NAV MENU LIST */
+
+/* ==========================================================================
+   NAV MENU
+   ========================================================================== */
+
 .nav-menu-list {
   list-style: none;
 }
 
 .nav-menu-list li {
   padding: 12px;
-  border-bottom: 1px solid #f1f5f9;
+
+  border-bottom:
+    1px solid #f1f5f9;
+
   font-size: 13px;
+
   font-weight: 600;
+
   cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
 .nav-menu-list li:hover {
-  background: var(--primary-light);
-  color: var(--primary);
+  background:
+    var(--primary-light);
+
+  color:
+    var(--primary);
 }
 
-/* HISTORY ITEM */
+
+/* ==========================================================================
+   HISTORY
+   ========================================================================== */
+
 .history-item {
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
+  border:
+    1px solid var(--border-color);
+
+  border-radius:
+    var(--radius-sm);
+
   padding: 10px;
+
   margin-bottom: 8px;
+
   display: flex;
+
   justify-content: space-between;
+
   align-items: center;
+
+  gap: 10px;
 }
 
-.history-info h4 { font-size: 12px; font-weight: 800; }
-.history-info p { font-size: 10px; color: var(--text-muted); }
+.history-info {
+  min-width: 0;
+}
 
-/* PRINT STYLES */
-@media print {
-  body * { visibility: hidden; }
-  .paper-container, .paper-container * { visibility: visible; }
+.history-info h4 {
+  font-size: 12px;
+
+  font-weight: 800;
+
+  overflow-wrap: anywhere;
+}
+
+.history-info p {
+  font-size: 10px;
+
+  color: var(--text-muted);
+}
+
+
+/* ==========================================================================
+   RESPONSIVE — TABLET
+   ========================================================================== */
+
+@media (max-width: 700px) {
+
+  .app-main {
+    max-width: 100%;
+
+    padding:
+      0 10px;
+  }
+
+  .rx-paper {
+    padding: 18px;
+  }
+
+}
+
+
+/* ==========================================================================
+   RESPONSIVE — MOBILE
+   ========================================================================== */
+
+@media (max-width: 560px) {
+
+  body {
+    padding-bottom: 20px;
+  }
+
+  .app-header {
+    padding:
+      10px 12px;
+  }
+
+  .brand-logo {
+    width: 34px;
+    height: 34px;
+
+    flex-basis: 34px;
+
+    font-size: 22px;
+  }
+
+  .brand-info h1 {
+    font-size: 15px;
+  }
+
+  .brand-info p {
+    font-size: 9px;
+  }
+
+  .icon-btn {
+    width: 34px;
+    height: 34px;
+
+    font-size: 15px;
+  }
+
+  .wizard-nav {
+    top: 57px;
+  }
+
+  .wizard-tab {
+    padding:
+      10px 4px;
+
+    font-size: 11px;
+
+    gap: 4px;
+  }
+
+  .tab-num {
+    width: 19px;
+    height: 19px;
+
+    flex-basis: 19px;
+  }
+
+  .app-main {
+    margin:
+      10px auto;
+
+    padding:
+      0 8px;
+  }
+
+  .card {
+    padding: 12px;
+
+    margin-bottom: 10px;
+  }
+
+  .form-row {
+    flex-direction: column;
+
+    gap: 0;
+  }
+
+  .form-row .col-2,
+  .form-row .col-3,
+  .form-row .col-4,
+  .form-row .col-5,
+  .form-row .col-6,
+  .form-row .col-7,
+  .form-row .col-8 {
+    flex: none;
+
+    width: 100%;
+  }
+
+  /*
+    Preview action buttons:
+    telefonda ham 4 ta tugma bir qatorda qoladi.
+  */
+
+  .action-toolbar {
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr));
+
+    gap: 4px;
+  }
+
+  .act-btn {
+    min-height: 62px;
+
+    padding:
+      8px 2px;
+
+    font-size: 9px;
+
+    border-radius: 6px;
+  }
+
+  .act-btn i {
+    font-size: 17px;
+  }
+
   .paper-container {
-    position: absolute;
-    left: 0; top: 0;
-    width: 100% !important;
-    background: none;
+    padding: 6px;
+
+    border-radius: 8px;
+  }
+
+  .rx-paper {
+    padding: 14px;
+
+    font-size: 12px;
+  }
+
+  .rx-header {
+    gap: 8px;
+  }
+
+  .rx-clinic-brand {
+    gap: 7px;
+  }
+
+  .rx-medical-cross {
+    font-size: 30px;
+  }
+
+  .rx-clinic-details h3 {
+    font-size: 13px;
+  }
+
+  .rx-clinic-details p {
+    font-size: 8px;
+  }
+
+  .rx-qr-code,
+  .rx-qr-code img,
+  .rx-qr-code canvas {
+    width: 54px !important;
+    height: 54px !important;
+  }
+
+  .rx-info-grid {
+    grid-template-columns:
+      1fr 1fr;
+
+    gap: 8px;
+
+    font-size: 10px;
+  }
+
+  .rx-doctor-banner {
+    font-size: 9px;
+
+    padding:
+      7px 8px;
+
+    gap: 8px;
+  }
+
+  .rx-title-banner span {
+    font-size: 16px;
+
+    letter-spacing: 4px;
+  }
+
+  .rx-drugs-body {
+    padding: 10px;
+
+    min-height: 150px;
+  }
+
+  .rx-drug-item {
+    font-size: 11px;
+  }
+
+  .rx-drug-sub {
+    font-size: 10px;
+
+    padding-left: 10px;
+  }
+
+  .rx-footer {
+    gap: 8px;
+  }
+
+  .rx-stamps-wrapper {
+    gap: 8px;
+  }
+
+  .rx-official-stamp {
+    width: 64px;
+    height: 64px;
+
+    flex-basis: 64px;
+  }
+
+  .sig-img-holder {
+    width: 85px;
+    height: 35px;
+  }
+
+  .rx-sig-block {
+    font-size: 8px;
+  }
+
+  .sig-placeholder {
+    font-size: 13px;
+  }
+
+  .modal-backdrop {
+    padding: 8px;
+  }
+
+  .modal-dialog {
+    max-height: 90vh;
+
+    border-radius:
+      var(--radius-md);
+  }
+
+}
+
+
+/* ==========================================================================
+   VERY SMALL PHONES
+   ========================================================================== */
+
+@media (max-width: 380px) {
+
+  .brand-info h1 {
+    font-size: 13px;
+  }
+
+  .brand-info p {
+    font-size: 8px;
+  }
+
+  .header-actions {
+    gap: 3px;
+  }
+
+  .icon-btn {
+    width: 31px;
+    height: 31px;
+
+    font-size: 14px;
+  }
+
+  .wizard-tab {
+    font-size: 9px;
+  }
+
+  .tab-num {
+    width: 17px;
+    height: 17px;
+
+    flex-basis: 17px;
+
+    font-size: 9px;
+  }
+
+  .act-btn {
+    min-height: 58px;
+
+    font-size: 8px;
+  }
+
+  .act-btn i {
+    font-size: 15px;
+  }
+
+  .rx-paper {
+    padding: 10px;
+  }
+
+  .rx-clinic-details h3 {
+    font-size: 11px;
+  }
+
+  .rx-clinic-details p {
+    font-size: 7px;
+  }
+
+  .rx-info-grid {
+    font-size: 9px;
+  }
+
+}
+
+
+/* ==========================================================================
+   DARK TELEGRAM THEME SAFETY
+   ========================================================================== */
+
+body.tg-theme .card,
+body.tg-theme .drug-card {
+  background:
+    var(--card-bg);
+}
+
+body.tg-theme .form-group input,
+body.tg-theme .form-group select,
+body.tg-theme .form-group textarea {
+  background:
+    var(--card-bg);
+
+  color:
+    var(--text-main);
+}
+
+body.tg-theme .segment-btn {
+  background:
+    var(--card-bg);
+
+  color:
+    var(--text-muted);
+}
+
+body.tg-theme .segment-btn.active {
+  background:
+    var(--primary);
+
+  color:
+    #ffffff;
+}
+
+
+/*
+   Retsept qog'ozi har doim oq bo'lib qoladi.
+   Chunki u PDF/print uchun real oq hujjat.
+*/
+
+body.tg-theme .rx-paper {
+  background: #ffffff;
+
+  color: #0f172a;
+}
+
+body.tg-theme .rx-paper input,
+body.tg-theme .rx-paper select,
+body.tg-theme .rx-paper textarea {
+  color: #0f172a;
+}
+
+
+/* ==========================================================================
+   PRINT
+   ========================================================================== */
+
+@page {
+  size: A4 portrait;
+
+  margin: 0;
+}
+
+@media print {
+
+  html,
+  body {
+    width: 210mm;
+
+    min-width: 210mm;
+
+    background: #ffffff !important;
+
     padding: 0 !important;
+
     margin: 0 !important;
   }
-  .rx-paper {
-    box-shadow: none;
-    width: 100% !important;
-    max-width: 100% !important;
-    padding: 15px !important;
+
+  body * {
+    visibility: hidden;
   }
+
+  .paper-container,
+  .paper-container * {
+    visibility: visible;
+  }
+
+  .paper-container {
+    position: absolute;
+
+    left: 0;
+    top: 0;
+
+    width: 210mm !important;
+
+    min-width: 210mm;
+
+    background: none;
+
+    padding: 0 !important;
+
+    margin: 0 !important;
+
+    overflow: visible !important;
+
+    box-shadow: none !important;
+  }
+
+  .rx-paper {
+    width: 210mm !important;
+
+    max-width: 210mm !important;
+
+    min-height: 297mm;
+
+    margin: 0 !important;
+
+    padding: 15mm !important;
+
+    border-radius: 0 !important;
+
+    box-shadow: none !important;
+
+    overflow: visible !important;
+
+    background: #ffffff !important;
+
+    color: #0f172a !important;
+  }
+
+  .action-toolbar,
+  .app-header,
+  .wizard-nav,
+  .modal-backdrop {
+    display: none !important;
+  }
+
+  .rx-paper,
+  .rx-paper * {
+    -webkit-print-color-adjust: exact !important;
+
+    print-color-adjust: exact !important;
+  }
+}
+
+
+/* ==========================================================================
+   PDF / HTML2PDF SAFETY
+   ========================================================================== */
+
+#printablePaper {
+  background: #ffffff;
+
+  color: #0f172a;
+
+  position: relative;
+}
+
+#printablePaper .rx-paper {
+  background: #ffffff !important;
+
+  color: #0f172a !important;
+}
+
+#paper_qr_code {
+  background: #ffffff;
+}
+
+#paper_qr_code canvas,
+#paper_qr_code img {
+  display: block;
+}
+
+
+/* ==========================================================================
+   TOUCH / MOBILE UX
+   ========================================================================== */
+
+@media (hover: none) {
+
+  .chip:hover,
+  .nav-menu-list li:hover {
+    background: inherit;
+    color: inherit;
+  }
+
+}
+
+button,
+.chip,
+.wizard-tab,
+.add-more-box,
+.nav-menu-list li {
+  touch-action: manipulation;
+}
+
+
+/* ==========================================================================
+   SCROLLBAR
+   ========================================================================== */
+
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: #e2e8f0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
 }
