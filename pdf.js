@@ -3,68 +3,44 @@
    pdf.js
    ========================================================= */
 
+"use strict";
+
 (function () {
 
-    "use strict";
-
-    let pdfBusy = false;
+    let isGenerating = false;
 
 
     /* =====================================================
-       YORDAMCHI FUNKSIYALAR
+       YORDAMCHI
        ===================================================== */
 
-    function getElement(id) {
+    function get(id) {
         return document.getElementById(id);
     }
 
 
-    function getPatientName() {
+    function patientName() {
 
-        const el =
-            getElement("p_name");
+        const el = get("p_name");
 
-        if (!el) {
+        if (!el || !el.value.trim()) {
             return "Bemor";
         }
 
-        return (
-            el.value ||
-            "Bemor"
-        )
+        return el.value
             .trim()
-            .replace(
-                /[<>:"/\\|?*\x00-\x1F]/g,
-                "_"
-            );
+            .replace(/[<>:"/\\|?*\x00-\x1F]/g, "_");
     }
 
 
-    function getRxId() {
-
-        const el =
-            getElement("paper_rx_id");
+    function fileName(format) {
 
         return (
-            el?.innerText ||
-            "RX-000000"
-        ).trim();
-    }
-
-
-    function createFileName(
-        format
-    ) {
-
-        const patient =
-            getPatientName();
-
-        const rxId =
-            getRxId();
-
-        return (
-            `DRMED_Retsept_${format}_` +
-            `${patient}_${rxId}.pdf`
+            "DRMED_Retsept_" +
+            format.toUpperCase() +
+            "_" +
+            patientName() +
+            ".pdf"
         );
     }
 
@@ -73,34 +49,25 @@
        LOADING
        ===================================================== */
 
-    function showPdfLoading(
-        text = "PDF tayyorlanmoqda..."
-    ) {
+    function showLoading(text) {
 
         let loader =
-            getElement(
-                "drmedPdfLoader"
-            );
+            get("drmedPdfLoading");
 
         if (!loader) {
 
             loader =
-                document.createElement(
-                    "div"
-                );
+                document.createElement("div");
 
             loader.id =
-                "drmedPdfLoader";
+                "drmedPdfLoading";
 
             loader.innerHTML = `
-                <div class="drmed-pdf-loader-box">
+                <div class="drmed-pdf-loading-box">
 
                     <div class="drmed-pdf-spinner"></div>
 
-                    <div
-                        class="drmed-pdf-loader-text"
-                        id="drmedPdfLoaderText"
-                    >
+                    <div id="drmedPdfLoadingText">
                         PDF tayyorlanmoqda...
                     </div>
 
@@ -113,31 +80,28 @@
                     position: "fixed",
                     inset: "0",
                     zIndex: "999999",
+                    background: "rgba(15,23,42,.55)",
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                    background:
-                        "rgba(15,23,42,.45)",
-                    backdropFilter:
-                        "blur(4px)"
+                    justifyContent: "center"
                 }
             );
 
             const box =
                 loader.querySelector(
-                    ".drmed-pdf-loader-box"
+                    ".drmed-pdf-loading-box"
                 );
 
             Object.assign(
                 box.style,
                 {
-                    background: "#ffffff",
-                    borderRadius: "18px",
+                    background: "#fff",
                     padding: "28px 35px",
-                    minWidth: "240px",
+                    borderRadius: "18px",
                     textAlign: "center",
+                    minWidth: "230px",
                     boxShadow:
-                        "0 20px 60px rgba(0,0,0,.25)"
+                        "0 20px 70px rgba(0,0,0,.3)"
                 }
             );
 
@@ -149,123 +113,132 @@
             Object.assign(
                 spinner.style,
                 {
-                    width: "38px",
-                    height: "38px",
-                    margin:
-                        "0 auto 16px",
+                    width: "40px",
+                    height: "40px",
                     border:
                         "4px solid #e2e8f0",
                     borderTopColor:
                         "#0d9488",
                     borderRadius: "50%",
+                    margin:
+                        "0 auto 15px",
                     animation:
-                        "drmedPdfSpin 0.8s linear infinite"
+                        "drmedPdfSpin .8s linear infinite"
                 }
             );
 
             const style =
-                document.createElement(
-                    "style"
-                );
+                document.createElement("style");
 
             style.textContent = `
                 @keyframes drmedPdfSpin {
+                    from {
+                        transform: rotate(0deg);
+                    }
+
                     to {
                         transform: rotate(360deg);
                     }
                 }
-
-                .drmed-pdf-loader-text {
-                    color: #0f172a;
-                    font-size: 15px;
-                    font-weight: 600;
-                }
             `;
 
-            document.head.appendChild(
-                style
-            );
+            document.head.appendChild(style);
 
-            document.body.appendChild(
-                loader
-            );
+            document.body.appendChild(loader);
         }
 
-        const textEl =
-            getElement(
-                "drmedPdfLoaderText"
-            );
+        get("drmedPdfLoadingText")
+            .innerText = text;
 
-        if (textEl) {
-            textEl.innerText =
-                text;
-        }
-
-        loader.style.display =
-            "flex";
+        loader.style.display = "flex";
     }
 
 
-    function hidePdfLoading() {
+    function hideLoading() {
 
         const loader =
-            getElement(
-                "drmedPdfLoader"
-            );
+            get("drmedPdfLoading");
 
         if (loader) {
-            loader.style.display =
-                "none";
+            loader.style.display = "none";
         }
     }
 
 
     /* =====================================================
-       RETSEPTNI PDF UCHUN CLONE QILISH
+       MODAL
        ===================================================== */
 
-    async function preparePrescription() {
+    function openPdfFormatModal() {
 
-        /*
-         * Sizning HTMLdagi asosiy retsept blankasi.
-         */
+        const modal =
+            get("pdfFormatModal");
+
+        if (!modal) {
+
+            alert(
+                "PDF format oynasi topilmadi."
+            );
+
+            return;
+        }
+
+        modal.classList.add("active");
+
+        modal.style.display = "flex";
+    }
+
+
+    function closePdfFormatModal() {
+
+        const modal =
+            get("pdfFormatModal");
+
+        if (!modal) {
+            return;
+        }
+
+        modal.classList.remove("active");
+
+        modal.style.display = "none";
+    }
+
+
+    /* =====================================================
+       RETSEPTNI CLONE QILISH
+       ===================================================== */
+
+    async function createPrescriptionClone() {
 
         const original =
-            getElement(
-                "printablePaper"
-            ) ||
-            getElement(
-                "prescriptionPaper"
-            ) ||
-            document.querySelector(
-                ".rx-paper"
-            );
+            get("printablePaper");
 
         if (!original) {
 
             throw new Error(
-                "Retsept blankasi topilmadi."
+                "printablePaper topilmadi."
             );
         }
 
 
         /*
-         * Ekrandagi original elementga
-         * tegmaymiz.
+         * Ekrandagi retseptni yangilaymiz.
          */
 
+        if (
+            typeof window.liveUpdate ===
+            "function"
+        ) {
+            window.liveUpdate();
+        }
+
+
         const clone =
-            original.cloneNode(
-                true
-            );
+            original.cloneNode(true);
 
         clone.id =
             "drmedPdfClone";
 
-
-        /*
-         * PDF uchun aniq A4 kengligi.
-         */
 
         Object.assign(
             clone.style,
@@ -275,126 +248,104 @@
                 top: "0",
 
                 width: "794px",
+
                 minWidth: "794px",
                 maxWidth: "794px",
 
                 height: "auto",
-                minHeight: "1123px",
 
                 margin: "0",
-                padding: "0",
 
-                background:
-                    "#ffffff",
+                background: "#ffffff",
 
-                color:
-                    "#0f172a",
+                color: "#000000",
 
-                display:
-                    "block",
+                display: "block",
 
-                visibility:
-                    "visible",
+                visibility: "visible",
 
-                opacity:
-                    "1",
+                opacity: "1",
 
-                transform:
-                    "none",
+                transform: "none",
 
-                overflow:
-                    "visible",
+                overflow: "visible",
 
-                boxSizing:
-                    "border-box"
+                boxSizing: "border-box"
             }
         );
 
 
         /*
-         * Ichidagi barcha elementlarni
-         * ko'rinadigan qilamiz.
+         * Clone ichidagi elementlar.
          */
 
         clone
             .querySelectorAll("*")
-            .forEach(
-                element => {
+            .forEach(function (el) {
 
-                    element.style.visibility =
-                        "visible";
+                el.style.visibility =
+                    "visible";
 
-                    element.style.opacity =
-                        "1";
-                }
-            );
+                el.style.opacity =
+                    "1";
+
+            });
 
 
-        document.body.appendChild(
-            clone
-        );
+        document.body.appendChild(clone);
 
 
         /*
-         * Rasmlarni kutamiz.
+         * Rasmlarni kutish.
          */
 
         const images =
             Array.from(
-                clone.querySelectorAll(
-                    "img"
-                )
+                clone.querySelectorAll("img")
             );
 
+
         await Promise.all(
-            images.map(
-                image => {
+            images.map(function (img) {
 
-                    if (
-                        image.complete
-                    ) {
-                        return Promise.resolve();
-                    }
-
-                    return new Promise(
-                        resolve => {
-
-                            image.onload =
-                                resolve;
-
-                            image.onerror =
-                                resolve;
-
-                            setTimeout(
-                                resolve,
-                                2000
-                            );
-                        }
-                    );
+                if (img.complete) {
+                    return Promise.resolve();
                 }
-            )
+
+                return new Promise(
+                    function (resolve) {
+
+                        img.onload =
+                            resolve;
+
+                        img.onerror =
+                            resolve;
+
+                        setTimeout(
+                            resolve,
+                            3000
+                        );
+
+                    }
+                );
+
+            })
         );
 
 
         /*
-         * Browser layoutni
-         * qayta hisoblasin.
+         * Browser renderini kutamiz.
          */
 
         await new Promise(
             resolve =>
-                requestAnimationFrame(
-                    resolve
-                )
+                requestAnimationFrame(resolve)
         );
 
 
         await new Promise(
             resolve =>
-                setTimeout(
-                    resolve,
-                    200
-                )
+                setTimeout(resolve, 300)
         );
 
 
@@ -406,9 +357,7 @@
        HTML → CANVAS
        ===================================================== */
 
-    async function renderCanvas(
-        clone
-    ) {
+    async function createCanvas(clone) {
 
         if (
             typeof window.html2canvas !==
@@ -427,47 +376,29 @@
                 {
                     scale: 2,
 
-                    useCORS:
-                        true,
+                    useCORS: true,
 
-                    allowTaint:
-                        false,
+                    allowTaint: false,
 
                     backgroundColor:
                         "#ffffff",
 
-                    logging:
-                        false,
-
-                    windowWidth:
-                        794,
-
-                    windowHeight:
-                        Math.max(
-                            1123,
-                            clone.scrollHeight +
-                                30
-                        ),
-
-                    scrollX:
-                        0,
-
-                    scrollY:
-                        0,
+                    logging: false,
 
                     imageTimeout:
                         15000,
 
+                    scrollX: 0,
+
+                    scrollY: 0,
+
                     onclone:
-                        function (
-                            clonedDocument
-                        ) {
+                        function (doc) {
 
                             const paper =
-                                clonedDocument
-                                    .getElementById(
-                                        "drmedPdfClone"
-                                    );
+                                doc.getElementById(
+                                    "drmedPdfClone"
+                                );
 
                             if (!paper) {
                                 return;
@@ -485,10 +416,10 @@
                             paper.style.width =
                                 "794px";
 
-                            paper.style.minWidth =
+                            paper.style.maxWidth =
                                 "794px";
 
-                            paper.style.maxWidth =
+                            paper.style.minWidth =
                                 "794px";
 
                             paper.style.visibility =
@@ -502,9 +433,6 @@
 
                             paper.style.background =
                                 "#ffffff";
-
-                            paper.style.transform =
-                                "none";
                         }
                 }
             );
@@ -512,12 +440,12 @@
 
         if (
             !canvas ||
-            canvas.width <= 0 ||
-            canvas.height <= 0
+            canvas.width === 0 ||
+            canvas.height === 0
         ) {
 
             throw new Error(
-                "Retsept canvasga aylantirilmadi."
+                "Retsept rasmi yaratilmadi."
             );
         }
 
@@ -527,12 +455,10 @@
 
 
     /* =====================================================
-       CANVAS → A4 PDF
+       A4
        ===================================================== */
 
-    async function canvasToA4(
-        canvas
-    ) {
+    function makeA4(canvas) {
 
         if (
             !window.jspdf ||
@@ -540,56 +466,40 @@
         ) {
 
             throw new Error(
-                "jsPDF kutubxonasi yuklanmagan."
+                "jsPDF yuklanmagan."
             );
         }
 
 
-        const {
-            jsPDF
-        } =
-            window.jspdf;
+        const jsPDF =
+            window.jspdf.jsPDF;
 
 
         const pdf =
-            new jsPDF(
-                {
-                    orientation:
-                        "portrait",
-
-                    unit:
-                        "mm",
-
-                    format:
-                        "a4",
-
-                    compress:
-                        true
-                }
-            );
+            new jsPDF({
+                orientation: "portrait",
+                unit: "mm",
+                format: "a4",
+                compress: true
+            });
 
 
-        const pageWidth =
-            210;
+        const pageWidth = 210;
+        const pageHeight = 297;
 
-        const pageHeight =
-            297;
+        const margin = 5;
 
-        const margin =
-            5;
-
-
-        const maxWidth =
+        const availableWidth =
             pageWidth -
             margin * 2;
 
-        const maxHeight =
+        const availableHeight =
             pageHeight -
             margin * 2;
 
 
         let width =
-            maxWidth;
+            availableWidth;
 
         let height =
             canvas.height *
@@ -597,20 +507,21 @@
             canvas.width;
 
 
+        /*
+         * A4 sahifadan oshib ketmasin.
+         */
+
         if (
             height >
-            maxHeight
+            availableHeight
         ) {
 
             const ratio =
-                maxHeight /
+                availableHeight /
                 height;
 
-            width *=
-                ratio;
-
-            height *=
-                ratio;
+            width *= ratio;
+            height *= ratio;
         }
 
 
@@ -620,6 +531,7 @@
                 width
             ) / 2;
 
+
         const y =
             margin;
 
@@ -627,7 +539,7 @@
         const image =
             canvas.toDataURL(
                 "image/jpeg",
-                0.96
+                0.95
             );
 
 
@@ -648,12 +560,12 @@
 
 
     /* =====================================================
-       CANVAS → A5 LANDSCAPE
+       A5 LANDSCAPE
+       RETSEPT CHAP YARMIDA
+       O'NG TOMON BO'SH
        ===================================================== */
 
-    async function canvasToA5(
-        canvas
-    ) {
+    function makeA5(canvas) {
 
         if (
             !window.jspdf ||
@@ -661,33 +573,22 @@
         ) {
 
             throw new Error(
-                "jsPDF kutubxonasi yuklanmagan."
+                "jsPDF yuklanmagan."
             );
         }
 
 
-        const {
-            jsPDF
-        } =
-            window.jspdf;
+        const jsPDF =
+            window.jspdf.jsPDF;
 
 
         const pdf =
-            new jsPDF(
-                {
-                    orientation:
-                        "landscape",
-
-                    unit:
-                        "mm",
-
-                    format:
-                        "a5",
-
-                    compress:
-                        true
-                }
-            );
+            new jsPDF({
+                orientation: "landscape",
+                unit: "mm",
+                format: "a5",
+                compress: true
+            });
 
 
         /*
@@ -695,37 +596,32 @@
          *
          * 210 × 148 mm
          *
-         * Retsept:
-         * chap 105 mm
+         * Chap yarmi:
+         * 105 mm
          *
-         * O'ng 105 mm:
-         * BO'SH
+         * O'ng yarmi:
+         * bo'sh
          */
 
-        const pageWidth =
-            210;
+        const pageWidth = 210;
+        const pageHeight = 148;
 
-        const pageHeight =
-            148;
+        const halfWidth = 105;
 
-        const halfWidth =
-            105;
-
-        const margin =
-            4;
+        const margin = 4;
 
 
-        const maxWidth =
+        const availableWidth =
             halfWidth -
             margin * 2;
 
-        const maxHeight =
+        const availableHeight =
             pageHeight -
             margin * 2;
 
 
         let width =
-            maxWidth;
+            availableWidth;
 
         let height =
             canvas.height *
@@ -735,23 +631,21 @@
 
         if (
             height >
-            maxHeight
+            availableHeight
         ) {
 
             const ratio =
-                maxHeight /
+                availableHeight /
                 height;
 
-            width *=
-                ratio;
-
-            height *=
-                ratio;
+            width *= ratio;
+            height *= ratio;
         }
 
 
         const x =
             margin;
+
 
         const y =
             (
@@ -763,7 +657,7 @@
         const image =
             canvas.toDataURL(
                 "image/jpeg",
-                0.96
+                0.95
             );
 
 
@@ -779,89 +673,113 @@
         );
 
 
-        /*
-         * O'ng tomonga hech narsa
-         * qo'shilmaydi.
-         *
-         * Shu sababli u bo'sh qoladi.
-         */
-
-
         return pdf;
     }
 
 
     /* =====================================================
-       A4 YUKLASH
+       ASOSIY EXPORT
+       BU FUNKSIYA INDEX.HTMLDAGI
+       exportToPDF('a4')
+       exportToPDF('a5')
+       BILAN ISHLAYDI
        ===================================================== */
 
-    async function downloadA4() {
+    async function exportToPDF(format) {
 
-        if (pdfBusy) {
+        if (isGenerating) {
             return;
         }
 
-        pdfBusy =
+
+        isGenerating =
             true;
 
 
-        let clone =
-            null;
+        let clone = null;
 
 
         try {
 
-            showPdfLoading(
-                "A4 PDF tayyorlanmoqda..."
+            closePdfFormatModal();
+
+
+            showLoading(
+                format === "a5"
+                    ? "A5 PDF tayyorlanmoqda..."
+                    : "A4 PDF tayyorlanmoqda..."
+            );
+
+
+            clone =
+                await createPrescriptionClone();
+
+
+            const canvas =
+                await createCanvas(
+                    clone
+                );
+
+
+            let pdf;
+
+
+            if (
+                format.toLowerCase() ===
+                "a5"
+            ) {
+
+                pdf =
+                    makeA5(canvas);
+
+            } else {
+
+                pdf =
+                    makeA4(canvas);
+            }
+
+
+            /*
+             * PDF haqiqatan yaratildimi?
+             */
+
+            if (!pdf) {
+
+                throw new Error(
+                    "PDF obyektini yaratib bo'lmadi."
+                );
+            }
+
+
+            /*
+             * YUKLASH
+             */
+
+            pdf.save(
+                fileName(format)
             );
 
 
             /*
-             * Agar mavjud bo'lsa
-             * liveUpdate ishlatamiz.
+             * Yuklash tugagach.
              */
 
-            if (
-                typeof window.liveUpdate ===
-                "function"
-            ) {
-                window.liveUpdate();
-            }
-
-
-            clone =
-                await preparePrescription();
-
-
-            const canvas =
-                await renderCanvas(
-                    clone
-                );
-
-
-            const pdf =
-                await canvasToA4(
-                    canvas
-                );
-
-
-            pdf.save(
-                createFileName(
-                    "A4"
-                )
-            );
+            hideLoading();
 
 
         } catch (error) {
 
             console.error(
-                "DR.MED A4 PDF ERROR:",
+                "DR.MED PDF ERROR:",
                 error
             );
 
 
+            hideLoading();
+
+
             alert(
-                "❌ A4 PDF yaratilmadi.\n\n" +
+                "❌ PDF yuklanmadi.\n\n" +
                 error.message
             );
 
@@ -872,444 +790,70 @@
                 clone.remove();
             }
 
-            hidePdfLoading();
-
-            pdfBusy =
+            isGenerating =
                 false;
         }
     }
 
 
     /* =====================================================
-       A5 YUKLASH
+       TELEGRAM / SHARE
        ===================================================== */
 
-    async function downloadA5() {
+    async function shareTelegram() {
 
-        if (pdfBusy) {
+        if (isGenerating) {
             return;
         }
 
-        pdfBusy =
+
+        isGenerating =
             true;
 
 
-        let clone =
-            null;
+        let clone = null;
 
 
         try {
 
-            showPdfLoading(
-                "A5 PDF tayyorlanmoqda..."
-            );
-
-
-            if (
-                typeof window.liveUpdate ===
-                "function"
-            ) {
-                window.liveUpdate();
-            }
-
-
-            clone =
-                await preparePrescription();
-
-
-            const canvas =
-                await renderCanvas(
-                    clone
-                );
-
-
-            const pdf =
-                await canvasToA5(
-                    canvas
-                );
-
-
-            pdf.save(
-                createFileName(
-                    "A5"
-                )
-            );
-
-
-        } catch (error) {
-
-            console.error(
-                "DR.MED A5 PDF ERROR:",
-                error
-            );
-
-
-            alert(
-                "❌ A5 PDF yaratilmadi.\n\n" +
-                error.message
-            );
-
-
-        } finally {
-
-            if (clone) {
-                clone.remove();
-            }
-
-            hidePdfLoading();
-
-            pdfBusy =
-                false;
-        }
-    }
-
-
-    /* =====================================================
-       PDF FORMAT MODALI
-       ===================================================== */
-
-    function openPdfFormatModal() {
-
-        const old =
-            getElement(
-                "drmedPdfFormatModal"
-            );
-
-        if (old) {
-            old.remove();
-        }
-
-
-        const modal =
-            document.createElement(
-                "div"
-            );
-
-        modal.id =
-            "drmedPdfFormatModal";
-
-
-        Object.assign(
-            modal.style,
-            {
-                position: "fixed",
-                inset: "0",
-                zIndex: "999998",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background:
-                    "rgba(15,23,42,.55)",
-                padding: "20px"
-            }
-        );
-
-
-        modal.innerHTML = `
-            <div
-                style="
-                    width:min(430px,100%);
-                    background:#fff;
-                    border-radius:20px;
-                    padding:24px;
-                    box-shadow:
-                        0 25px 80px
-                        rgba(0,0,0,.25);
-                "
-            >
-
-                <div
-                    style="
-                        display:flex;
-                        justify-content:space-between;
-                        align-items:center;
-                        margin-bottom:20px;
-                    "
-                >
-
-                    <h3
-                        style="
-                            margin:0;
-                            color:#0f172a;
-                            font-size:20px;
-                        "
-                    >
-                        📄 PDF formatini tanlang
-                    </h3>
-
-                    <button
-                        type="button"
-                        id="drmedPdfClose"
-                        style="
-                            border:0;
-                            background:#f1f5f9;
-                            width:36px;
-                            height:36px;
-                            border-radius:10px;
-                            font-size:18px;
-                            cursor:pointer;
-                        "
-                    >
-                        ✕
-                    </button>
-
-                </div>
-
-
-                <button
-                    type="button"
-                    id="drmedA4Button"
-                    style="
-                        width:100%;
-                        border:1px solid #cbd5e1;
-                        background:#fff;
-                        padding:16px;
-                        border-radius:14px;
-                        margin-bottom:12px;
-                        cursor:pointer;
-                        text-align:left;
-                        display:flex;
-                        align-items:center;
-                        gap:14px;
-                    "
-                >
-
-                    <span
-                        style="
-                            font-size:30px;
-                        "
-                    >
-                        📄
-                    </span>
-
-                    <span>
-                        <strong
-                            style="
-                                display:block;
-                                font-size:16px;
-                                color:#0f172a;
-                            "
-                        >
-                            A4 — Knijniy
-                        </strong>
-
-                        <small
-                            style="
-                                display:block;
-                                margin-top:4px;
-                                color:#64748b;
-                            "
-                        >
-                            To'liq A4 sahifa
-                        </small>
-                    </span>
-
-                </button>
-
-
-                <button
-                    type="button"
-                    id="drmedA5Button"
-                    style="
-                        width:100%;
-                        border:1px solid #cbd5e1;
-                        background:#fff;
-                        padding:16px;
-                        border-radius:14px;
-                        cursor:pointer;
-                        text-align:left;
-                        display:flex;
-                        align-items:center;
-                        gap:14px;
-                    "
-                >
-
-                    <span
-                        style="
-                            font-size:30px;
-                        "
-                    >
-                        📰
-                    </span>
-
-                    <span>
-                        <strong
-                            style="
-                                display:block;
-                                font-size:16px;
-                                color:#0f172a;
-                            "
-                        >
-                            A5 — Albom
-                        </strong>
-
-                        <small
-                            style="
-                                display:block;
-                                margin-top:4px;
-                                color:#64748b;
-                            "
-                        >
-                            Chap yarmida retsept,
-                            o'ng yarmi bo'sh
-                        </small>
-                    </span>
-
-                </button>
-
-            </div>
-        `;
-
-
-        document.body.appendChild(
-            modal
-        );
-
-
-        getElement(
-            "drmedPdfClose"
-        ).onclick =
-            function () {
-
-                modal.remove();
-            };
-
-
-        getElement(
-            "drmedA4Button"
-        ).onclick =
-            function () {
-
-                modal.remove();
-
-                downloadA4();
-            };
-
-
-        getElement(
-            "drmedA5Button"
-        ).onclick =
-            function () {
-
-                modal.remove();
-
-                downloadA5();
-            };
-
-
-        modal.addEventListener(
-            "click",
-            function (event) {
-
-                if (
-                    event.target ===
-                    modal
-                ) {
-
-                    modal.remove();
-                }
-            }
-        );
-    }
-
-
-    /* =====================================================
-       PDF → FILE
-       TELEGRAM / SHARE UCHUN
-       ===================================================== */
-
-    async function createA4PdfFile() {
-
-        let clone =
-            null;
-
-
-        try {
-
-            if (
-                typeof window.liveUpdate ===
-                "function"
-            ) {
-                window.liveUpdate();
-            }
-
-
-            clone =
-                await preparePrescription();
-
-
-            const canvas =
-                await renderCanvas(
-                    clone
-                );
-
-
-            const pdf =
-                await canvasToA4(
-                    canvas
-                );
-
-
-            const blob =
-                pdf.output(
-                    "blob"
-                );
-
-
-            const filename =
-                createFileName(
-                    "A4"
-                );
-
-
-            return new File(
-                [blob],
-                filename,
-                {
-                    type:
-                        "application/pdf"
-                }
-            );
-
-
-        } finally {
-
-            if (clone) {
-                clone.remove();
-            }
-        }
-    }
-
-
-    /* =====================================================
-       NATIVE SHARE
-       TELEFON / PLANSHET
-       ===================================================== */
-
-    async function sharePrescription() {
-
-        if (pdfBusy) {
-            return;
-        }
-
-        pdfBusy =
-            true;
-
-
-        try {
-
-            showPdfLoading(
+            showLoading(
                 "PDF tayyorlanmoqda..."
             );
 
 
+            clone =
+                await createPrescriptionClone();
+
+
+            const canvas =
+                await createCanvas(
+                    clone
+                );
+
+
+            const pdf =
+                makeA4(canvas);
+
+
+            const blob =
+                pdf.output("blob");
+
+
             const file =
-                await createA4PdfFile();
+                new File(
+                    [
+                        blob
+                    ],
+                    fileName("a4"),
+                    {
+                        type:
+                            "application/pdf"
+                    }
+                );
 
 
             /*
-             * Telefon / planshetda
-             * native Share.
+             * TELEFON / PLANSHET
              */
 
             if (
@@ -1320,21 +864,19 @@
                 })
             ) {
 
-                hidePdfLoading();
+                hideLoading();
 
 
-                await navigator.share(
-                    {
-                        title:
-                            "DR.MED Elektron Retsept",
+                await navigator.share({
+                    title:
+                        "DR.MED Elektron Retsept",
 
-                        text:
-                            "DR.MED elektron retsept",
+                    text:
+                        "DR.MED elektron retsept",
 
-                        files:
-                            [file]
-                    }
-                );
+                    files:
+                        [file]
+                });
 
 
                 return;
@@ -1342,56 +884,22 @@
 
 
             /*
-             * Desktop fallback:
-             * PDFni yuklab beramiz.
+             * Kompyuter fallback:
+             * PDFni yuklash.
              */
 
-            const url =
-                URL.createObjectURL(
-                    file
-                );
-
-
-            const link =
-                document.createElement(
-                    "a"
-                );
-
-            link.href =
-                url;
-
-            link.download =
-                file.name;
-
-            document.body.appendChild(
-                link
-            );
-
-            link.click();
-
-            link.remove();
-
-
-            setTimeout(
-                () => {
-
-                    URL.revokeObjectURL(
-                        url
-                    );
-
-                },
-                5000
+            pdf.save(
+                fileName("A4")
             );
 
 
-            hidePdfLoading();
+            hideLoading();
 
 
             alert(
-                "📄 PDF yuklab olindi.\n\n" +
-                "Telefon/planshetda esa " +
-                "Share orqali Telegramga " +
-                "yuborishingiz mumkin."
+                "PDF yuklandi. " +
+                "Telegramga yuborish uchun " +
+                "yuklangan PDF faylni Telegramga yuboring."
             );
 
 
@@ -1403,117 +911,95 @@
             );
 
 
+            hideLoading();
+
+
+            /*
+             * User Share oynasini bekor qilgan bo'lsa
+             * xatolik chiqarish shart emas.
+             */
+
             if (
                 error &&
                 error.name ===
                 "AbortError"
             ) {
-
                 return;
             }
 
 
             alert(
-                "❌ PDFni ulashishda xatolik:\n\n" +
+                "❌ Telegram/Share ishlamadi.\n\n" +
                 error.message
             );
 
 
         } finally {
 
-            hidePdfLoading();
+            if (clone) {
+                clone.remove();
+            }
 
-            pdfBusy =
+            isGenerating =
                 false;
         }
     }
 
 
     /* =====================================================
-       GLOBAL
+       GLOBAL FUNKSIYALAR
+       INDEX.HTML UCHUN
        ===================================================== */
-
-    window.DRMED_PDF = {
-
-        downloadA4:
-            downloadA4,
-
-        downloadA5:
-            downloadA5,
-
-        openFormatModal:
-            openPdfFormatModal,
-
-        share:
-            sharePrescription,
-
-        createA4File:
-            createA4PdfFile
-    };
-
-
-    /*
-     * HTMLdagi eski onclicklar uchun
-     * global funksiyalar.
-     */
 
     window.openPdfFormatModal =
         openPdfFormatModal;
 
-    window.downloadA4 =
-        downloadA4;
 
-    window.downloadA5 =
-        downloadA5;
+    window.closePdfFormatModal =
+        closePdfFormatModal;
+
+
+    window.exportToPDF =
+        exportToPDF;
+
 
     window.shareTelegram =
-        sharePrescription;
+        shareTelegram;
 
+
+    /* =====================================================
+       PDF MODUL
+       APP.JS UCHUN
+       ===================================================== */
+
+    window.DRMED_PDF = {
+
+        openFormatModal:
+            openPdfFormatModal,
+
+        closeFormatModal:
+            closePdfFormatModal,
+
+        downloadA4:
+            function () {
+                return exportToPDF("a4");
+            },
+
+        downloadA5:
+            function () {
+                return exportToPDF("a5");
+            },
+
+        export:
+            exportToPDF,
+
+        share:
+            shareTelegram
+    };
+
+
+    console.log(
+        "✅ DR.MED PDF MODULE LOADED"
+    );
 
 })();
-/* =========================================================
-   DR.MED PDF MODULE
-   app.js bilan bog'lash
-   ========================================================= */
-
-window.DRMED_PDF = {
-
-    openFormatModal: function () {
-        if (typeof openPdfFormatModal === 'function') {
-            openPdfFormatModal();
-        } else {
-            alert("PDF format moduli topilmadi.");
-        }
-    },
-
-    closeFormatModal: function () {
-        if (typeof closePdfFormatModal === 'function') {
-            closePdfFormatModal();
-        }
-    },
-
-    download: async function (format) {
-        if (typeof downloadPDF === 'function') {
-            return await downloadPDF(format);
-        }
-
-        alert("PDF yaratish funksiyasi topilmadi.");
-    },
-
-    preview: async function (format) {
-        if (typeof previewPDF === 'function') {
-            return await previewPDF(format);
-        }
-
-        alert("PDF preview funksiyasi topilmadi.");
-    },
-
-    share: async function () {
-        if (typeof shareTelegram === 'function') {
-            return await shareTelegram();
-        }
-
-        alert("Telegram PDF funksiyasi topilmadi.");
-    }
-
-};
