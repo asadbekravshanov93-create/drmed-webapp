@@ -2428,7 +2428,7 @@ function renderHistoryList() {
             style="color:var(--danger);"
             onclick="deleteFromHistory('${escapeJS(
               prescription.id
-            )}')"
+                          )}')"
           >
             O‘chirish
           </button>
@@ -3244,10 +3244,6 @@ document.addEventListener(
 async function exportToPDF(
   format = 'a4'
 ) {
-
-  liveUpdate();
-
-
   /*
    * PDF.js mavjud bo'lsa,
    * uning format oynasini ishlatamiz.
