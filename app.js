@@ -992,39 +992,132 @@ function liveUpdate() {
   }
 
 
-  // Rx ID generator or getter
+  /* =========================================================
+   DR.MED — RETSEPT RAQAMI
+   ========================================================= */
 
-  let rxIdEl =
+let currentPrescriptionId = null;
+
+
+function generateNewPrescriptionId() {
+
+  const year =
+    new Date().getFullYear();
+
+
+  let counter =
+    parseInt(
+      localStorage.getItem(
+        'drmed_rx_counter'
+      ) || '0',
+      10
+    );
+
+
+  counter += 1;
+
+
+  localStorage.setItem(
+    'drmed_rx_counter',
+    String(counter)
+  );
+
+
+  return (
+    'RX-' +
+    year +
+    '-' +
+    String(counter).padStart(
+      5,
+      '0'
+    )
+  );
+}
+
+
+function ensurePrescriptionId() {
+
+  const rxIdEl =
     document.getElementById(
       'paper_rx_id'
     );
 
 
-  if (
-    rxIdEl &&
-    (
-      !rxIdEl.innerText ||
-      rxIdEl.innerText === '—' ||
-      rxIdEl.innerText === ''
-    )
-  ) {
+  if (!rxIdEl) {
 
-    rxIdEl.innerText =
-      'RX-' +
-      Math.floor(
-        100000 +
-        Math.random() *
-        900000
-      );
-
+    return '';
   }
 
 
-  const currentRxId =
-    rxIdEl
-      ? rxIdEl.innerText
-      : 'RX-000000';
+  /*
+   * Agar hozirgi retseptda raqam bor bo‘lsa,
+   * uni o‘zgartirmaymiz.
+   */
 
+  if (
+    currentPrescriptionId &&
+    rxIdEl.innerText.trim() ===
+      currentPrescriptionId
+  ) {
+
+    return currentPrescriptionId;
+  }
+
+
+  /*
+   * HTMLdagi eski statik RX raqamini
+   * faqat birinchi ishga tushishda
+   * yangi raqamga almashtiramiz.
+   */
+
+  if (
+    !currentPrescriptionId
+  ) {
+
+    currentPrescriptionId =
+      generateNewPrescriptionId();
+
+    rxIdEl.innerText =
+      currentPrescriptionId;
+  }
+
+
+  return currentPrescriptionId;
+}
+
+
+const currentRxId =
+  ensurePrescriptionId();
+
+
+/* =========================================================
+   YANGI RETSEPT BOSHLASH
+   ========================================================= */
+
+function startNewPrescription() {
+
+  currentPrescriptionId =
+    generateNewPrescriptionId();
+
+
+  const rxIdEl =
+    document.getElementById(
+      'paper_rx_id'
+    );
+
+
+  if (rxIdEl) {
+
+    rxIdEl.innerText =
+      currentPrescriptionId;
+  }
+
+
+  console.log(
+    '🆕 Yangi retsept:',
+    currentPrescriptionId
+  );
+}
 
   // Drugs Render in Paper
 
