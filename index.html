@@ -1,441 +1,1699 @@
 <!DOCTYPE html>
 <html lang="uz">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  >
+
   <title>DR.MED – Pro Retsept Tizimi</title>
 
-  <!-- Google Fonts & Icons -->
+  <!-- =========================================================
+       GOOGLE FONTS
+       ========================================================= -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-  <!-- Telegram WebApp SDK -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet"
+  >
+
+  <!-- =========================================================
+       TELEGRAM WEB APP SDK
+       ========================================================= -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-  <!-- HTML2PDF & QRCode Libraries -->
+  <!-- =========================================================
+       PDF GENERATOR
+       ========================================================= -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <!-- =========================================================
+       QR CODE
+       ========================================================= -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
+  <!-- =========================================================
+       MAIN CSS
+       ========================================================= -->
   <link rel="stylesheet" href="style.css">
+
 </head>
+
+
 <body>
 
-  <!-- TOP HEADER -->
+
+  <!-- =========================================================
+       TOP HEADER
+       ========================================================= -->
+
   <header class="app-header">
+
     <div class="header-brand">
-      <div class="brand-logo">+</div>
+
+      <div class="brand-logo">
+        +
+      </div>
+
       <div class="brand-info">
         <h1>DR.MED PRO</h1>
         <p>Elektron Retsept Tizimi</p>
       </div>
+
     </div>
+
+
     <div class="header-actions">
-      <button class="icon-btn" onclick="openModal('historyModal')" title="Tarix">📜</button>
-      <button class="icon-btn" onclick="openModal('settingsModal')" title="Sozlamalar">⚙️</button>
-      <button class="icon-btn" onclick="openModal('menuModal')" title="Menyu">☰</button>
+
+      <button
+        class="icon-btn"
+        onclick="openModal('historyModal')"
+        title="Tarix"
+        type="button"
+      >
+        📜
+      </button>
+
+      <button
+        class="icon-btn"
+        onclick="openModal('settingsModal')"
+        title="Sozlamalar"
+        type="button"
+      >
+        ⚙️
+      </button>
+
+      <button
+        class="icon-btn"
+        onclick="openModal('menuModal')"
+        title="Menyu"
+        type="button"
+      >
+        ☰
+      </button>
+
     </div>
+
   </header>
 
-  <!-- STEP NAVIGATION TABS -->
+
+
+  <!-- =========================================================
+       STEP NAVIGATION
+       ========================================================= -->
+
   <nav class="wizard-nav">
-    <button class="wizard-tab active" id="tab1" onclick="switchStep(1)">
+
+    <button
+      class="wizard-tab active"
+      id="tab1"
+      onclick="switchStep(1)"
+      type="button"
+    >
       <span class="tab-num">1</span>
       <span class="tab-label">Bemor</span>
     </button>
-    <button class="wizard-tab" id="tab2" onclick="switchStep(2)">
+
+
+    <button
+      class="wizard-tab"
+      id="tab2"
+      onclick="switchStep(2)"
+      type="button"
+    >
       <span class="tab-num">2</span>
       <span class="tab-label">Retsept</span>
     </button>
-    <button class="wizard-tab" id="tab3" onclick="switchStep(3)">
+
+
+    <button
+      class="wizard-tab"
+      id="tab3"
+      onclick="switchStep(3)"
+      type="button"
+    >
       <span class="tab-num">3</span>
       <span class="tab-label">Ko'rish</span>
     </button>
+
   </nav>
 
-  <!-- MAIN APP CONTENT -->
+
+
+  <!-- =========================================================
+       MAIN APPLICATION
+       ========================================================= -->
+
   <main class="app-main">
 
-    <!-- ================= STEP 1: PATIENT & DIAGNOSIS ================= -->
-    <section class="step-content active" id="step1">
-      
-      <!-- Bemor Profil -->
+
+    <!-- =======================================================
+         STEP 1 — BEMOR
+         ======================================================= -->
+
+    <section
+      class="step-content active"
+      id="step1"
+    >
+
+
+      <!-- BEMOR MA'LUMOTLARI -->
+
       <div class="card">
+
         <div class="card-header">
-          <h2>👤 BEMOR MA'LUMOTLARI</h2>
-          <button class="sm-btn" onclick="clearPatientForm()">Tozalash</button>
+
+          <h2>
+            👤 BEMOR MA'LUMOTLARI
+          </h2>
+
+          <button
+            class="sm-btn"
+            onclick="clearPatientForm()"
+            type="button"
+          >
+            Tozalash
+          </button>
+
         </div>
+
+
         <div class="card-body">
+
+
           <div class="form-group">
-            <label for="p_name">Bemor F.I.Sh. <span class="req">*</span></label>
-            <input type="text" id="p_name" placeholder="Masalan: Aliyev Vali Olimovich" oninput="liveUpdate()">
+
+            <label for="p_name">
+              Bemor F.I.Sh.
+              <span class="req">*</span>
+            </label>
+
+            <input
+              type="text"
+              id="p_name"
+              placeholder="Masalan: Aliyev Vali Olimovich"
+              oninput="liveUpdate()"
+            >
+
           </div>
+
+
 
           <div class="form-row">
+
             <div class="form-group col-6">
-              <label for="p_birth">Tug'ilgan sanasi</label>
-              <input type="date" id="p_birth" onchange="calculateAge(); liveUpdate();">
+
+              <label for="p_birth">
+                Tug'ilgan sanasi
+              </label>
+
+              <input
+                type="date"
+                id="p_birth"
+                onchange="calculateAge(); liveUpdate();"
+              >
+
             </div>
+
+
             <div class="form-group col-6">
-              <label for="p_age">Yoshi</label>
-              <input type="number" id="p_age" placeholder="Yosh" oninput="liveUpdate()">
+
+              <label for="p_age">
+                Yoshi
+              </label>
+
+              <input
+                type="number"
+                id="p_age"
+                placeholder="Yosh"
+                oninput="liveUpdate()"
+              >
+
             </div>
+
           </div>
 
+
+
           <div class="form-group">
-            <label>Jinsi</label>
+
+            <label>
+              Jinsi
+            </label>
+
             <div class="segmented-control">
-              <button class="segment-btn active" id="gender_m" onclick="selectGender('Erkak')">Erkak</button>
-              <button class="segment-btn" id="gender_f" onclick="selectGender('Ayol')">Ayol</button>
+
+              <button
+                class="segment-btn active"
+                id="gender_m"
+                onclick="selectGender('Erkak')"
+                type="button"
+              >
+                Erkak
+              </button>
+
+              <button
+                class="segment-btn"
+                id="gender_f"
+                onclick="selectGender('Ayol')"
+                type="button"
+              >
+                Ayol
+              </button>
+
             </div>
+
           </div>
+
+
 
           <div class="form-row">
+
             <div class="form-group col-6">
-              <label for="p_phone">Telefon raqami</label>
-              <input type="tel" id="p_phone" placeholder="+998 90 123 45 67" oninput="liveUpdate()">
+
+              <label for="p_phone">
+                Telefon raqami
+              </label>
+
+              <input
+                type="tel"
+                id="p_phone"
+                placeholder="+998 90 123 45 67"
+                oninput="liveUpdate()"
+              >
+
             </div>
+
+
             <div class="form-group col-6">
-              <label for="p_card">Ambulator karta №</label>
-              <input type="text" id="p_card" placeholder="Masalan: A-98745" oninput="liveUpdate()">
+
+              <label for="p_card">
+                Ambulator karta №
+              </label>
+
+              <input
+                type="text"
+                id="p_card"
+                placeholder="Masalan: A-98745"
+                oninput="liveUpdate()"
+              >
+
             </div>
+
           </div>
+
+
 
           <div class="form-group">
-            <label for="p_address">Yashash manzili</label>
-            <input type="text" id="p_address" placeholder="Toshkent sh., Chilonzor tumani..." oninput="liveUpdate()">
+
+            <label for="p_address">
+              Yashash manzili
+            </label>
+
+            <input
+              type="text"
+              id="p_address"
+              placeholder="Toshkent sh., Chilonzor tumani..."
+              oninput="liveUpdate()"
+            >
+
           </div>
+
+
         </div>
+
       </div>
 
-      <!-- Vital Ko'rsatkichlar -->
+
+
+      <!-- VITAL KO'RSATKICHLAR -->
+
       <div class="card">
+
         <div class="card-header">
-          <h2>🩺 VITAL KO'RSATKICHLAR & DIAGNOZ</h2>
+
+          <h2>
+            🩺 VITAL KO'RSATKICHLAR & DIAGNOZ
+          </h2>
+
         </div>
+
+
         <div class="card-body">
-          <div class="form-row">
-            <div class="form-group col-4">
-              <label for="v_bp">Qon bosimi</label>
-              <input type="text" id="v_bp" placeholder="120/80" oninput="liveUpdate()">
-            </div>
-            <div class="form-group col-4">
-              <label for="v_temp">Harorat (°C)</label>
-              <input type="text" id="v_temp" placeholder="36.6" oninput="liveUpdate()">
-            </div>
-            <div class="form-group col-4">
-              <label for="v_weight">Vazni (kg)</label>
-              <input type="number" id="v_weight" placeholder="70" oninput="liveUpdate()">
-            </div>
-          </div>
+
 
           <div class="form-row">
+
             <div class="form-group col-4">
-              <label for="p_icd">ICD-10 Kodi</label>
+
+              <label for="v_bp">
+                Qon bosimi
+              </label>
+
+              <input
+                type="text"
+                id="v_bp"
+                placeholder="120/80"
+                oninput="liveUpdate()"
+              >
+
+            </div>
+
+
+            <div class="form-group col-4">
+
+              <label for="v_temp">
+                Harorat (°C)
+              </label>
+
+              <input
+                type="text"
+                id="v_temp"
+                placeholder="36.6"
+                oninput="liveUpdate()"
+              >
+
+            </div>
+
+
+            <div class="form-group col-4">
+
+              <label for="v_weight">
+                Vazni (kg)
+              </label>
+
+              <input
+                type="number"
+                id="v_weight"
+                placeholder="70"
+                oninput="liveUpdate()"
+              >
+
+            </div>
+
+          </div>
+
+
+
+          <div class="form-row">
+
+            <div class="form-group col-4">
+
+              <label for="p_icd">
+                ICD-10 Kodi
+              </label>
+
               <div class="input-with-btn">
-                <input type="text" id="p_icd" placeholder="Masalan: J20.9" oninput="liveUpdate()">
-                <button type="button" class="btn-input-act" onclick="openModal('icdModal')">🔍</button>
+
+                <input
+                  type="text"
+                  id="p_icd"
+                  placeholder="Masalan: J20.9"
+                  oninput="liveUpdate()"
+                >
+
+                <button
+                  type="button"
+                  class="btn-input-act"
+                  onclick="openModal('icdModal')"
+                >
+                  🔍
+                </button>
+
               </div>
+
             </div>
+
+
             <div class="form-group col-8">
-              <label for="p_diag">Klinik Tashxis <span class="req">*</span></label>
-              <input type="text" id="p_diag" placeholder="Klinik tashxisni kiriting..." oninput="liveUpdate()">
+
+              <label for="p_diag">
+                Klinik Tashxis
+                <span class="req">*</span>
+              </label>
+
+              <input
+                type="text"
+                id="p_diag"
+                placeholder="Klinik tashxisni kiriting..."
+                oninput="liveUpdate()"
+              >
+
             </div>
+
           </div>
 
-          <div class="form-group">
-            <label for="p_allergy">Allergik holatlar (Allergiya)</label>
-            <input type="text" id="p_allergy" placeholder="Masalan: Penitsillin, Pollinoz yoki Yo'q" oninput="liveUpdate()">
-          </div>
+
 
           <div class="form-group">
-            <label for="p_note">Shifokor izohi / Qo'shimcha</label>
-            <textarea id="p_note" rows="2" placeholder="Shikoyat va anamnez izohlari..." oninput="liveUpdate()"></textarea>
+
+            <label for="p_allergy">
+              Allergik holatlar (Allergiya)
+            </label>
+
+            <input
+              type="text"
+              id="p_allergy"
+              placeholder="Masalan: Penitsillin, Pollinoz yoki Yo'q"
+              oninput="liveUpdate()"
+            >
+
           </div>
+
+
+
+          <div class="form-group">
+
+            <label for="p_note">
+              Shifokor izohi / Qo'shimcha
+            </label>
+
+            <textarea
+              id="p_note"
+              rows="2"
+              placeholder="Shikoyat va anamnez izohlari..."
+              oninput="liveUpdate()"
+            ></textarea>
+
+          </div>
+
+
         </div>
+
       </div>
+
+
 
       <div class="step-footer">
-        <button class="btn btn-primary btn-block btn-lg" onclick="switchStep(2)">
+
+        <button
+          class="btn btn-primary btn-block btn-lg"
+          onclick="switchStep(2)"
+          type="button"
+        >
           Keyingisi: Retsept Yozish ➔
         </button>
+
       </div>
+
+
     </section>
 
-    <!-- ================= STEP 2: PRESCRIPTION BUILDER ================= -->
-    <section class="step-content" id="step2">
-      
+
+
+    <!-- =======================================================
+         STEP 2 — RETSEPT
+         ======================================================= -->
+
+    <section
+      class="step-content"
+      id="step2"
+    >
+
+
       <div class="section-title">
-    <h2>💊 RETSEPT TARKIBI (Rp.)</h2>
 
-    <button class="sm-btn" onclick="clearAllDrugs()">
-        🗑️ Tozalash
-    </button>
-</div>
+        <h2>
+          💊 RETSEPT TARKIBI (Rp.)
+        </h2>
 
-      <!-- DRUGS CONTAINER -->
+        <button
+          class="sm-btn"
+          onclick="clearAllDrugs()"
+          type="button"
+        >
+          🗑️ Tozalash
+        </button>
+
+      </div>
+
+
+
       <div id="drugsListContainer"></div>
 
-      <div class="add-more-box" onclick="addNewDrugCard()">
-        <span class="add-icon">+</span>
-        <span>Yangi dori vositasi qo'shish</span>
+
+
+      <div
+        class="add-more-box"
+        onclick="addNewDrugCard()"
+      >
+
+        <span class="add-icon">
+          +
+        </span>
+
+        <span>
+          Yangi dori vositasi qo'shish
+        </span>
+
       </div>
+
+
 
       <div class="step-footer form-row">
+
         <div class="col-4">
-          <button class="btn btn-secondary btn-block" onclick="switchStep(1)">← Orqaga</button>
+
+          <button
+            class="btn btn-secondary btn-block"
+            onclick="switchStep(1)"
+            type="button"
+          >
+            ← Orqaga
+          </button>
+
         </div>
+
+
         <div class="col-8">
-          <button class="btn btn-primary btn-block" onclick="switchStep(3)">👁️ Ko'rish va Tasdiqlash</button>
+
+          <button
+            class="btn btn-primary btn-block"
+            onclick="switchStep(3)"
+            type="button"
+          >
+            👁️ Ko'rish va Tasdiqlash
+          </button>
+
         </div>
+
       </div>
+
+
     </section>
 
-    <!-- ================= STEP 3: PREVIEW, SIGN & EXPORT ================= -->
-    <section class="step-content" id="step3">
-      
-      <!-- ACTION CONTROL BAR -->
+
+
+    <!-- =======================================================
+         STEP 3 — PREVIEW
+         ======================================================= -->
+
+    <section
+      class="step-content"
+      id="step3"
+    >
+
+
+      <!-- =====================================================
+           ACTION BUTTONS
+           ===================================================== -->
+
       <div class="action-toolbar">
-        <button class="act-btn btn-save" onclick="savePrescriptionToHistory()">
-          <i>💾</i> Saqlash
+
+
+        <!-- SAVE -->
+
+        <button
+          class="act-btn btn-save"
+          onclick="savePrescriptionToHistory()"
+          type="button"
+        >
+          <i>💾</i>
+          <span>Saqlash</span>
         </button>
-        <button class="action-btn green" onclick="downloadPDF()">
-    📄 PDF Yuklash
-</button>
-        <button class="act-btn btn-print" onclick="printPrescription()">
-          <i>🖨️</i> Chop Etish
+
+
+
+        <!-- PDF -->
+
+        <button
+          class="act-btn btn-pdf"
+          onclick="openPdfFormatModal()"
+          type="button"
+          id="pdfDownloadButton"
+        >
+          <i>📄</i>
+          <span>PDF Yuklash</span>
         </button>
-        <button class="act-btn btn-share" onclick="shareTelegram()">
-          <i>✈️</i> Telegram
+
+
+
+        <!-- PRINT -->
+
+        <button
+          class="act-btn btn-print"
+          onclick="printPrescription()"
+          type="button"
+        >
+          <i>🖨️</i>
+          <span>Chop Etish</span>
         </button>
+
+
+
+        <!-- TELEGRAM -->
+
+        <button
+          class="act-btn btn-share"
+          onclick="shareTelegram()"
+          type="button"
+          id="telegramShareButton"
+        >
+          <i>✈️</i>
+          <span>Telegram</span>
+        </button>
+
+
       </div>
 
-      <!-- BLANK PRINTABLE AREA -->
+
+
+      <!-- =====================================================
+           PRINTABLE PAPER
+           ===================================================== -->
+
       <div class="paper-container">
-        <div class="rx-paper" id="printablePaper">
-          
-          <!-- BLANK HEADER -->
+
+        <div
+          class="rx-paper"
+          id="printablePaper"
+        >
+
+
+          <!-- HEADER -->
+
           <div class="rx-header">
+
             <div class="rx-clinic-brand">
-              <div class="rx-medical-cross">✚</div>
+
+              <div class="rx-medical-cross">
+                ✚
+              </div>
+
+
               <div class="rx-clinic-details">
-                <h3 id="paper_clinic_name">DR.MED TIBBIYOT MARKAZI</h3>
-                <p id="paper_clinic_address">Toshkent sh., Chilonzor tumani, Bunyodkor shoh ko'chasi 12-uy</p>
-                <p>Tel: <span id="paper_clinic_phone">+998 (71) 200-00-11</span></p>
+
+                <h3 id="paper_clinic_name">
+                  DR.MED TIBBIYOT MARKAZI
+                </h3>
+
+                <p id="paper_clinic_address">
+                  Toshkent sh., Chilonzor tumani,
+                  Bunyodkor shoh ko'chasi 12-uy
+                </p>
+
+                <p>
+                  Tel:
+                  <span id="paper_clinic_phone">
+                    +998 (71) 200-00-11
+                  </span>
+                </p>
+
               </div>
+
             </div>
+
+
+
             <div class="rx-meta">
-              <div class="rx-qr-code" id="paper_qr_code" title="PDF formatida yuklab olish / ko'rish"></div>
+
+              <div
+                class="rx-qr-code"
+                id="paper_qr_code"
+                title="Retsept QR kodi"
+              ></div>
+
+
               <div class="rx-id-text">
-                <span>RETSEPT №:</span>
-                <strong id="paper_rx_id">RX-2026-00891</strong>
+
+                <span>
+                  RETSEPT №:
+                </span>
+
+                <strong id="paper_rx_id">
+                  RX-2026-00891
+                </strong>
+
               </div>
+
             </div>
+
           </div>
+
+
 
           <div class="rx-divider"></div>
 
-          <!-- PATIENT & DIAGNOSIS INFO GRID -->
+
+
+          <!-- PATIENT INFO -->
+
           <div class="rx-info-grid">
+
+
             <div class="rx-info-col">
-              <div class="rx-field"><span>Bemor F.I.Sh.:</span> <strong id="paper_p_name"></strong></div>
-              <div class="rx-field"><span>Tug'ilgan sanasi:</span> <strong id="paper_p_birth"></strong> (<span id="paper_p_age"></span> yosh)</div>
-              <div class="rx-field"><span>Jinsi / Manzili:</span> <strong id="paper_p_gender"></strong>, <span id="paper_p_address"></span></div>
-              <div class="rx-field"><span>Ambulator karta №:</span> <strong id="paper_p_card"></strong></div>
+
+              <div class="rx-field">
+
+                <span>
+                  Bemor F.I.Sh.:
+                </span>
+
+                <strong id="paper_p_name"></strong>
+
+              </div>
+
+
+              <div class="rx-field">
+
+                <span>
+                  Tug'ilgan sanasi:
+                </span>
+
+                <strong id="paper_p_birth"></strong>
+
+                (
+                <span id="paper_p_age"></span>
+                yosh)
+
+              </div>
+
+
+              <div class="rx-field">
+
+                <span>
+                  Jinsi / Manzili:
+                </span>
+
+                <strong id="paper_p_gender"></strong>,
+
+                <span id="paper_p_address"></span>
+
+              </div>
+
+
+              <div class="rx-field">
+
+                <span>
+                  Ambulator karta №:
+                </span>
+
+                <strong id="paper_p_card"></strong>
+
+              </div>
+
             </div>
+
+
+
             <div class="rx-info-col">
-              <div class="rx-field"><span>Sana:</span> <strong id="paper_rx_date"></strong></div>
-              <div class="rx-field"><span>ICD-10 kodi:</span> <strong id="paper_p_icd"></strong></div>
-              <div class="rx-field"><span>Klinik tashxis:</span> <strong id="paper_p_diag"></strong></div>
-              <div class="rx-field"><span>Allergiya:</span> <strong id="paper_p_allergy"></strong></div>
+
+              <div class="rx-field">
+
+                <span>
+                  Sana:
+                </span>
+
+                <strong id="paper_rx_date"></strong>
+
+              </div>
+
+
+              <div class="rx-field">
+
+                <span>
+                  ICD-10 kodi:
+                </span>
+
+                <strong id="paper_p_icd"></strong>
+
+              </div>
+
+
+              <div class="rx-field">
+
+                <span>
+                  Klinik tashxis:
+                </span>
+
+                <strong id="paper_p_diag"></strong>
+
+              </div>
+
+
+              <div class="rx-field">
+
+                <span>
+                  Allergiya:
+                </span>
+
+                <strong id="paper_p_allergy"></strong>
+
+              </div>
+
             </div>
+
+
           </div>
 
-          <!-- DOCTOR INFO -->
+
+
+          <!-- DOCTOR -->
+
           <div class="rx-doctor-banner">
-            <div><span>Davolovchi shifokor:</span> <strong id="paper_doc_name">Shifokor F.I.Sh.</strong></div>
-            <div><span>Mutaxassislik / ID:</span> <strong id="paper_doc_spec">Terapevt</strong> (№ <span id="paper_doc_id">000000</span>)</div>
+
+            <div>
+
+              <span>
+                Davolovchi shifokor:
+              </span>
+
+              <strong id="paper_doc_name">
+                Shifokor F.I.Sh.
+              </strong>
+
+            </div>
+
+
+            <div>
+
+              <span>
+                Mutaxassislik / ID:
+              </span>
+
+              <strong id="paper_doc_spec">
+                Terapevt
+              </strong>
+
+              (№
+
+              <span id="paper_doc_id">
+                000000
+              </span>
+
+              )
+
+            </div>
+
           </div>
+
+
+
+          <!-- TITLE -->
 
           <div class="rx-title-banner">
-            <span>R E T S E P T</span>
-            <small>(Forma № 108/u)</small>
+
+            <span>
+              R E T S E P T
+            </span>
+
+            <small>
+              (Forma № 108/u)
+            </small>
+
           </div>
 
-          <!-- RX DRUGS LIST -->
-          <div class="rx-drugs-body" id="paper_drugs_list">
-            <!-- Dynamic drugs inserted here -->
+
+
+          <!-- DRUGS -->
+
+          <div
+            class="rx-drugs-body"
+            id="paper_drugs_list"
+          >
+            <!-- Dynamic drugs -->
           </div>
 
-          <!-- SPECIAL INSTRUCTIONS -->
+
+
+          <!-- INSTRUCTIONS -->
+
           <div class="rx-instruction-box">
-            <strong>S. (Qo'llash tartibi va maxsus ko'rsatmalar):</strong>
-            <p id="paper_p_note">Dori vositalarini tayinlangan vaqtda, ko'rsatilgan dozalarda qabul qiling.</p>
+
+            <strong>
+              S. (Qo'llash tartibi va maxsus ko'rsatmalar):
+            </strong>
+
+            <p id="paper_p_note">
+              Dori vositalarini tayinlangan vaqtda,
+              ko'rsatilgan dozalarda qabul qiling.
+            </p>
+
           </div>
 
-          <!-- FOOTER / SIGNATURE & STAMP -->
+
+
+          <!-- FOOTER -->
+
           <div class="rx-footer">
+
+
             <div class="rx-validity">
-              <p>Retsept amal qilish muddati: <b>10 kun</b></p>
-              <p class="small-text">Ushbu hujjat elektron raqamli identifikatorga ega.</p>
+
+              <p>
+                Retsept amal qilish muddati:
+                <b>10 kun</b>
+              </p>
+
+              <p class="small-text">
+                Ushbu hujjat elektron raqamli identifikatorga ega.
+              </p>
+
             </div>
+
+
 
             <div class="rx-stamps-wrapper">
+
+
+              <!-- SIGNATURE -->
+
               <div class="rx-sig-block">
-                <span>Shifokor imzosi:</span>
-                <div class="sig-img-holder" id="paper_signature_holder">
-                  <span class="sig-placeholder" id="sig_text_fallback">Imzo</span>
-                  <img id="paper_sig_img" src="" alt="Signature" style="display:none;">
+
+                <span>
+                  Shifokor imzosi:
+                </span>
+
+                <div
+                  class="sig-img-holder"
+                  id="paper_signature_holder"
+                >
+
+                  <span
+                    class="sig-placeholder"
+                    id="sig_text_fallback"
+                  >
+                    Imzo
+                  </span>
+
+                  <img
+                    id="paper_sig_img"
+                    src=""
+                    alt="Signature"
+                    style="display:none;"
+                  >
+
                 </div>
+
               </div>
 
-              <!-- MUHR JOYI -->
-              <div class="rx-official-stamp" id="paper_stamp_container">
-                <img id="paper_stamp_img" src="" alt="Muhr" style="display:none; width:100%; height:100%; object-fit:contain; transform:none !important;">
-                <div class="stamp-inner" id="paper_stamp_default">
-                  <!-- Standart muhr ko'rinishi -->
-                </div>
+
+
+              <!-- STAMP -->
+
+              <div
+                class="rx-official-stamp"
+                id="paper_stamp_container"
+              >
+
+                <img
+                  id="paper_stamp_img"
+                  src=""
+                  alt="Muhr"
+                  style="
+                    display:none;
+                    width:100%;
+                    height:100%;
+                    object-fit:contain;
+                    transform:none !important;
+                  "
+                >
+
+                <div
+                  class="stamp-inner"
+                  id="paper_stamp_default"
+                ></div>
+
               </div>
+
+
             </div>
+
+
           </div>
 
+
         </div>
+
       </div>
 
-      <!-- SIGNATURE CANVAS CARD -->
+
+
+      <!-- =====================================================
+           SIGNATURE CARD
+           ===================================================== -->
+
       <div class="card signature-card">
+
         <div class="card-header">
-          <h2>✍️ SHIFOKOR RAQAMLI IMZOSI</h2>
-          <button class="sm-btn" onclick="clearSignatureCanvas()">Tozalash</button>
+
+          <h2>
+            ✍️ SHIFOKOR RAQAMLI IMZOSI
+          </h2>
+
+          <button
+            class="sm-btn"
+            onclick="clearSignatureCanvas()"
+            type="button"
+          >
+            Tozalash
+          </button>
+
         </div>
+
+
         <div class="card-body">
-          <p class="help-text">Ekranga barmog'ingiz yoki sichqoncha bilan imzo cheking:</p>
+
+          <p class="help-text">
+            Ekranga barmog'ingiz yoki sichqoncha bilan
+            imzo cheking:
+          </p>
+
+
           <div class="canvas-wrapper">
-            <canvas id="signatureCanvas" width="400" height="150"></canvas>
+
+            <canvas
+              id="signatureCanvas"
+              width="400"
+              height="150"
+            ></canvas>
+
           </div>
-          <button class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="applySignatureToPaper()">
+
+
+          <button
+            class="btn btn-secondary btn-sm"
+            style="margin-top:8px;"
+            onclick="applySignatureToPaper()"
+            type="button"
+          >
             Imzoni Blankaga Tushirish
           </button>
+
         </div>
+
       </div>
 
+
+
+      <!-- BACK -->
+
       <div class="step-footer">
-        <button class="btn btn-secondary btn-block" onclick="switchStep(2)">← Tahrirlashga Qaytish</button>
+
+        <button
+          class="btn btn-secondary btn-block"
+          onclick="switchStep(2)"
+          type="button"
+        >
+          ← Tahrirlashga Qaytish
+        </button>
+
       </div>
+
+
     </section>
+
 
   </main>
 
-  <!-- ================= MODAL 1: SETTINGS (DOCTOR & CLINIC) ================= -->
-  <div class="modal-backdrop" id="settingsModal">
-    <div class="modal-dialog">
+
+
+  <!-- =========================================================
+       PDF FORMAT MODAL
+       ========================================================= -->
+
+  <div
+    class="modal-backdrop"
+    id="pdfFormatModal"
+  >
+
+    <div
+      class="modal-dialog pdf-format-dialog"
+    >
+
+
       <div class="modal-header">
-        <h3>⚙️ Shifokor va Klinika Sozlamalari</h3>
-        <button class="close-btn" onclick="closeModal('settingsModal')">✕</button>
+
+        <h3>
+          📄 PDF Formatini Tanlang
+        </h3>
+
+        <button
+          class="close-btn"
+          onclick="closeModal('pdfFormatModal')"
+          type="button"
+        >
+          ✕
+        </button>
+
       </div>
+
+
+
       <div class="modal-body">
-        <div class="card-title-sm">👨‍⚕️ SHIFOKOR PROFILI</div>
-        <div class="form-group">
-          <label for="set_doc_name">Shifokor F.I.Sh.</label>
-          <input type="text" id="set_doc_name" placeholder="Masalan: Dr. Asrorov A.A.">
+
+
+        <p
+          class="pdf-format-description"
+          style="
+            font-size:12px;
+            color:#64748b;
+            margin-bottom:12px;
+          "
+        >
+          Retseptni qaysi formatda yuklab olishni
+          tanlang.
+        </p>
+
+
+
+        <!-- A4 -->
+
+        <button
+          type="button"
+          class="pdf-format-option"
+          id="pdfA4Option"
+          onclick="exportToPDF('a4')"
+        >
+
+          <span class="pdf-format-icon">
+            📄
+          </span>
+
+          <span class="pdf-format-info">
+
+            <strong>
+              A4 — Knijniy
+            </strong>
+
+            <small>
+              210 × 297 mm · Portret
+            </small>
+
+          </span>
+
+          <span class="pdf-format-arrow">
+            ›
+          </span>
+
+        </button>
+
+
+
+        <!-- A5 -->
+
+        <button
+          type="button"
+          class="pdf-format-option"
+          id="pdfA5Option"
+          onclick="exportToPDF('a5')"
+        >
+
+          <span class="pdf-format-icon">
+            📄
+          </span>
+
+          <span class="pdf-format-info">
+
+            <strong>
+              A5 — Albomniy
+            </strong>
+
+            <small>
+              210 × 148 mm · Landscape ·
+              Retsept chap yarmida
+            </small>
+
+          </span>
+
+          <span class="pdf-format-arrow">
+            ›
+          </span>
+
+        </button>
+
+
+
+      </div>
+
+
+
+      <div class="modal-footer">
+
+        <button
+          class="btn btn-secondary btn-block"
+          onclick="closeModal('pdfFormatModal')"
+          type="button"
+        >
+          Bekor qilish
+        </button>
+
+      </div>
+
+
+    </div>
+
+  </div>
+
+
+
+  <!-- =========================================================
+       SETTINGS MODAL
+       ========================================================= -->
+
+  <div
+    class="modal-backdrop"
+    id="settingsModal"
+  >
+
+    <div class="modal-dialog">
+
+
+      <div class="modal-header">
+
+        <h3>
+          ⚙️ Shifokor va Klinika Sozlamalari
+        </h3>
+
+        <button
+          class="close-btn"
+          onclick="closeModal('settingsModal')"
+          type="button"
+        >
+          ✕
+        </button>
+
+      </div>
+
+
+
+      <div class="modal-body">
+
+
+        <div class="card-title-sm">
+          👨‍⚕️ SHIFOKOR PROFILI
         </div>
+
+
+        <div class="form-group">
+
+          <label for="set_doc_name">
+            Shifokor F.I.Sh.
+          </label>
+
+          <input
+            type="text"
+            id="set_doc_name"
+            placeholder="Masalan: Dr. Asrorov A.A."
+          >
+
+        </div>
+
+
+
         <div class="form-row">
+
           <div class="form-group col-6">
-            <label for="set_doc_spec">Mutaxassisligi</label>
-            <input type="text" id="set_doc_spec" placeholder="Shifokor-Terapevt">
+
+            <label for="set_doc_spec">
+              Mutaxassisligi
+            </label>
+
+            <input
+              type="text"
+              id="set_doc_spec"
+              placeholder="Shifokor-Terapevt"
+            >
+
           </div>
+
+
           <div class="form-group col-6">
-            <label for="set_doc_id">Litsenziya / ID №</label>
-            <input type="text" id="set_doc_id" placeholder="012345">
+
+            <label for="set_doc_id">
+              Litsenziya / ID №
+            </label>
+
+            <input
+              type="text"
+              id="set_doc_id"
+              placeholder="012345"
+            >
+
           </div>
+
         </div>
 
-        <div class="card-title-sm" style="margin-top:15px;">🏥 KLINIKA REKVIZITLARI</div>
-        <div class="form-group">
-          <label for="set_clinic_name">Klinika Nomi</label>
-          <input type="text" id="set_clinic_name" placeholder="DR.MED Tibbiyot Markazi">
-        </div>
-        <div class="form-group">
-          <label for="set_clinic_address">Manzil</label>
-          <input type="text" id="set_clinic_address" placeholder="Toshkent sh., Chilonzor tumani...">
-        </div>
-        <div class="form-group">
-          <label for="set_clinic_phone">Telefon</label>
-          <input type="text" id="set_clinic_phone" placeholder="+998 (71) 200-00-11">
+
+
+        <div
+          class="card-title-sm"
+          style="margin-top:15px;"
+        >
+          🏥 KLINIKA REKVIZITLARI
         </div>
 
-        <!-- SHIFOKOR VA KLINIKA MUHRI YUKLASH BO'LIMI -->
-        <div class="card-title-sm" style="margin-top:15px;">Stamp / MUHR SOZLAMASI</div>
+
         <div class="form-group">
-          <label for="set_stamp_file">Shifokor Muhri Rasmi (PNG/JPG)</label>
-          <input type="file" id="set_stamp_file" accept="image/*" onchange="uploadStampImage(event)">
-          <small class="help-text" style="display:block; margin-top:4px; color:#666;">Yuklangan muhr retsept blankasining o'ng pastki burchagiga joylashadi.</small>
+
+          <label for="set_clinic_name">
+            Klinika Nomi
+          </label>
+
+          <input
+            type="text"
+            id="set_clinic_name"
+            placeholder="DR.MED Tibbiyot Markazi"
+          >
+
         </div>
+
+
+        <div class="form-group">
+
+          <label for="set_clinic_address">
+            Manzil
+          </label>
+
+          <input
+            type="text"
+            id="set_clinic_address"
+            placeholder="Toshkent sh., Chilonzor tumani..."
+          >
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label for="set_clinic_phone">
+            Telefon
+          </label>
+
+          <input
+            type="text"
+            id="set_clinic_phone"
+            placeholder="+998 (71) 200-00-11"
+          >
+
+        </div>
+
+
+
+        <!-- STAMP -->
+
+        <div
+          class="card-title-sm"
+          style="margin-top:15px;"
+        >
+          Stamp / MUHR SOZLAMASI
+        </div>
+
+
+        <div class="form-group">
+
+          <label for="set_stamp_file">
+            Shifokor Muhri Rasmi (PNG/JPG)
+          </label>
+
+          <input
+            type="file"
+            id="set_stamp_file"
+            accept="image/*"
+            onchange="uploadStampImage(event)"
+          >
+
+          <small
+            class="help-text"
+            style="
+              display:block;
+              margin-top:4px;
+              color:#666;
+            "
+          >
+            Yuklangan muhr retsept blankasining
+            o'ng pastki burchagiga joylashadi.
+          </small>
+
+        </div>
+
+
       </div>
+
+
+
       <div class="modal-footer">
-        <button class="btn btn-primary btn-block" onclick="saveSettings()">Saqlash va Yangilash</button>
+
+        <button
+          class="btn btn-primary btn-block"
+          onclick="saveSettings()"
+          type="button"
+        >
+          Saqlash va Yangilash
+        </button>
+
       </div>
+
+
     </div>
+
   </div>
 
-  <!-- ================= MODAL 2: HISTORY ================= -->
-  <div class="modal-backdrop" id="historyModal">
+
+
+  <!-- =========================================================
+       HISTORY MODAL
+       ========================================================= -->
+
+  <div
+    class="modal-backdrop"
+    id="historyModal"
+  >
+
     <div class="modal-dialog">
+
+
       <div class="modal-header">
-        <h3>📜 Saqlangan Retseptlar Tarixi</h3>
-        <button class="close-btn" onclick="closeModal('historyModal')">✕</button>
+
+        <h3>
+          📜 Saqlangan Retseptlar Tarixi
+        </h3>
+
+        <button
+          class="close-btn"
+          onclick="closeModal('historyModal')"
+          type="button"
+        >
+          ✕
+        </button>
+
       </div>
+
+
+
       <div class="modal-body">
+
+
         <div class="form-group">
-          <input type="text" id="historySearchInput" placeholder="Bemor ismi bo'yicha izlash..." oninput="renderHistoryList()">
+
+          <input
+            type="text"
+            id="historySearchInput"
+            placeholder="Bemor ismi bo'yicha izlash..."
+            oninput="renderHistoryList()"
+          >
+
         </div>
-        <div class="history-list" id="historyListContainer">
-          <!-- Dynamic history items -->
+
+
+        <div
+          class="history-list"
+          id="historyListContainer"
+        >
+          <!-- Dynamic history -->
         </div>
+
+
       </div>
+
+
+
       <div class="modal-footer">
-        <button class="btn btn-danger btn-sm" onclick="clearAllHistory()">Tarixni Tozalash</button>
+
+        <button
+          class="btn btn-danger btn-sm"
+          onclick="clearAllHistory()"
+          type="button"
+        >
+          Tarixni Tozalash
+        </button>
+
       </div>
+
+
     </div>
+
   </div>
 
-  <!-- ================= MODAL 3: ICD-10 SEARCH ================= -->
-  <div class="modal-backdrop" id="icdModal">
+
+
+  <!-- =========================================================
+       ICD-10 MODAL
+       ========================================================= -->
+
+  <div
+    class="modal-backdrop"
+    id="icdModal"
+  >
+
     <div class="modal-dialog">
+
+
       <div class="modal-header">
-        <h3>🔍 ICD-10 Kasalliklar Kodi</h3>
-        <button class="close-btn" onclick="closeModal('icdModal')">✕</button>
+
+        <h3>
+          🔍 ICD-10 Kasalliklar Kodi
+        </h3>
+
+        <button
+          class="close-btn"
+          onclick="closeModal('icdModal')"
+          type="button"
+        >
+          ✕
+        </button>
+
       </div>
+
+
+
       <div class="modal-body">
+
+
         <div class="form-group">
-          <input type="text" id="icdSearchInput" placeholder="Kasallik nomi yoki kodi..." oninput="searchICD10()">
+
+          <input
+            type="text"
+            id="icdSearchInput"
+            placeholder="Kasallik nomi yoki kodi..."
+            oninput="searchICD10()"
+          >
+
         </div>
-        <div class="icd-results-list" id="icdResultsList">
+
+
+        <div
+          class="icd-results-list"
+          id="icdResultsList"
+        >
           <!-- Dynamic ICD search results -->
         </div>
+
+
       </div>
+
     </div>
+
   </div>
 
-  <!-- ================= MODAL 4: MAIN MENU ================= -->
-  <div class="modal-backdrop" id="menuModal">
+
+
+  <!-- =========================================================
+       MAIN MENU MODAL
+       ========================================================= -->
+
+  <div
+    class="modal-backdrop"
+    id="menuModal"
+  >
+
     <div class="modal-dialog">
+
+
       <div class="modal-header">
-        <h3>📋 Asosiy Menyu</h3>
-        <button class="close-btn" onclick="closeModal('menuModal')">✕</button>
+
+        <h3>
+          📋 Asosiy Menyu
+        </h3>
+
+        <button
+          class="close-btn"
+          onclick="closeModal('menuModal')"
+          type="button"
+        >
+          ✕
+        </button>
+
       </div>
+
+
+
       <div class="modal-body">
+
         <ul class="nav-menu-list">
-          <li onclick="switchStep(1); closeModal('menuModal');">➕ Yangi retsept shakllantirish</li>
-          <li onclick="openModal('historyModal'); closeModal('menuModal');">📜 Retseptlar arxivi</li>
-          <li onclick="openModal('settingsModal'); closeModal('menuModal');">⚙️ Shifokor va Klinika Sozlamalari</li>
-          <li onclick="openModal('icdModal'); closeModal('menuModal');">📚 ICD-10 Ma'lumotnomasi</li>
-          <li onclick="resetAppDefaults(); closeModal('menuModal');">🔄 Tizimni qayta yuklash (Reset)</li>
+
+          <li
+            onclick="
+              switchStep(1);
+              closeModal('menuModal');
+            "
+          >
+            ➕ Yangi retsept shakllantirish
+          </li>
+
+
+          <li
+            onclick="
+              openModal('historyModal');
+              closeModal('menuModal');
+            "
+          >
+            📜 Retseptlar arxivi
+          </li>
+
+
+          <li
+            onclick="
+              openModal('settingsModal');
+              closeModal('menuModal');
+            "
+          >
+            ⚙️ Shifokor va Klinika Sozlamalari
+          </li>
+
+
+          <li
+            onclick="
+              openModal('icdModal');
+              closeModal('menuModal');
+            "
+          >
+            📚 ICD-10 Ma'lumotnomasi
+          </li>
+
+
+          <li
+            onclick="
+              resetAppDefaults();
+              closeModal('menuModal');
+            "
+          >
+            🔄 Tizimni qayta yuklash (Reset)
+          </li>
+
         </ul>
+
       </div>
+
+
     </div>
+
   </div>
+
+
+
+  <!-- =========================================================
+       APP JAVASCRIPT
+       ========================================================= -->
 
   <script src="app.js"></script>
+
+
 </body>
+
 </html>
