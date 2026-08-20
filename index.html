@@ -623,7 +623,7 @@
 
         <button
           class="act-btn btn-pdf"
-          onclick="openPdfFormatModal()"
+          onclick="downloadPDF()"
           type="button"
           id="pdfDownloadButton"
         >
@@ -982,7 +982,7 @@
                   </span>
 
                   <img
-                    id="paper_sig_img"
+                    id="paper_signature_img"
                     src=""
                     alt="Signature"
                     style="display:none;"
@@ -1503,7 +1503,7 @@
 
         <div
           class="history-list"
-          id="historyListContainer"
+          id="historyList"
         >
           <!-- Dynamic history -->
         </div>
@@ -1579,7 +1579,7 @@
 
         <div
           class="icd-results-list"
-          id="icdResultsList"
+          id="icdResults"
         >
           <!-- Dynamic ICD search results -->
         </div>
@@ -1685,7 +1685,7 @@
 
   </div>
 
-    <!-- =========================================================
+<!-- =========================================================
      PDF LIBRARIES
      ========================================================= -->
 
@@ -1702,10 +1702,14 @@
 
 
 <!-- =========================================================
+     QR ENGINE
+     ========================================================= -->
+
+<script src="qr.js"></script>
+
+
+<!-- =========================================================
      APP JAVASCRIPT
      ========================================================= -->
 
 <script src="app.js"></script>
-
-</body>
-</html>
