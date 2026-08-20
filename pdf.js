@@ -18,10 +18,18 @@
     let recipeQrUrl = null;
     let qrForRecipeId = null;
 
+    /*
+       Backend manzili.
 
-    /* =====================================================
-       BACKEND MANZILI
-       ===================================================== */
+       Hozir kompyuterda test:
+       http://127.0.0.1:8080
+
+       Keyinchalik internetdagi HTTPS backend manzilini
+       shu yerga qo'yamiz.
+
+       Masalan:
+       https://api.drmed.uz
+    */
 
     const DRMED_BACKEND_URL =
         window.DRMED_BACKEND_URL ||
@@ -33,10 +41,7 @@
        ===================================================== */
 
     function get(id) {
-
-        return document.getElementById(
-            id
-        );
+        return document.getElementById(id);
     }
 
 
@@ -45,7 +50,6 @@
         const el =
             get("p_name");
 
-
         if (
             !el ||
             !el.value.trim()
@@ -53,7 +57,6 @@
 
             return "Bemor";
         }
-
 
         return el.value
             .trim()
@@ -85,11 +88,9 @@
         const rxEl =
             get("paper_rx_id");
 
-
         const recipeId =
             rxEl?.innerText?.trim() ||
             "";
-
 
         if (!recipeId) {
 
@@ -98,48 +99,7 @@
             );
         }
 
-
         return recipeId;
-    }
-
-
-    /* =====================================================
-       QR RESET
-       YANGI RETSEPT BOSHLANGANDA ISHLAYDI
-       ===================================================== */
-
-    function resetRecipeQr(
-        newRecipeId
-    ) {
-
-        recipeQrToken =
-            null;
-
-        recipeQrUrl =
-            null;
-
-        qrForRecipeId =
-            newRecipeId ||
-            null;
-
-
-        const qrElement =
-            get(
-                "paper_qr_code"
-            );
-
-
-        if (qrElement) {
-
-            qrElement.innerHTML =
-                "";
-        }
-
-
-        console.log(
-            "♻️ QR reset:",
-            newRecipeId
-        );
     }
 
 
@@ -154,19 +114,17 @@
 
 
         /*
-         * Shu retsept uchun token allaqachon
-         * olingan bo'lsa qayta olmaymiz.
-         */
+           Shu retsept uchun token allaqachon
+           olingan bo'lsa qayta olmaymiz.
+        */
 
         if (
             recipeQrToken &&
-            qrForRecipeId ===
-                recipeId &&
+            qrForRecipeId === recipeId &&
             recipeQrUrl
         ) {
 
             return {
-
                 token:
                     recipeQrToken,
 
@@ -183,21 +141,17 @@
             await fetch(
                 `${DRMED_BACKEND_URL}/api/create-recipe-token`,
                 {
-                    method:
-                        "POST",
+                    method: "POST",
 
                     headers: {
-
                         "Content-Type":
                             "application/json"
                     },
 
                     body:
                         JSON.stringify({
-
                             recipe_id:
                                 recipeId
-
                         })
                 }
             );
@@ -231,10 +185,8 @@
         recipeQrToken =
             result.token;
 
-
         recipeQrUrl =
             result.url;
-
 
         qrForRecipeId =
             recipeId;
@@ -247,7 +199,6 @@
 
 
         return {
-
             token:
                 recipeQrToken,
 
@@ -262,7 +213,6 @@
 
     /* =====================================================
        QR KODNI RETSEPTGA CHIZISH
-       PDF UCHUN PNG IMGGA AYLANTIRILADI
        ===================================================== */
 
     async function renderRecipeQr(
@@ -275,13 +225,17 @@
                 "⚠️ paper_qr_code topilmadi."
             );
 
-            return null;
+            return;
         }
 
 
         const qrData =
             await ensureRecipeQrToken();
 
+
+        /*
+           QRCode.js mavjudligini tekshiramiz.
+        */
 
         if (
             typeof window.QRCode !==
@@ -294,55 +248,22 @@
         }
 
 
+        /*
+           Eski QR kodni tozalaymiz.
+        */
+
         rootElement.innerHTML =
             "";
 
 
         /*
-         * QRCode.js vaqtinchalik elementda
-         * yaratiladi.
-         */
-
-        const temp =
-            document.createElement(
-                "div"
-            );
-
-
-        Object.assign(
-            temp.style,
-            {
-
-                position:
-                    "fixed",
-
-                left:
-                    "-10000px",
-
-                top:
-                    "0",
-
-                width:
-                    "120px",
-
-                height:
-                    "120px",
-
-                background:
-                    "#ffffff"
-            }
-        );
-
-
-        document.body.appendChild(
-            temp
-        );
-
+           QR kodni aynan serverdagi
+           retsept URL manziliga bog'laymiz.
+        */
 
         new window.QRCode(
-            temp,
+            rootElement,
             {
-
                 text:
                     qrData.url,
 
@@ -367,150 +288,23 @@
 
 
         /*
-         * QRCode.js yaratib bo'lishini kutamiz.
-         */
+           QR DOM ichiga tushib bo'lishini
+           kutamiz.
+        */
 
         await new Promise(
             resolve =>
                 setTimeout(
                     resolve,
-                    200
+                    100
                 )
         );
-
-
-        let qrImage =
-            temp.querySelector(
-                "img"
-            );
-
-
-        const qrCanvas =
-            temp.querySelector(
-                "canvas"
-            );
-
-
-        /*
-         * Agar canvas yaratilgan bo'lsa,
-         * PNGga aylantiramiz.
-         */
-
-        if (
-            !qrImage &&
-            qrCanvas
-        ) {
-
-            const dataUrl =
-                qrCanvas.toDataURL(
-                    "image/png"
-                );
-
-
-            qrImage =
-                document.createElement(
-                    "img"
-                );
-
-
-            qrImage.src =
-                dataUrl;
-        }
-
-
-        if (!qrImage) {
-
-            temp.remove();
-
-
-            throw new Error(
-                "QR rasmi yaratilmadi."
-            );
-        }
-
-
-        /*
-         * Yakuniy IMG.
-         * Bu clone qilinayotganda ham
-         * PDF ichiga tushadi.
-         */
-
-        const finalQrImage =
-            document.createElement(
-                "img"
-            );
-
-
-        finalQrImage.src =
-            qrImage.src;
-
-
-        finalQrImage.width =
-            120;
-
-        finalQrImage.height =
-            120;
-
-
-        Object.assign(
-            finalQrImage.style,
-            {
-
-                width:
-                    "120px",
-
-                height:
-                    "120px",
-
-                display:
-                    "block",
-
-                background:
-                    "#ffffff"
-            }
-        );
-
-
-        rootElement.innerHTML =
-            "";
-
-
-        rootElement.appendChild(
-            finalQrImage
-        );
-
-
-        temp.remove();
-
-
-        /*
-         * IMG yuklanishini kutamiz.
-         */
-
-        if (
-            !finalQrImage.complete
-        ) {
-
-            await new Promise(
-                resolve => {
-
-                    finalQrImage.onload =
-                        resolve;
-
-                    finalQrImage.onerror =
-                        resolve;
-                }
-            );
-        }
 
 
         console.log(
             "✅ QR kod retseptga joylashtirildi:",
             qrData.url
         );
-
-
-        return qrData;
     }
 
 
@@ -558,11 +352,9 @@
             await fetch(
                 `${DRMED_BACKEND_URL}/api/store-recipe-pdf`,
                 {
-                    method:
-                        "POST",
+                    method: "POST",
 
                     headers: {
-
                         "Content-Type":
                             "application/json"
                     },
@@ -657,10 +449,14 @@
                                 )
                             );
 
-
                             return;
                         }
 
+
+                        /*
+                           data:application/pdf;base64,...
+                           qismidan faqat Base64ni olamiz.
+                        */
 
                         const comma =
                             result.indexOf(",");
@@ -693,27 +489,22 @@
             }
         );
     }
-        /* =====================================================
+
+
+    /* =====================================================
        LOADING
        ===================================================== */
 
-    function showLoading(
-        text
-    ) {
+    function showLoading(text) {
 
         let loader =
-            document.getElementById(
-                "drmedPdfLoading"
-            );
+            get("drmedPdfLoading");
 
 
         if (!loader) {
 
             loader =
-                document.createElement(
-                    "div"
-                );
-
+                document.createElement("div");
 
             loader.id =
                 "drmedPdfLoading";
@@ -735,7 +526,6 @@
             Object.assign(
                 loader.style,
                 {
-
                     position:
                         "fixed",
 
@@ -769,9 +559,8 @@
             Object.assign(
                 box.style,
                 {
-
                     background:
-                        "#ffffff",
+                        "#fff",
 
                     padding:
                         "28px 35px",
@@ -786,7 +575,7 @@
                         "230px",
 
                     boxShadow:
-                        "0 20px 70px rgba(0,0,0,.30)"
+                        "0 20px 70px rgba(0,0,0,.3)"
                 }
             );
 
@@ -800,7 +589,6 @@
             Object.assign(
                 spinner.style,
                 {
-
                     width:
                         "40px",
 
@@ -859,18 +647,10 @@
         }
 
 
-        const textElement =
-            document.getElementById(
-                "drmedPdfLoadingText"
-            );
-
-
-        if (textElement) {
-
-            textElement.innerText =
-                text ||
-                "PDF tayyorlanmoqda...";
-        }
+        get(
+            "drmedPdfLoadingText"
+        ).innerText =
+            text;
 
 
         loader.style.display =
@@ -881,9 +661,7 @@
     function hideLoading() {
 
         const loader =
-            document.getElementById(
-                "drmedPdfLoading"
-            );
+            get("drmedPdfLoading");
 
 
         if (loader) {
@@ -895,23 +673,20 @@
 
 
     /* =====================================================
-       PDF FORMAT MODAL
+       MODAL
        ===================================================== */
 
     function openPdfFormatModal() {
 
         const modal =
-            document.getElementById(
-                "pdfFormatModal"
-            );
+            get("pdfFormatModal");
 
 
         if (!modal) {
 
-            console.warn(
-                "pdfFormatModal topilmadi."
+            alert(
+                "PDF format oynasi topilmadi."
             );
-
 
             return;
         }
@@ -930,9 +705,7 @@
     function closePdfFormatModal() {
 
         const modal =
-            document.getElementById(
-                "pdfFormatModal"
-            );
+            get("pdfFormatModal");
 
 
         if (!modal) {
@@ -952,35 +725,13 @@
 
 
     /* =====================================================
-       WAIT FOR RENDER
-       ===================================================== */
-
-    function waitForRender(
-        milliseconds
-    ) {
-
-        return new Promise(
-            resolve => {
-
-                setTimeout(
-                    resolve,
-                    milliseconds
-                );
-            }
-        );
-    }
-
-
-    /* =====================================================
-       CREATE PRESCRIPTION CLONE
+       RETSEPTNI CLONE QILISH
        ===================================================== */
 
     async function createPrescriptionClone() {
 
         const original =
-            document.getElementById(
-                "printablePaper"
-            );
+            get("printablePaper");
 
 
         if (!original) {
@@ -992,8 +743,7 @@
 
 
         /*
-         * Avval ekrandagi retseptni
-         * yangilaymiz.
+         * Ekrandagi retseptni yangilaymiz.
          */
 
         if (
@@ -1001,45 +751,19 @@
             "function"
         ) {
 
-            try {
-
-                window.liveUpdate();
-
-            } catch (error) {
-
-                console.warn(
-                    "liveUpdate xatosi:",
-                    error
-                );
-            }
+            window.liveUpdate();
         }
 
 
         /*
-         * QR token olamiz va QRni
-         * ekrandagi retseptga joylaymiz.
+         * QR tokenni olamiz va original
+         * retseptdagi QR kodni yangilaymiz.
          */
 
         await renderRecipeQr(
-            document.getElementById(
-                "paper_qr_code"
-            )
+            get("paper_qr_code")
         );
 
-
-        /*
-         * Browserga QR va retseptni
-         * render qilish uchun vaqt beramiz.
-         */
-
-        await waitForRender(
-            200
-        );
-
-
-        /*
-         * Endi printablePaper clone qilinadi.
-         */
 
         const clone =
             original.cloneNode(
@@ -1051,15 +775,9 @@
             "drmedPdfClone";
 
 
-        /*
-         * Clone ekranda ko‘rinmasin,
-         * lekin html2canvas uni ko‘ra olsin.
-         */
-
         Object.assign(
             clone.style,
             {
-
                 position:
                     "fixed",
 
@@ -1082,9 +800,6 @@
                     "auto",
 
                 margin:
-                    "0",
-
-                padding:
                     "0",
 
                 background:
@@ -1114,215 +829,43 @@
         );
 
 
+        /*
+         * Clone ichidagi elementlar.
+         */
+
+        clone
+            .querySelectorAll("*")
+            .forEach(
+                function (el) {
+
+                    el.style.visibility =
+                        "visible";
+
+                    el.style.opacity =
+                        "1";
+                }
+            );
+
+
         document.body.appendChild(
             clone
         );
 
 
         /*
-         * Clone ichidagi QR.
-         *
-         * Muhim:
-         * renderRecipeQr() originaldagi QRni
-         * emas, clone ichidagi QRni ham
-         * qayta yaratadi.
-         *
-         * Shuning uchun QR PDFga tushadi.
+         * Clone ichidagi QR kodni ham
+         * server URL bilan qayta yaratamiz.
          */
 
-        const cloneQr =
+        await renderRecipeQr(
             clone.querySelector(
                 "#paper_qr_code"
-            );
-
-
-        if (cloneQr) {
-
-            cloneQr.innerHTML =
-                "";
-
-
-            /*
-             * Original QR URL allaqachon
-             * token bilan yaratilgan.
-             */
-
-            if (
-                recipeQrUrl &&
-                typeof window.QRCode ===
-                    "function"
-            ) {
-
-                const tempQr =
-                    document.createElement(
-                        "div"
-                    );
-
-
-                Object.assign(
-                    tempQr.style,
-                    {
-
-                        position:
-                            "absolute",
-
-                        left:
-                            "-10000px",
-
-                        top:
-                            "0",
-
-                        width:
-                            "120px",
-
-                        height:
-                            "120px",
-
-                        background:
-                            "#ffffff"
-                    }
-                );
-
-
-                document.body.appendChild(
-                    tempQr
-                );
-
-
-                new window.QRCode(
-                    tempQr,
-                    {
-
-                        text:
-                            recipeQrUrl,
-
-                        width:
-                            120,
-
-                        height:
-                            120,
-
-                        colorDark:
-                            "#000000",
-
-                        colorLight:
-                            "#ffffff",
-
-                        correctLevel:
-                            window.QRCode.CorrectLevel
-                                ? window.QRCode.CorrectLevel.H
-                                : 2
-                    }
-                );
-
-
-                await waitForRender(
-                    150
-                );
-
-
-                const qrCanvas =
-                    tempQr.querySelector(
-                        "canvas"
-                    );
-
-
-                const qrImg =
-                    tempQr.querySelector(
-                        "img"
-                    );
-
-
-                let qrDataUrl =
-                    null;
-
-
-                if (qrCanvas) {
-
-                    qrDataUrl =
-                        qrCanvas.toDataURL(
-                            "image/png"
-                        );
-
-                } else if (qrImg) {
-
-                    qrDataUrl =
-                        qrImg.src;
-                }
-
-
-                if (qrDataUrl) {
-
-                    const finalQr =
-                        document.createElement(
-                            "img"
-                        );
-
-
-                    finalQr.src =
-                        qrDataUrl;
-
-
-                    finalQr.width =
-                        120;
-
-                    finalQr.height =
-                        120;
-
-
-                    Object.assign(
-                        finalQr.style,
-                        {
-
-                            width:
-                                "120px",
-
-                            height:
-                                "120px",
-
-                            display:
-                                "block",
-
-                            background:
-                                "#ffffff"
-                        }
-                    );
-
-
-                    cloneQr.appendChild(
-                        finalQr
-                    );
-
-
-                    /*
-                     * IMG yuklanishini kutamiz.
-                     */
-
-                    if (
-                        !finalQr.complete
-                    ) {
-
-                        await new Promise(
-                            resolve => {
-
-                                finalQr.onload =
-                                    resolve;
-
-                                finalQr.onerror =
-                                    resolve;
-                            }
-                        );
-                    }
-                }
-
-
-                tempQr.remove();
-            }
-        }
+            )
+        );
 
 
         /*
-         * Clone ichidagi rasmlarni kutamiz.
+         * Rasmlarni kutish.
          */
 
         const images =
@@ -1337,52 +880,25 @@
             images.map(
                 function (img) {
 
-                    if (
-                        img.complete
-                    ) {
+                    if (img.complete) {
 
                         return Promise.resolve();
                     }
 
 
                     return new Promise(
-                        function (
-                            resolve
-                        ) {
-
-                            let finished =
-                                false;
-
-
-                            function done() {
-
-                                if (
-                                    finished
-                                ) {
-
-                                    return;
-                                }
-
-
-                                finished =
-                                    true;
-
-
-                                resolve();
-                            }
-
+                        function (resolve) {
 
                             img.onload =
-                                done;
-
+                                resolve;
 
                             img.onerror =
-                                done;
+                                resolve;
 
 
                             setTimeout(
-                                done,
-                                5000
+                                resolve,
+                                3000
                             );
                         }
                     );
@@ -1392,25 +908,23 @@
 
 
         /*
-         * Browser paint.
+         * Browser renderini kutamiz.
          */
 
         await new Promise(
             resolve =>
                 requestAnimationFrame(
-                    () => {
-
-                        requestAnimationFrame(
-                            resolve
-                        );
-
-                    }
+                    resolve
                 )
         );
 
 
-        await waitForRender(
-            250
+        await new Promise(
+            resolve =>
+                setTimeout(
+                    resolve,
+                    300
+                )
         );
 
 
@@ -1419,7 +933,7 @@
 
 
     /* =====================================================
-       CREATE CANVAS
+       HTML → CANVAS
        ===================================================== */
 
     async function createCanvas(
@@ -1437,45 +951,10 @@
         }
 
 
-        /*
-         * Clone haqiqatan DOMda ekanini
-         * tekshiramiz.
-         */
-
-        if (
-            !clone ||
-            !document.body.contains(
-                clone
-            )
-        ) {
-
-            throw new Error(
-                "PDF clone DOMga joylashtirilmadi."
-            );
-        }
-
-
-        /*
-         * PDF render vaqtida QR
-         * va boshqa rasmlar ko‘rinadigan
-         * bo‘lishi kerak.
-         */
-
-        clone.style.visibility =
-            "visible";
-
-        clone.style.opacity =
-            "1";
-
-        clone.style.display =
-            "block";
-
-
         const canvas =
             await window.html2canvas(
                 clone,
                 {
-
                     scale:
                         2,
 
@@ -1500,14 +979,11 @@
                     scrollY:
                         0,
 
-
                     onclone:
-                        function (
-                            clonedDocument
-                        ) {
+                        function (doc) {
 
                             const paper =
-                                clonedDocument.getElementById(
+                                doc.getElementById(
                                     "drmedPdfClone"
                                 );
 
@@ -1518,81 +994,44 @@
                             }
 
 
-                            /*
-                             * PDF clone uchun
-                             * aniq o‘lcham.
-                             */
-
                             paper.style.position =
                                 "absolute";
+
 
                             paper.style.left =
                                 "0";
 
+
                             paper.style.top =
                                 "0";
+
 
                             paper.style.width =
                                 "794px";
 
-                            paper.style.minWidth =
-                                "794px";
 
                             paper.style.maxWidth =
                                 "794px";
 
-                            paper.style.height =
-                                "auto";
 
-                            paper.style.margin =
-                                "0";
+                            paper.style.minWidth =
+                                "794px";
 
-                            paper.style.padding =
-                                "0";
 
                             paper.style.visibility =
                                 "visible";
 
+
                             paper.style.opacity =
                                 "1";
+
 
                             paper.style.display =
                                 "block";
 
+
                             paper.style.background =
                                 "#ffffff";
-
-                            paper.style.transform =
-                                "none";
-
-
-                            /*
-                             * Clone ichidagi
-                             * barcha IMGlarni
-                             * ko‘rsatamiz.
-                             */
-
-                            const clonedImages =
-                                paper.querySelectorAll(
-                                    "img"
-                                );
-
-
-                            clonedImages.forEach(
-                                function (
-                                    img
-                                ) {
-
-                                    img.style.visibility =
-                                        "visible";
-
-                                    img.style.opacity =
-                                        "1";
-
-                                    img.style.display =
-                                        "block";
-                                }
-                            );
                         }
                 }
             );
@@ -1600,12 +1039,12 @@
 
         if (
             !canvas ||
-            canvas.width <= 0 ||
-            canvas.height <= 0
+            canvas.width === 0 ||
+            canvas.height === 0
         ) {
 
             throw new Error(
-                "Retsept canvasga aylantirilmadi."
+                "Retsept rasmi yaratilmadi."
             );
         }
 
@@ -1615,7 +1054,7 @@
 
 
     /* =====================================================
-       A4 PDF
+       A4
        ===================================================== */
 
     function makeA4(
@@ -1640,7 +1079,6 @@
         const pdf =
             new jsPDF(
                 {
-
                     orientation:
                         "portrait",
 
@@ -1658,7 +1096,6 @@
 
         const pageWidth =
             210;
-
 
         const pageHeight =
             297;
@@ -1689,8 +1126,7 @@
 
 
         /*
-         * Retsept A4 sahifadan
-         * chiqib ketmasin.
+         * A4 sahifadan oshib ketmasin.
          */
 
         if (
@@ -1749,7 +1185,7 @@
     /* =====================================================
        A5 LANDSCAPE
        RETSEPT CHAP YARMIDA
-       O‘NG TOMON BO‘SH
+       O'NG TOMON BO'SH
        ===================================================== */
 
     function makeA5(
@@ -1774,7 +1210,6 @@
         const pdf =
             new jsPDF(
                 {
-
                     orientation:
                         "landscape",
 
@@ -1795,24 +1230,21 @@
          *
          * 210 × 148 mm
          *
-         * Retsept:
-         * chap 105 mm
+         * Chap yarmi:
+         * 105 mm
          *
-         * O‘ng 105 mm:
-         * BO‘SH
+         * O'ng yarmi:
+         * bo'sh
          */
 
         const pageWidth =
             210;
 
-
         const pageHeight =
             148;
 
-
         const halfWidth =
             105;
-
 
         const margin =
             4;
@@ -1889,8 +1321,14 @@
 
         return pdf;
     }
-        /* =====================================================
-       ASOSIY PDF EXPORT
+
+
+    /* =====================================================
+       ASOSIY EXPORT
+       BU FUNKSIYA INDEX.HTMLDAGI
+       exportToPDF('a4')
+       exportToPDF('a5')
+       BILAN ISHLAYDI
        ===================================================== */
 
     async function exportToPDF(
@@ -1916,15 +1354,6 @@
             closePdfFormatModal();
 
 
-            /*
-             * QR tokenni oldindan olamiz.
-             * Shunda PDF render qilinishidan oldin
-             * QR tayyor bo'ladi.
-             */
-
-            await ensureRecipeQrToken();
-
-
             showLoading(
                 format === "a5"
                     ? "A5 PDF tayyorlanmoqda..."
@@ -1933,16 +1362,13 @@
 
 
             /*
-             * Retsept + QR clone.
+             * QR token olinadi,
+             * QR retseptga joylashtiriladi.
              */
 
             clone =
                 await createPrescriptionClone();
 
-
-            /*
-             * Canvas.
-             */
 
             const canvas =
                 await createCanvas(
@@ -1950,15 +1376,11 @@
                 );
 
 
-            /*
-             * A4 yoki A5.
-             */
-
             let pdf;
 
 
             if (
-                String(format).toLowerCase() ===
+                format.toLowerCase() ===
                 "a5"
             ) {
 
@@ -1976,16 +1398,20 @@
             }
 
 
+            /*
+             * PDF haqiqatan yaratildimi?
+             */
+
             if (!pdf) {
 
                 throw new Error(
-                    "PDF yaratilmadi."
+                    "PDF obyektini yaratib bo'lmadi."
                 );
             }
 
 
             /*
-             * PDF Blob.
+             * PDF Blob yaratamiz.
              */
 
             const pdfBlob =
@@ -1994,30 +1420,13 @@
                 );
 
 
-            if (
-                !pdfBlob ||
-                pdfBlob.size <= 0
-            ) {
-
-                throw new Error(
-                    "PDF fayli bo'sh yaratildi."
-                );
-            }
-
-
             /*
-             * QR orqali keyinchalik yuklab olish
-             * uchun PDFni backendga saqlaymiz.
+             * QR orqali yuklab olish uchun
+             * PDFni backendga saqlaymiz.
              */
-
-            showLoading(
-                "Retsept QR tizimiga saqlanmoqda..."
-            );
-
 
             await storePdfForQr(
                 {
-
                     blob:
                         pdfBlob,
 
@@ -2030,16 +1439,8 @@
 
 
             /*
-             * Oddiy PDF DOWNLOAD.
-             *
-             * Bu mavjud PDF yuklash
-             * funksiyasini saqlaydi.
+             * YUKLASH
              */
-
-            showLoading(
-                "PDF yuklab olinmoqda..."
-            );
-
 
             const pdfUrl =
                 URL.createObjectURL(
@@ -2063,10 +1464,6 @@
                 );
 
 
-            downloadLink.rel =
-                "noopener";
-
-
             downloadLink.style.display =
                 "none";
 
@@ -2076,27 +1473,14 @@
             );
 
 
-            /*
-             * Browser download.
-             */
-
             downloadLink.click();
 
-
-            /*
-             * DOMdan olib tashlaymiz.
-             */
 
             downloadLink.remove();
 
 
-            /*
-             * URLni birozdan keyin
-             * bekor qilamiz.
-             */
-
             setTimeout(
-                function () {
+                () => {
 
                     URL.revokeObjectURL(
                         pdfUrl
@@ -2106,6 +1490,10 @@
                 5000
             );
 
+
+            /*
+             * Yuklash tugagach.
+             */
 
             hideLoading();
 
@@ -2123,32 +1511,15 @@
 
             alert(
                 "❌ PDF yuklanmadi.\n\n" +
-                (
-                    error?.message ||
-                    "Noma'lum xatolik."
-                )
+                error.message
             );
 
 
         } finally {
 
-            /*
-             * Clone'ni o'chiramiz.
-             */
-
             if (clone) {
 
-                try {
-
-                    clone.remove();
-
-                } catch (removeError) {
-
-                    console.warn(
-                        "Clone remove xatosi:",
-                        removeError
-                    );
-                }
+                clone.remove();
             }
 
 
@@ -2185,37 +1556,15 @@
             );
 
 
-            /*
-             * QR token.
-             */
-
-            await ensureRecipeQrToken();
-
-
-            /*
-             * Retsept clone.
-             */
-
             clone =
                 await createPrescriptionClone();
 
-
-            /*
-             * Canvas.
-             */
 
             const canvas =
                 await createCanvas(
                     clone
                 );
 
-
-            /*
-             * Telegram uchun A4.
-             *
-             * Sizdagi mavjud Telegram
-             * funksiyasi saqlanadi.
-             */
 
             const pdf =
                 makeA4(
@@ -2229,33 +1578,15 @@
                 );
 
 
-            if (
-                !blob ||
-                blob.size <= 0
-            ) {
-
-                throw new Error(
-                    "Telegram uchun PDF yaratilmadi."
-                );
-            }
-
-
             /*
              * QR serverga ham saqlaymiz.
              *
-             * Bu Telegram orqali yuborilgan
-             * PDF ichidagi QRning ishlashini
-             * ta'minlaydi.
+             * Shunda Telegram orqali yuborilgan
+             * retseptdagi QR kod ham ishlaydi.
              */
-
-            showLoading(
-                "QR retsept serverga saqlanmoqda..."
-            );
-
 
             await storePdfForQr(
                 {
-
                     blob:
                         blob,
 
@@ -2266,10 +1597,6 @@
                 }
             );
 
-
-            /*
-             * File obyekt.
-             */
 
             const file =
                 new File(
@@ -2287,162 +1614,60 @@
 
 
             /*
-             * MOBIL / PLANSHET
-             *
-             * Native Share.
+             * TELEFON / PLANSHET
              */
 
             if (
-                typeof navigator.share ===
-                    "function" &&
-                typeof navigator.canShare ===
-                    "function"
+                navigator.share &&
+                navigator.canShare &&
+                navigator.canShare(
+                    {
+                        files:
+                            [file]
+                    }
+                )
             ) {
 
-                let canShareFiles =
-                    false;
+                hideLoading();
 
 
-                try {
+                await navigator.share(
+                    {
+                        title:
+                            "DR.MED Elektron Retsept",
 
-                    canShareFiles =
-                        navigator.canShare(
-                            {
-                                files:
-                                    [file]
-                            }
-                        );
+                        text:
+                            "DR.MED elektron retsept",
 
-                } catch (shareCheckError) {
-
-                    console.warn(
-                        "canShare tekshirish xatosi:",
-                        shareCheckError
-                    );
-                }
-
-
-                if (
-                    canShareFiles
-                ) {
-
-                    hideLoading();
-
-
-                    try {
-
-                        await navigator.share(
-                            {
-
-                                title:
-                                    "DR.MED Elektron Retsept",
-
-                                text:
-                                    "DR.MED elektron retsept",
-
-                                files:
-                                    [file]
-                            }
-                        );
-
-                    } catch (shareError) {
-
-                        /*
-                         * Foydalanuvchi Share oynasini
-                         * yopgan bo'lsa, xato ko'rsatmaymiz.
-                         */
-
-                        if (
-                            shareError?.name ===
-                            "AbortError"
-                        ) {
-
-                            return;
-                        }
-
-
-                        throw shareError;
+                        files:
+                            [file]
                     }
+                );
 
 
-                    return;
-                }
+                return;
             }
 
 
             /*
-             * DESKTOP FALLBACK
-             *
-             * Kompyuterda navigator.share
-             * bo'lmasa PDF yuklanadi.
+             * Kompyuter fallback:
+             * PDFni yuklash.
              */
+
+            pdf.save(
+                fileName(
+                    "A4"
+                )
+            );
+
 
             hideLoading();
 
 
-            const pdfUrl =
-                URL.createObjectURL(
-                    blob
-                );
-
-
-            const downloadLink =
-                document.createElement(
-                    "a"
-                );
-
-
-            downloadLink.href =
-                pdfUrl;
-
-
-            downloadLink.download =
-                fileName(
-                    "a4"
-                );
-
-
-            downloadLink.rel =
-                "noopener";
-
-
-            downloadLink.style.display =
-                "none";
-
-
-            document.body.appendChild(
-                downloadLink
-            );
-
-
-            downloadLink.click();
-
-
-            downloadLink.remove();
-
-
-            setTimeout(
-                function () {
-
-                    URL.revokeObjectURL(
-                        pdfUrl
-                    );
-
-                },
-                5000
-            );
-
-
-            /*
-             * Telegram Desktop uchun
-             * foydalanuvchi yuklangan PDFni
-             * Telegramga yuborishi mumkin.
-             */
-
             alert(
-                "PDF yuklandi.\n\n" +
-                "Telegram Desktop orqali " +
-                "shu PDF faylni yuborishingiz mumkin."
+                "PDF yuklandi. " +
+                "Telegramga yuborish uchun " +
+                "yuklangan PDF faylni Telegramga yuboring."
             );
 
 
@@ -2457,8 +1682,14 @@
             hideLoading();
 
 
+            /*
+             * User Share oynasini bekor qilgan bo'lsa
+             * xatolik chiqarish shart emas.
+             */
+
             if (
-                error?.name ===
+                error &&
+                error.name ===
                 "AbortError"
             ) {
 
@@ -2468,10 +1699,7 @@
 
             alert(
                 "❌ Telegram/Share ishlamadi.\n\n" +
-                (
-                    error?.message ||
-                    "Noma'lum xatolik."
-                )
+                error.message
             );
 
 
@@ -2479,17 +1707,7 @@
 
             if (clone) {
 
-                try {
-
-                    clone.remove();
-
-                } catch (removeError) {
-
-                    console.warn(
-                        "Share clone remove xatosi:",
-                        removeError
-                    );
-                }
+                clone.remove();
             }
 
 
@@ -2500,7 +1718,8 @@
 
 
     /* =====================================================
-       WINDOW GLOBAL FUNCTIONS
+       GLOBAL FUNKSIYALAR
+       INDEX.HTML UCHUN
        ===================================================== */
 
     window.openPdfFormatModal =
@@ -2520,24 +1739,11 @@
 
 
     /* =====================================================
-       DR.MED PDF MODULE
+       PDF MODUL
        APP.JS UCHUN
        ===================================================== */
 
     window.DRMED_PDF = {
-
-        /*
-         * Yangi retsept boshlanganda
-         * app.js shu funksiyani chaqiradi.
-         */
-
-        resetRecipe:
-            resetRecipeQr,
-
-
-        /*
-         * PDF format oynasi.
-         */
 
         openFormatModal:
             openPdfFormatModal,
@@ -2546,10 +1752,6 @@
         closeFormatModal:
             closePdfFormatModal,
 
-
-        /*
-         * A4.
-         */
 
         downloadA4:
             function () {
@@ -2560,10 +1762,6 @@
             },
 
 
-        /*
-         * A5.
-         */
-
         downloadA5:
             function () {
 
@@ -2573,34 +1771,17 @@
             },
 
 
-        /*
-         * Umumiy export.
-         */
-
         export:
             exportToPDF,
 
-
-        /*
-         * Telegram / Share.
-         */
 
         share:
             shareTelegram
     };
 
 
-    /* =====================================================
-       MODUL YUKLANGAN
-       ===================================================== */
-
     console.log(
         "✅ DR.MED PDF MODULE LOADED"
-    );
-
-
-    console.log(
-        "✅ DR.MED QR SYSTEM READY"
     );
 
 
