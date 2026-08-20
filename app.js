@@ -11,13 +11,11 @@ if (tg) {
   document.body.classList.add('tg-theme');
 }
 
-
 // GLOBAL STATE
 let currentStep = 1;
 let currentGender = 'Erkak';
 let signatureDataURL = null;
 let customStampDataURL = null;
-
 
 // DEFAULT DOCTOR & CLINIC SETTINGS
 let doctorProfile = {
@@ -32,78 +30,11 @@ let clinicProfile = {
   phone: "+998 (71) 200-00-11"
 };
 
-
 // DEFAULT DRUGS ARRAY
 let drugs = [];
 
-/* =========================================================
-   DR.MED — RETSEPT RAQAMI
-   ========================================================= */
-
-let currentPrescriptionId = null;
-
-
-function generateNewPrescriptionId() {
-
-  const year = new Date().getFullYear();
-
-  let counter = parseInt(
-    localStorage.getItem('drmed_rx_counter') || '0',
-    10
-  );
-
-  counter += 1;
-
-  localStorage.setItem(
-    'drmed_rx_counter',
-    String(counter)
-  );
-
-  return (
-    'RX-' +
-    year +
-    '-' +
-    String(counter).padStart(5, '0')
-  );
-}
-
-
-function startNewPrescription() {
-
-  currentPrescriptionId =
-    generateNewPrescriptionId();
-
-  const rxIdEl =
-    document.getElementById('paper_rx_id');
-
-  if (rxIdEl) {
-
-    rxIdEl.innerText =
-      currentPrescriptionId;
-
-  }
-
-  console.log(
-    '🆕 Yangi retsept:',
-    currentPrescriptionId
-  );
-}
-
-
-function getCurrentPrescriptionId() {
-
-  if (!currentPrescriptionId) {
-
-    startNewPrescription();
-
-  }
-
-  return currentPrescriptionId;
-}
-
 // DYNAMIC ICD-10 DATABASE
 let icd10Data = [];
-
 
 function loadICD10Database() {
 
@@ -132,7 +63,6 @@ function loadICD10Database() {
 
 }
 
-
 // INITIALIZATION ON LOAD
 window.addEventListener('DOMContentLoaded', () => {
 
@@ -146,14 +76,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
   checkURLParamsAndRender();
 
-  if (!currentPrescriptionId) {
-    startNewPrescription();
-  }
-
   liveUpdate();
 
 });
-
 
 /* ================= URL PARAMETERS CHECK FOR QR VIEW ================= */
 
@@ -209,24 +134,9 @@ function checkURLParamsAndRender() {
 
 }
 
-
 /* ================= WIZARD NAVIGATION ================= */
 
 function switchStep(stepNum) {
-
-  /*
-   * 3-qadamdan 1-qadamga o'tilsa,
-   * yangi retsept boshlanadi.
-   */
-
-  if (
-    stepNum === 1 &&
-    currentStep === 3
-  ) {
-
-    startNewPrescription();
-
-  }
 
   currentStep =
     stepNum;
@@ -292,7 +202,6 @@ function switchStep(stepNum) {
     behavior: 'smooth'
   });
 
-
   // Telegram Haptic Feedback
   if (
     tg &&
@@ -307,7 +216,6 @@ function switchStep(stepNum) {
   }
 
 }
-
 
 function selectGender(gender) {
 
@@ -345,7 +253,6 @@ function selectGender(gender) {
   liveUpdate();
 
 }
-
 
 function calculateAge() {
 
@@ -393,7 +300,6 @@ function calculateAge() {
 
 }
 
-
 /* ================= DRUG BUILDER LOGIC ================= */
 
 function renderDrugCards() {
@@ -406,7 +312,6 @@ function renderDrugCards() {
   if (!container) return;
 
   container.innerHTML = '';
-
 
   drugs.forEach(
     (d, idx) => {
@@ -442,7 +347,6 @@ function renderDrugCards() {
 
         </div>
 
-
         <div class="form-row">
 
           <div class="form-group col-7">
@@ -461,7 +365,6 @@ function renderDrugCards() {
 
           </div>
 
-
           <div class="form-group col-3">
 
             <label>
@@ -476,7 +379,6 @@ function renderDrugCards() {
             >
 
           </div>
-
 
           <div class="form-group col-2">
 
@@ -554,7 +456,6 @@ function renderDrugCards() {
 
         </div>
 
-
         <div class="form-row">
 
           <div class="form-group col-6">
@@ -572,12 +473,10 @@ function renderDrugCards() {
 
           </div>
 
-
           <div class="form-group col-6">
           </div>
 
         </div>
-
 
         <div class="form-group">
 
@@ -605,7 +504,6 @@ function renderDrugCards() {
 
 }
 
-
 function addNewDrugCard() {
 
   drugs.push({
@@ -628,7 +526,6 @@ function addNewDrugCard() {
 
 }
 
-
 function removeDrug(index) {
 
   drugs.splice(
@@ -641,7 +538,6 @@ function removeDrug(index) {
   liveUpdate();
 
 }
-
 
 function clearAllDrugs() {
 
@@ -660,7 +556,6 @@ function clearAllDrugs() {
   }
 
 }
-
 
 // PRESET PRE-DEFINED CLINICAL CASES
 
@@ -741,7 +636,6 @@ function applyPreset(type) {
 
 }
 
-
 /* ================= LIVE BLANK UPDATER ================= */
 
 function liveUpdate() {
@@ -793,7 +687,6 @@ function liveUpdate() {
         ).value
       : '';
 
-
   if (
     document.getElementById(
       'paper_p_name'
@@ -806,7 +699,6 @@ function liveUpdate() {
       pName || '—';
 
   }
-
 
   if (
     document.getElementById(
@@ -821,7 +713,6 @@ function liveUpdate() {
 
   }
 
-
   if (
     document.getElementById(
       'paper_p_age'
@@ -834,7 +725,6 @@ function liveUpdate() {
       pAge || '0';
 
   }
-
 
   if (
     document.getElementById(
@@ -849,7 +739,6 @@ function liveUpdate() {
 
   }
 
-
   if (
     document.getElementById(
       'paper_p_address'
@@ -863,7 +752,6 @@ function liveUpdate() {
 
   }
 
-
   if (
     document.getElementById(
       'paper_p_card'
@@ -876,7 +764,6 @@ function liveUpdate() {
       pCard || '—';
 
   }
-
 
   // Diagnosis
 
@@ -899,7 +786,6 @@ function liveUpdate() {
 
   }
 
-
   if (
     document.getElementById(
       'paper_p_diag'
@@ -919,7 +805,6 @@ function liveUpdate() {
 
   }
 
-
   if (
     document.getElementById(
       'paper_p_allergy'
@@ -938,7 +823,6 @@ function liveUpdate() {
         : 'Yo\'q';
 
   }
-
 
   if (
     document.getElementById(
@@ -960,7 +844,6 @@ function liveUpdate() {
 
   }
 
-
   // Doctor & Clinic
 
   if (
@@ -976,7 +859,6 @@ function liveUpdate() {
 
   }
 
-
   if (
     document.getElementById(
       'paper_doc_spec'
@@ -989,7 +871,6 @@ function liveUpdate() {
       doctorProfile.spec;
 
   }
-
 
   if (
     document.getElementById(
@@ -1004,7 +885,6 @@ function liveUpdate() {
 
   }
 
-
   if (
     document.getElementById(
       'paper_clinic_name'
@@ -1017,7 +897,6 @@ function liveUpdate() {
       clinicProfile.name;
 
   }
-
 
   if (
     document.getElementById(
@@ -1032,7 +911,6 @@ function liveUpdate() {
 
   }
 
-
   if (
     document.getElementById(
       'paper_clinic_phone'
@@ -1046,7 +924,6 @@ function liveUpdate() {
 
   }
 
-
   // Today Date
 
   const today =
@@ -1058,7 +935,6 @@ function liveUpdate() {
     ).padStart(2,'0')}.${String(
       today.getMonth()+1
     ).padStart(2,'0')}.${today.getFullYear()}`;
-
 
   if (
     document.getElementById(
@@ -1073,6 +949,36 @@ function liveUpdate() {
 
   }
 
+  // Rx ID generator or getter
+
+  let rxIdEl =
+    document.getElementById(
+      'paper_rx_id'
+    );
+
+  if (
+    rxIdEl &&
+    (
+      !rxIdEl.innerText ||
+      rxIdEl.innerText === '—' ||
+      rxIdEl.innerText === ''
+    )
+  ) {
+
+    rxIdEl.innerText =
+      'RX-' +
+      Math.floor(
+        100000 +
+        Math.random() *
+        900000
+      );
+
+  }
+
+  const currentRxId =
+    rxIdEl
+      ? rxIdEl.innerText
+      : 'RX-000000';
 
   // Drugs Render in Paper
 
@@ -1081,12 +987,10 @@ function liveUpdate() {
       'paper_drugs_list'
     );
 
-
   if (paperDrugsContainer) {
 
     paperDrugsContainer.innerHTML =
       '';
-
 
     drugs.forEach(
       (d, idx) => {
@@ -1103,7 +1007,6 @@ function liveUpdate() {
 
           item.className =
             'rx-drug-item';
-
 
           item.innerHTML = `
 
@@ -1138,7 +1041,6 @@ function liveUpdate() {
 
           `;
 
-
           paperDrugsContainer.appendChild(
             item
           );
@@ -1149,7 +1051,6 @@ function liveUpdate() {
     );
 
   }
-
 
   // Stamp Handling
 
@@ -1162,7 +1063,6 @@ function liveUpdate() {
     document.getElementById(
       'paper_stamp_default'
     );
-
 
   if (stampImgEl) {
 
@@ -1199,73 +1099,54 @@ function liveUpdate() {
 
   }
 
+  // Dynamic QR Code Generation
 
-  /* ================= DINAMIK QR CODE ================= */
-
-const qrContainer =
-  document.getElementById(
-    'paper_qr_code'
-  );
-
-if (qrContainer) {
-
-  /*
-   * Har doim aynan joriy retsept raqamini olamiz.
-   */
-  const currentRxId =
-    getCurrentPrescriptionId();
-
-
-  /*
-   * Eski QR kodni tozalaymiz.
-   */
-  qrContainer.innerHTML = '';
-
-
-  /*
-   * QR orqali ochiladigan manzil.
-   */
-  const baseUrl =
-    window.location.origin +
-    window.location.pathname;
-
-    const currentRxId =
-  getCurrentPrescriptionId();
-
-  const pdfViewUrl =
-    `${baseUrl}?rx_id=${encodeURIComponent(
-      currentRxId
-    )}` +
-    `&patient=${encodeURIComponent(
-      pName || 'bemor'
-    )}`;
-
-
-  /*
-   * QR yaratish.
-   */
-  if (window.QRCode) {
-
-    new QRCode(
-      qrContainer,
-      {
-        text: pdfViewUrl,
-
-        width: 64,
-
-        height: 64,
-
-        correctLevel:
-          QRCode.CorrectLevel.M
-      }
+  const qrContainer =
+    document.getElementById(
+      'paper_qr_code'
     );
+
+  if (qrContainer) {
+
+    qrContainer.innerHTML =
+      '';
+
+    const baseUrl =
+      window.location.origin +
+      window.location.pathname;
+
+    const pdfViewUrl =
+      `${baseUrl}?rx_id=${currentRxId}` +
+      `&patient=${encodeURIComponent(
+        pName || 'bemor'
+      )}`;
+
+    if (window.QRCode) {
+
+      new QRCode(
+        qrContainer,
+        {
+
+          text:
+            pdfViewUrl,
+
+          width:
+            64,
+
+          height:
+            64,
+
+          correctLevel:
+            QRCode.CorrectLevel.M
+
+        }
+      );
+
+    }
 
   }
 
 }
-
-}
-
 
 /* ================= STAMP IMAGE UPLOAD LOGIC ================= */
 
@@ -1279,24 +1160,20 @@ function uploadStampImage(event) {
     const reader =
       new FileReader();
 
-
     reader.onload =
       function(e) {
 
         customStampDataURL =
           e.target.result;
 
-
         localStorage.setItem(
           'drmed_stamp',
           customStampDataURL
         );
 
-
         liveUpdate();
 
       };
-
 
     reader.readAsDataURL(
       file
@@ -1306,13 +1183,11 @@ function uploadStampImage(event) {
 
 }
 
-
 /* ================= SIGNATURE CANVAS LOGIC ================= */
 
 let canvas,
     ctx,
     isDrawing = false;
-
 
 function initSignatureCanvas() {
 
@@ -1323,12 +1198,10 @@ function initSignatureCanvas() {
 
   if (!canvas) return;
 
-
   ctx =
     canvas.getContext(
       '2d'
     );
-
 
   ctx.strokeStyle =
     "#002b80";
@@ -1338,7 +1211,6 @@ function initSignatureCanvas() {
 
   ctx.lineCap =
     "round";
-
 
   // Mouse Events
 
@@ -1362,7 +1234,6 @@ function initSignatureCanvas() {
     stopDrawing
   );
 
-
   // Touch Events
 
   canvas.addEventListener(
@@ -1374,7 +1245,6 @@ function initSignatureCanvas() {
 
       const rect =
         canvas.getBoundingClientRect();
-
 
       startDrawing({
 
@@ -1391,7 +1261,6 @@ function initSignatureCanvas() {
     }
   );
 
-
   canvas.addEventListener(
     'touchmove',
     (e) => {
@@ -1403,7 +1272,6 @@ function initSignatureCanvas() {
 
       const rect =
         canvas.getBoundingClientRect();
-
 
       draw({
 
@@ -1420,7 +1288,6 @@ function initSignatureCanvas() {
     }
   );
 
-
   canvas.addEventListener(
     'touchend',
     stopDrawing
@@ -1428,20 +1295,16 @@ function initSignatureCanvas() {
 
 }
 
-
 function startDrawing(e) {
 
   isDrawing =
     true;
 
-
   const rect =
     e.rect ||
     canvas.getBoundingClientRect();
 
-
   ctx.beginPath();
-
 
   ctx.moveTo(
     e.clientX -
@@ -1453,17 +1316,14 @@ function startDrawing(e) {
 
 }
 
-
 function draw(e) {
 
   if (!isDrawing)
     return;
 
-
   const rect =
     e.rect ||
     canvas.getBoundingClientRect();
-
 
   ctx.lineTo(
     e.clientX -
@@ -1473,11 +1333,9 @@ function draw(e) {
       rect.top
   );
 
-
   ctx.stroke();
 
 }
-
 
 function stopDrawing() {
 
@@ -1486,11 +1344,9 @@ function stopDrawing() {
 
 }
 
-
 function clearSignatureCanvas() {
 
   if (!ctx) return;
-
 
   ctx.clearRect(
     0,
@@ -1498,7 +1354,6 @@ function clearSignatureCanvas() {
     canvas.width,
     canvas.height
   );
-
 
   const sigImg =
     document.getElementById(
@@ -1511,7 +1366,6 @@ function clearSignatureCanvas() {
       'none';
 
   }
-
 
   const fallback =
     document.getElementById(
@@ -1527,23 +1381,19 @@ function clearSignatureCanvas() {
 
 }
 
-
 function applySignatureToPaper() {
 
   if (!canvas) return;
-
 
   signatureDataURL =
     canvas.toDataURL(
       "image/png"
     );
 
-
   const imgEl =
     document.getElementById(
       'paper_sig_img'
     );
-
 
   if (imgEl) {
 
@@ -1555,12 +1405,10 @@ function applySignatureToPaper() {
 
   }
 
-
   const fallback =
     document.getElementById(
       'sig_text_fallback'
     );
-
 
   if (fallback) {
 
@@ -1569,13 +1417,11 @@ function applySignatureToPaper() {
 
   }
 
-
   alert(
     "Imzo blankaga muvaffaqiyatli tushirildi!"
   );
 
 }
-
 
 /* ================= MODAL CONTROLS ================= */
 
@@ -1586,13 +1432,11 @@ function openModal(id) {
       id
     );
 
-
   if (modal) {
 
     modal.classList.add(
       'active'
     );
-
 
     if (
       id ===
@@ -1602,7 +1446,6 @@ function openModal(id) {
       renderHistoryList();
 
     }
-
 
     if (
       id ===
@@ -1617,14 +1460,12 @@ function openModal(id) {
 
 }
 
-
 function closeModal(id) {
 
   const modal =
     document.getElementById(
       id
     );
-
 
   if (modal) {
 
@@ -1636,7 +1477,6 @@ function closeModal(id) {
 
 }
 
-
 /* ================= SETTINGS & LOCAL STORAGE ================= */
 
 function saveSettings() {
@@ -1646,36 +1486,30 @@ function saveSettings() {
       'set_doc_name'
     ).value;
 
-
   doctorProfile.spec =
     document.getElementById(
       'set_doc_spec'
     ).value;
-
 
   doctorProfile.id =
     document.getElementById(
       'set_doc_id'
     ).value;
 
-
   clinicProfile.name =
     document.getElementById(
       'set_clinic_name'
     ).value;
-
 
   clinicProfile.address =
     document.getElementById(
       'set_clinic_address'
     ).value;
 
-
   clinicProfile.phone =
     document.getElementById(
       'set_clinic_phone'
     ).value;
-
 
   localStorage.setItem(
     'drmed_doctor',
@@ -1684,7 +1518,6 @@ function saveSettings() {
     )
   );
 
-
   localStorage.setItem(
     'drmed_clinic',
     JSON.stringify(
@@ -1692,20 +1525,17 @@ function saveSettings() {
     )
   );
 
-
   liveUpdate();
 
   closeModal(
     'settingsModal'
   );
 
-
   alert(
     "Sozlamalar saqlandi!"
   );
 
 }
-
 
 function loadSettingsFromStorage() {
 
@@ -1714,18 +1544,15 @@ function loadSettingsFromStorage() {
       'drmed_doctor'
     );
 
-
   const savedClinic =
     localStorage.getItem(
       'drmed_clinic'
     );
 
-
   const savedStamp =
     localStorage.getItem(
       'drmed_stamp'
     );
-
 
   if (savedDoc) {
 
@@ -1736,7 +1563,6 @@ function loadSettingsFromStorage() {
 
   }
 
-
   if (savedClinic) {
 
     clinicProfile =
@@ -1746,14 +1572,12 @@ function loadSettingsFromStorage() {
 
   }
 
-
   if (savedStamp) {
 
     customStampDataURL =
       savedStamp;
 
   }
-
 
   if (
     document.getElementById(
@@ -1768,7 +1592,6 @@ function loadSettingsFromStorage() {
 
   }
 
-
   if (
     document.getElementById(
       'set_doc_spec'
@@ -1781,7 +1604,6 @@ function loadSettingsFromStorage() {
       doctorProfile.spec;
 
   }
-
 
   if (
     document.getElementById(
@@ -1796,7 +1618,6 @@ function loadSettingsFromStorage() {
 
   }
 
-
   if (
     document.getElementById(
       'set_clinic_name'
@@ -1810,7 +1631,6 @@ function loadSettingsFromStorage() {
 
   }
 
-
   if (
     document.getElementById(
       'set_clinic_address'
@@ -1823,7 +1643,6 @@ function loadSettingsFromStorage() {
       clinicProfile.address;
 
   }
-
 
   if (
     document.getElementById(
@@ -1840,7 +1659,6 @@ function loadSettingsFromStorage() {
 
 }
 
-
 /* ================= HISTORY CRUD & SEARCH ================= */
 
 function savePrescriptionToHistory() {
@@ -1854,7 +1672,6 @@ function savePrescriptionToHistory() {
         ).value
       : '';
 
-
   if (!patientName) {
 
     alert(
@@ -1864,7 +1681,6 @@ function savePrescriptionToHistory() {
     return;
 
   }
-
 
   const rxId =
     document.getElementById(
@@ -1877,7 +1693,6 @@ function savePrescriptionToHistory() {
         Date.now()
           .toString()
           .slice(-6);
-
 
   const record = {
 
@@ -1911,7 +1726,6 @@ function savePrescriptionToHistory() {
 
   };
 
-
   let history =
     JSON.parse(
       localStorage.getItem(
@@ -1919,11 +1733,9 @@ function savePrescriptionToHistory() {
       ) || '[]'
     );
 
-
   history.unshift(
     record
   );
-
 
   localStorage.setItem(
     'drmed_history',
@@ -1932,13 +1744,11 @@ function savePrescriptionToHistory() {
     )
   );
 
-
   alert(
     "Retsept arxivga saqlandi!"
   );
 
 }
-
 
 function renderHistoryList() {
 
@@ -1947,9 +1757,7 @@ function renderHistoryList() {
       'historyListContainer'
     );
 
-
   if (!container) return;
-
 
   const history =
     JSON.parse(
@@ -1958,12 +1766,10 @@ function renderHistoryList() {
       ) || '[]'
     );
 
-
   const searchInput =
     document.getElementById(
       'historySearchInput'
     );
-
 
   const searchQuery =
     searchInput
@@ -1972,10 +1778,8 @@ function renderHistoryList() {
           .trim()
       : '';
 
-
   let filteredHistory =
     history;
-
 
   if (searchQuery) {
 
@@ -2007,7 +1811,6 @@ function renderHistoryList() {
 
   }
 
-
   if (
     filteredHistory.length ===
     0
@@ -2019,7 +1822,6 @@ function renderHistoryList() {
     return;
 
   }
-
 
   container.innerHTML =
     filteredHistory
@@ -2049,7 +1851,6 @@ function renderHistoryList() {
 
             </div>
 
-
             <button
               class="sm-btn btn-add"
               onclick="loadFromHistory(${idx})"
@@ -2066,7 +1867,6 @@ function renderHistoryList() {
 
 }
 
-
 function loadFromHistory(index) {
 
   const history =
@@ -2076,10 +1876,8 @@ function loadFromHistory(index) {
       ) || '[]'
     );
 
-
   const item =
     history[index];
-
 
   if (item) {
 
@@ -2097,7 +1895,6 @@ function loadFromHistory(index) {
 
     }
 
-
     if (
       document.getElementById(
         'p_diag'
@@ -2112,28 +1909,22 @@ function loadFromHistory(index) {
 
     }
 
-
     if (
       document.getElementById(
         'paper_rx_id'
       )
     ) {
 
-      currentPrescriptionId =
-  item.id;
-
-document.getElementById(
-  'paper_rx_id'
-).innerText =
-  currentPrescriptionId;
+      document.getElementById(
+        'paper_rx_id'
+      ).innerText =
+        item.id;
 
     }
-
 
     drugs =
       item.drugs ||
       [];
-
 
     renderDrugCards();
 
@@ -2148,7 +1939,6 @@ document.getElementById(
   }
 
 }
-
 
 function clearAllHistory() {
 
@@ -2168,7 +1958,6 @@ function clearAllHistory() {
 
 }
 
-
 /* ================= DYNAMIC ICD-10 SEARCH ================= */
 
 function searchICD10() {
@@ -2178,7 +1967,6 @@ function searchICD10() {
       'icdSearchInput'
     );
 
-
   const query =
     queryInput
       ? queryInput.value
@@ -2186,20 +1974,16 @@ function searchICD10() {
           .trim()
       : '';
 
-
   const resultsContainer =
     document.getElementById(
       'icdResultsList'
     );
 
-
   if (!resultsContainer)
     return;
 
-
   let filtered =
     [];
-
 
   if (!query) {
 
@@ -2246,7 +2030,6 @@ function searchICD10() {
 
   }
 
-
   if (
     filtered.length ===
     0
@@ -2258,7 +2041,6 @@ function searchICD10() {
     return;
 
   }
-
 
   resultsContainer.innerHTML =
     filtered
@@ -2291,7 +2073,6 @@ function searchICD10() {
 
 }
 
-
 function selectICD(
   code,
   title
@@ -2310,7 +2091,6 @@ function selectICD(
 
   }
 
-
   if (
     document.getElementById(
       'p_diag'
@@ -2324,7 +2104,6 @@ function selectICD(
 
   }
 
-
   liveUpdate();
 
   closeModal(
@@ -2332,7 +2111,6 @@ function selectICD(
   );
 
 }
-
 
 /* ================= EXPORT & PRINT ================= */
 
@@ -2346,7 +2124,6 @@ function exportToPDF() {
       '.rx-paper'
     );
 
-
   if (!element) {
 
     alert(
@@ -2357,7 +2134,6 @@ function exportToPDF() {
 
   }
 
-
   const pName =
     document.getElementById(
       'p_name'
@@ -2366,7 +2142,6 @@ function exportToPDF() {
           'p_name'
         ).value
       : 'bemor';
-
 
   const opt = {
 
@@ -2417,7 +2192,6 @@ function exportToPDF() {
 
   };
 
-
   if (
     window.html2pdf
   ) {
@@ -2439,13 +2213,11 @@ function exportToPDF() {
 
 }
 
-
 function printPrescription() {
 
   window.print();
 
 }
-
 
 function shareTelegram() {
 
@@ -2490,7 +2262,6 @@ function shareTelegram() {
 
 }
 
-
 function clearPatientForm() {
 
   if (
@@ -2506,7 +2277,6 @@ function clearPatientForm() {
 
   }
 
-
   if (
     document.getElementById(
       'p_age'
@@ -2519,7 +2289,6 @@ function clearPatientForm() {
       '';
 
   }
-
 
   if (
     document.getElementById(
@@ -2534,7 +2303,6 @@ function clearPatientForm() {
 
   }
 
-
   if (
     document.getElementById(
       'p_phone'
@@ -2547,12 +2315,10 @@ function clearPatientForm() {
       '';
 
   }
-
 
   liveUpdate();
 
 }
-
 
 function resetAppDefaults() {
 
@@ -2570,17 +2336,14 @@ function resetAppDefaults() {
 
 }
 
-
 function downloadPDF() {
 
   liveUpdate();
-
 
   const element =
     document.getElementById(
       "prescriptionPaper"
     );
-
 
   if (!element) {
 
@@ -2592,18 +2355,15 @@ function downloadPDF() {
 
   }
 
-
   const rxElement =
     document.getElementById(
       "paper_rx_id"
     );
 
-
   const rxId =
     rxElement
       ? rxElement.innerText
       : 'RX-000000';
-
 
   const opt = {
 
@@ -2651,7 +2411,6 @@ function downloadPDF() {
 
   };
 
-
   if (
     window.html2pdf
   ) {
@@ -2672,3 +2431,4 @@ function downloadPDF() {
   }
 
 }
+
