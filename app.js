@@ -11,234 +11,198 @@ if (tg) {
   document.body.classList.add('tg-theme');
 }
 
+
 // GLOBAL STATE
 let currentStep = 1;
 let currentGender = 'Erkak';
 let signatureDataURL = null;
 let customStampDataURL = null;
 
-// ================= DOCTOR & CLINIC SETTINGS =================
-// Birinchi marta ochilganda barcha maydonlar BO'SH bo'ladi.
-// Foydalanuvchi "Saqlash va Yangilash"ni bosgandan keyin
-// ma'lumotlar localStorage'da saqlanadi.
 
+// DEFAULT DOCTOR & CLINIC SETTINGS
 let doctorProfile = {
-  name: "",
-  spec: "",
-  id: ""
+  name: "Asrorov Asadbek Asliddinovich",
+  spec: "Shifokor-Terapevt",
+  id: "012345"
 };
 
 let clinicProfile = {
-  name: "",
-  address: "",
-  phone: ""
+  name: "DR.MED Tibbiyot Markazi",
+  address: "Toshkent sh., Chilonzor tumani, Bunyodkor ko'chasi 12-uy",
+  phone: "+998 (71) 200-00-11"
 };
+
 
 // DEFAULT DRUGS ARRAY
 let drugs = [];
+
 
 // DYNAMIC ICD-10 DATABASE
 let icd10Data = [];
 
-// DEFAULT DRUGS ARRAY
-let drugs = [];
-
-
-/* =========================================================
-   DR.MED — YANGI RETSEPT RAQAMI
-   ========================================================= */
-
-let currentPrescriptionId = null;
-
-
-function generateNewPrescriptionId() {
-
-    const year =
-        new Date().getFullYear();
-
-    let counter =
-        parseInt(
-            localStorage.getItem(
-                "drmed_rx_counter"
-            ) || "0",
-            10
-        );
-
-    counter += 1;
-
-    localStorage.setItem(
-        "drmed_rx_counter",
-        String(counter)
-    );
-
-    return (
-        "RX-" +
-        year +
-        "-" +
-        String(counter).padStart(
-            5,
-            "0"
-        )
-    );
-}
-
-
-function startNewPrescription() {
-
-    currentPrescriptionId =
-        generateNewPrescriptionId();
-
-
-    const rxEl =
-        document.getElementById(
-            "paper_rx_id"
-        );
-
-
-    if (rxEl) {
-
-        rxEl.innerText =
-            currentPrescriptionId;
-    }
-
-
-    // Eski QRni tozalash
-    const qrEl =
-        document.getElementById(
-            "paper_qr_code"
-        );
-
-
-    if (qrEl) {
-
-        qrEl.innerHTML =
-            "";
-    }
-
-
-    // PDF modulidagi eski QR tokenni bekor qilish
-    if (
-        window.DRMED_PDF &&
-        typeof window.DRMED_PDF.resetRecipe ===
-            "function"
-    ) {
-
-        window.DRMED_PDF.resetRecipe(
-            currentPrescriptionId
-        );
-    }
-
-
-    console.log(
-        "🆕 Yangi retsept:",
-        currentPrescriptionId
-    );
-}
 
 function loadICD10Database() {
+
   fetch('icd10_uz.json')
+
     .then(response => response.json())
+
     .then(data => {
+
       icd10Data = data;
+
       console.log(
         `✅ ICD-10 O'zbekcha bazasi yuklandi: ${icd10Data.length} ta tashxis.`
       );
+
     })
+
     .catch(err => {
+
       console.error(
         "❌ ICD-10 bazasini yuklashda xatolik:",
         err
       );
+
     });
+
 }
 
-// INITIALIZATION
+
+// INITIALIZATION ON LOAD
 window.addEventListener('DOMContentLoaded', () => {
+
   loadSettingsFromStorage();
+
   loadICD10Database();
+
   renderDrugCards();
+
   initSignatureCanvas();
+
   checkURLParamsAndRender();
+
   liveUpdate();
+
 });
 
-/* ================= URL PARAMETERS CHECK ================= */
+
+/* ================= URL PARAMETERS CHECK FOR QR VIEW ================= */
 
 function checkURLParamsAndRender() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const viewRxId = urlParams.get('rx_id');
 
-  if (!viewRxId) return;
+  const urlParams =
+    new URLSearchParams(
+      window.location.search
+    );
 
-  const history = JSON.parse(
-    localStorage.getItem('drmed_history') || '[]'
-  );
+  const viewRxId =
+    urlParams.get('rx_id');
 
-  const targetRx = history.find(
-    item => item.id === viewRxId
-  );
+  if (viewRxId) {
 
-  if (!targetRx) return;
+    const history =
+      JSON.parse(
+        localStorage.getItem(
+          'drmed_history'
+        ) || '[]'
+      );
 
-  const nameEl = document.getElementById('p_name');
-  const diagEl = document.getElementById('p_diag');
+    const targetRx =
+      history.find(
+        item =>
+          item.id === viewRxId
+      );
 
-  if (nameEl) {
-    nameEl.value = targetRx.patientName || '';
+    if (targetRx) {
+
+      document.getElementById(
+        'p_name'
+      ).value =
+        targetRx.patientName || '';
+
+      document.getElementById(
+        'p_diag'
+      ).value =
+        targetRx.diag || '';
+
+      if (targetRx.drugs) {
+        drugs =
+          targetRx.drugs;
+      }
+
+      renderDrugCards();
+
+      switchStep(3);
+
+    }
+
   }
 
-  if (diagEl) {
-    diagEl.value = targetRx.diag || '';
-  }
-
-  if (targetRx.drugs) {
-    drugs = targetRx.drugs;
-  }
-
-  renderDrugCards();
-  switchStep(3);
 }
+
 
 /* ================= WIZARD NAVIGATION ================= */
 
 function switchStep(stepNum) {
 
-    // 3-qadamdan yangi retseptga o'tilsa,
-    // yangi RX raqami yaratiladi
-    if (
-        stepNum === 1 &&
-        currentStep === 3
-    ) {
-        startNewPrescription();
-    }
-
-    currentStep = stepNum;
+  currentStep =
+    stepNum;
 
   document
-    .querySelectorAll('.step-content')
+    .querySelectorAll(
+      '.step-content'
+    )
     .forEach(el => {
-      el.classList.remove('active');
+
+      el.classList.remove(
+        'active'
+      );
+
     });
 
   document
-    .querySelectorAll('.wizard-tab')
+    .querySelectorAll(
+      '.wizard-tab'
+    )
     .forEach(el => {
-      el.classList.remove('active');
+
+      el.classList.remove(
+        'active'
+      );
+
     });
 
-  const stepEl = document.getElementById(`step${stepNum}`);
-  const tabEl = document.getElementById(`tab${stepNum}`);
+  const stepEl =
+    document.getElementById(
+      `step${stepNum}`
+    );
+
+  const tabEl =
+    document.getElementById(
+      `tab${stepNum}`
+    );
 
   if (stepEl) {
-    stepEl.classList.add('active');
+
+    stepEl.classList.add(
+      'active'
+    );
+
   }
 
   if (tabEl) {
-    tabEl.classList.add('active');
+
+    tabEl.classList.add(
+      'active'
+    );
+
   }
 
   if (stepNum === 3) {
+
     liveUpdate();
+
   }
 
   window.scrollTo({
@@ -246,264 +210,384 @@ function switchStep(stepNum) {
     behavior: 'smooth'
   });
 
-  if (tg && tg.HapticFeedback) {
-    tg.HapticFeedback.impactOccurred('light');
+
+  // Telegram Haptic Feedback
+  if (
+    tg &&
+    tg.HapticFeedback
+  ) {
+
+    tg.HapticFeedback
+      .impactOccurred(
+        'light'
+      );
+
   }
+
 }
 
-function selectGender(gender) {
-  currentGender = gender;
 
-  const male = document.getElementById('gender_m');
-  const female = document.getElementById('gender_f');
+function selectGender(gender) {
+
+  currentGender =
+    gender;
+
+  const male =
+    document.getElementById(
+      'gender_m'
+    );
+
+  const female =
+    document.getElementById(
+      'gender_f'
+    );
 
   if (male) {
+
     male.classList.toggle(
       'active',
       gender === 'Erkak'
     );
+
   }
 
   if (female) {
+
     female.classList.toggle(
       'active',
       gender === 'Ayol'
     );
+
   }
 
   liveUpdate();
+
 }
+
 
 function calculateAge() {
-  const birthEl = document.getElementById('p_birth');
 
-  if (!birthEl || !birthEl.value) {
-    return;
-  }
+  const birthEl =
+    document.getElementById(
+      'p_birth'
+    );
 
-  const birthDate = new Date(birthEl.value);
-  const diff = Date.now() - birthDate.getTime();
-  const ageDate = new Date(diff);
+  if (!birthEl) return;
+
+  const birthVal =
+    birthEl.value;
+
+  if (!birthVal) return;
+
+  const birthDate =
+    new Date(
+      birthVal
+    );
+
+  const diff =
+    Date.now() -
+    birthDate.getTime();
+
+  const ageDate =
+    new Date(diff);
 
   const calculatedAge =
-    Math.abs(ageDate.getUTCFullYear() - 1970);
+    Math.abs(
+      ageDate.getUTCFullYear() -
+      1970
+    );
 
-  const ageEl = document.getElementById('p_age');
+  const ageEl =
+    document.getElementById(
+      'p_age'
+    );
 
   if (ageEl) {
-    ageEl.value = calculatedAge;
+
+    ageEl.value =
+      calculatedAge;
+
   }
 
-  liveUpdate();
 }
+
 
 /* ================= DRUG BUILDER LOGIC ================= */
 
 function renderDrugCards() {
+
   const container =
-    document.getElementById('drugsListContainer');
+    document.getElementById(
+      'drugsListContainer'
+    );
 
   if (!container) return;
 
   container.innerHTML = '';
 
-  drugs.forEach((d, idx) => {
-    const card = document.createElement('div');
 
-    card.className = 'drug-card';
+  drugs.forEach(
+    (d, idx) => {
 
-    card.innerHTML = `
-      <div class="drug-card-head">
+      const card =
+        document.createElement(
+          'div'
+        );
 
-        <span class="drug-num">
-          ${idx + 1}. Rp.:
-        </span>
+      card.className =
+        'drug-card';
 
-        <div class="drug-card-actions">
+      card.innerHTML = `
 
-          <button
-            class="sm-btn"
-            style="color:var(--danger);"
-            onclick="removeDrug(${idx})"
-          >
-            🗑️ O'chirish
-          </button>
+        <div class="drug-card-head">
+
+          <span class="drug-num">
+            ${idx + 1}. Rp.:
+          </span>
+
+          <div class="drug-card-actions">
+
+            <button
+              class="sm-btn"
+              style="color:var(--danger);"
+              onclick="removeDrug(${idx})"
+              type="button"
+            >
+              🗑️ O'chirish
+            </button>
+
+          </div>
 
         </div>
-      </div>
 
-      <div class="form-row">
 
-        <div class="form-group col-7">
+        <div class="form-row">
+
+          <div class="form-group col-7">
+
+            <label>
+              Dori nomi (Lat)
+              <span class="req">*</span>
+            </label>
+
+            <input
+              type="text"
+              value="${d.name || ''}"
+              placeholder="Masalan: Paracetamoli"
+              oninput="drugs[${idx}].name=this.value; liveUpdate();"
+            >
+
+          </div>
+
+
+          <div class="form-group col-3">
+
+            <label>
+              Dozasi
+            </label>
+
+            <input
+              type="text"
+              value="${d.dose || ''}"
+              placeholder="500 mg"
+              oninput="drugs[${idx}].dose=this.value; liveUpdate();"
+            >
+
+          </div>
+
+
+          <div class="form-group col-2">
+
+            <label>
+              Shakli
+            </label>
+
+            <select
+              onchange="drugs[${idx}].shape=this.value; liveUpdate();"
+            >
+
+              <option value="Tab.">
+                Tab.
+              </option>
+
+              <option value="Caps.">
+                Caps.
+              </option>
+
+              <option value="Amp.">
+                Amp.
+              </option>
+
+              <option value="Inj.">
+                Inj.
+              </option>
+
+              <option value="Sol.">
+                Sol.
+              </option>
+
+              <option value="Syr.">
+                Syr.
+              </option>
+
+              <option value="Susp.">
+                Susp.
+              </option>
+
+              <option value="Pulv.">
+                Pulv.
+              </option>
+
+              <option value="Ung.">
+                Ung.
+              </option>
+
+              <option value="Gel">
+                Gel
+              </option>
+
+              <option value="Crem.">
+                Crem.
+              </option>
+
+              <option value="Spray">
+                Spray
+              </option>
+
+              <option value="Aeros.">
+                Aeros.
+              </option>
+
+              <option value="Supp.">
+                Supp.
+              </option>
+
+              <option value="Gtt.">
+                Gtt.
+              </option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+
+        <div class="form-row">
+
+          <div class="form-group col-6">
+
+            <label>
+              D.t.d. (Reseptura ko'rsatmasi)
+            </label>
+
+            <input
+              type="text"
+              value="${d.dtd || ''}"
+              placeholder="D.t.d. № 10"
+              oninput="drugs[${idx}].dtd=this.value; liveUpdate();"
+            >
+
+          </div>
+
+
+          <div class="form-group col-6">
+          </div>
+
+        </div>
+
+
+        <div class="form-group">
 
           <label>
-            Dori nomi (Lat)
-            <span class="req">*</span>
+            S. (Qabul qilish usuli)
           </label>
 
           <input
             type="text"
-            value="${escapeHtml(d.name || '')}"
-            placeholder="Masalan: Paracetamoli"
-            oninput="drugs[${idx}].name=this.value; liveUpdate();"
+            value="${d.ds || ''}"
+            placeholder="Kuniga 2 mahal 1 tabletkadan..."
+            oninput="drugs[${idx}].ds=this.value; liveUpdate();"
           >
 
         </div>
 
-        <div class="form-group col-3">
+      `;
 
-          <label>
-            Dozasi
-          </label>
+      container.appendChild(
+        card
+      );
 
-          <input
-            type="text"
-            value="${escapeHtml(d.dose || '')}"
-            placeholder="500 mg"
-            oninput="drugs[${idx}].dose=this.value; liveUpdate();"
-          >
+    }
+  );
 
-        </div>
-
-        <div class="form-group col-2">
-
-          <label>
-            Shakli
-          </label>
-
-          <select
-            onchange="drugs[${idx}].shape=this.value; liveUpdate();"
-          >
-
-            ${createShapeOptions(d.shape)}
-
-          </select>
-
-        </div>
-
-      </div>
-
-      <div class="form-row">
-
-        <div class="form-group col-6">
-
-          <label>
-            D.t.d. (Reseptura ko'rsatmasi)
-          </label>
-
-          <input
-            type="text"
-            value="${escapeHtml(d.dtd || '')}"
-            placeholder="D.t.d. № 10"
-            oninput="drugs[${idx}].dtd=this.value; liveUpdate();"
-          >
-
-        </div>
-
-        <div class="form-group col-6"></div>
-
-      </div>
-
-      <div class="form-group">
-
-        <label>
-          S. (Qabul qilish usuli)
-        </label>
-
-        <input
-          type="text"
-          value="${escapeHtml(d.ds || '')}"
-          placeholder="Kuniga 2 mahal 1 tabletkadan..."
-          oninput="drugs[${idx}].ds=this.value; liveUpdate();"
-        >
-
-      </div>
-    `;
-
-    container.appendChild(card);
-  });
 }
 
-function createShapeOptions(selected) {
-  const shapes = [
-    'Tab.',
-    'Caps.',
-    'Amp.',
-    'Inj.',
-    'Sol.',
-    'Syr.',
-    'Susp.',
-    'Pulv.',
-    'Ung.',
-    'Gel',
-    'Crem.',
-    'Spray',
-    'Aeros.',
-    'Supp.',
-    'Gtt.'
-  ];
-
-  return shapes
-    .map(shape => `
-      <option
-        value="${shape}"
-        ${shape === selected ? 'selected' : ''}
-      >
-        ${shape}
-      </option>
-    `)
-    .join('');
-}
-
-function escapeHtml(value) {
-  return String(value || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
 
 function addNewDrugCard() {
+
   drugs.push({
+
     name: '',
+
     dose: '',
+
     shape: 'Tab.',
+
     dtd: '',
+
     ds: ''
+
   });
 
   renderDrugCards();
+
   liveUpdate();
+
 }
+
 
 function removeDrug(index) {
-  drugs.splice(index, 1);
+
+  drugs.splice(
+    index,
+    1
+  );
 
   renderDrugCards();
+
   liveUpdate();
+
 }
 
+
 function clearAllDrugs() {
+
   if (
     confirm(
       "Barcha dorilarni o'chirishga ishonchingiz komilmi?"
     )
   ) {
+
     drugs = [];
 
     renderDrugCards();
+
     liveUpdate();
+
   }
+
 }
 
-/* ================= PREDEFINED CLINICAL CASES ================= */
+
+// PRESET PRE-DEFINED CLINICAL CASES
 
 function applyPreset(type) {
 
   if (type === 'bronchitis') {
 
     drugs = [
+
       {
         name: 'Amoxicillini',
         dose: '0.5 g',
@@ -512,6 +596,7 @@ function applyPreset(type) {
         dtd: 'D.t.d. № 21',
         ds: 'Kuniga 3 mahal 1 kapsuladan, 7 kun.'
       },
+
       {
         name: 'Ambroxoli',
         dose: '30 mg',
@@ -520,11 +605,15 @@ function applyPreset(type) {
         dtd: 'D.t.d. № 20',
         ds: 'Kuniga 3 mahal 1 tabletkadan ovqatdan keyin.'
       }
+
     ];
 
-  } else if (type === 'gripp') {
+  }
+
+  else if (type === 'gripp') {
 
     drugs = [
+
       {
         name: 'Paracetamoli',
         dose: '500 mg',
@@ -533,6 +622,7 @@ function applyPreset(type) {
         dtd: 'D.t.d. № 10',
         ds: 'Harorat 38°C dan oshganda 1 tabletka.'
       },
+
       {
         name: 'Acid Ascorbinici',
         dose: '500 mg',
@@ -541,11 +631,15 @@ function applyPreset(type) {
         dtd: 'D.t.d. № 20',
         ds: 'Kuniga 2 mahal 1 tabletkadan.'
       }
+
     ];
 
-  } else if (type === 'gastritis') {
+  }
+
+  else if (type === 'gastritis') {
 
     drugs = [
+
       {
         name: 'Omeprazoli',
         dose: '20 mg',
@@ -554,135 +648,357 @@ function applyPreset(type) {
         dtd: 'D.t.d. № 14',
         ds: 'Kuniga 1 mahal ertalab ovqatdan 30 daqiqa oldin.'
       }
+
     ];
+
   }
 
   renderDrugCards();
+
   liveUpdate();
+
 }
+
 
 /* ================= LIVE BLANK UPDATER ================= */
 
 function liveUpdate() {
 
+  // Patient Details
+
   const pName =
-    document.getElementById('p_name')?.value || '';
+    document.getElementById(
+      'p_name'
+    )
+      ? document.getElementById(
+          'p_name'
+        ).value
+      : '';
 
   const pBirth =
-    document.getElementById('p_birth')?.value || '';
+    document.getElementById(
+      'p_birth'
+    )
+      ? document.getElementById(
+          'p_birth'
+        ).value
+      : '';
 
   const pAge =
-    document.getElementById('p_age')?.value || '0';
+    document.getElementById(
+      'p_age'
+    )
+      ? document.getElementById(
+          'p_age'
+        ).value
+      : '0';
 
   const pAddress =
-    document.getElementById('p_address')?.value || '';
+    document.getElementById(
+      'p_address'
+    )
+      ? document.getElementById(
+          'p_address'
+        ).value
+      : '';
 
   const pCard =
-    document.getElementById('p_card')?.value || '';
+    document.getElementById(
+      'p_card'
+    )
+      ? document.getElementById(
+          'p_card'
+        ).value
+      : '';
 
-  const setText = (id, value) => {
-    const el = document.getElementById(id);
 
-    if (el) {
-      el.innerText = value;
-    }
-  };
+  if (
+    document.getElementById(
+      'paper_p_name'
+    )
+  ) {
 
-  setText(
-    'paper_p_name',
-    pName || '—'
-  );
+    document.getElementById(
+      'paper_p_name'
+    ).innerText =
+      pName || '—';
 
-  setText(
-    'paper_p_birth',
-    pBirth || '—'
-  );
+  }
 
-  setText(
-    'paper_p_age',
-    pAge || '0'
-  );
 
-  setText(
-    'paper_p_gender',
-    currentGender
-  );
+  if (
+    document.getElementById(
+      'paper_p_birth'
+    )
+  ) {
 
-  setText(
-    'paper_p_address',
-    pAddress || '—'
-  );
+    document.getElementById(
+      'paper_p_birth'
+    ).innerText =
+      pBirth || '—';
 
-  setText(
-    'paper_p_card',
-    pCard || '—'
-  );
+  }
 
-  setText(
-    'paper_p_icd',
-    document.getElementById('p_icd')?.value || '—'
-  );
 
-  setText(
-    'paper_p_diag',
-    document.getElementById('p_diag')?.value || '—'
-  );
+  if (
+    document.getElementById(
+      'paper_p_age'
+    )
+  ) {
 
-  setText(
-    'paper_p_allergy',
-    document.getElementById('p_allergy')?.value || 'Yo\'q'
-  );
+    document.getElementById(
+      'paper_p_age'
+    ).innerText =
+      pAge || '0';
 
-  setText(
-    'paper_p_note',
-    document.getElementById('p_note')?.value ||
-      'Ko\'rsatma bo\'yicha qabul qilinsin.'
-  );
+  }
 
-  setText(
-    'paper_doc_name',
-    doctorProfile.name
-  );
 
-  setText(
-    'paper_doc_spec',
-    doctorProfile.spec
-  );
+  if (
+    document.getElementById(
+      'paper_p_gender'
+    )
+  ) {
 
-  setText(
-    'paper_doc_id',
-    doctorProfile.id
-  );
+    document.getElementById(
+      'paper_p_gender'
+    ).innerText =
+      currentGender;
 
-  setText(
-    'paper_clinic_name',
-    clinicProfile.name
-  );
+  }
 
-  setText(
-    'paper_clinic_address',
-    clinicProfile.address
-  );
 
-  setText(
-    'paper_clinic_phone',
-    clinicProfile.phone
-  );
+  if (
+    document.getElementById(
+      'paper_p_address'
+    )
+  ) {
 
-  const today = new Date();
+    document.getElementById(
+      'paper_p_address'
+    ).innerText =
+      pAddress || '—';
+
+  }
+
+
+  if (
+    document.getElementById(
+      'paper_p_card'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_p_card'
+    ).innerText =
+      pCard || '—';
+
+  }
+
+
+  // Diagnosis
+
+  if (
+    document.getElementById(
+      'paper_p_icd'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_p_icd'
+    ).innerText =
+      document.getElementById(
+        'p_icd'
+      )
+        ? document.getElementById(
+            'p_icd'
+          ).value || '—'
+        : '—';
+
+  }
+
+
+  if (
+    document.getElementById(
+      'paper_p_diag'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_p_diag'
+    ).innerText =
+      document.getElementById(
+        'p_diag'
+      )
+        ? document.getElementById(
+            'p_diag'
+          ).value || '—'
+        : '—';
+
+  }
+
+
+  if (
+    document.getElementById(
+      'paper_p_allergy'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_p_allergy'
+    ).innerText =
+      document.getElementById(
+        'p_allergy'
+      )
+        ? document.getElementById(
+            'p_allergy'
+          ).value || 'Yo\'q'
+        : 'Yo\'q';
+
+  }
+
+
+  if (
+    document.getElementById(
+      'paper_p_note'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_p_note'
+    ).innerText =
+      document.getElementById(
+        'p_note'
+      )
+        ? document.getElementById(
+            'p_note'
+          ).value ||
+          'Ko\'rsatma bo\'yicha qabul qilinsin.'
+        : 'Ko\'rsatma bo\'yicha qabul qilinsin.';
+
+  }
+
+
+  // Doctor & Clinic
+
+  if (
+    document.getElementById(
+      'paper_doc_name'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_doc_name'
+    ).innerText =
+      doctorProfile.name;
+
+  }
+
+
+  if (
+    document.getElementById(
+      'paper_doc_spec'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_doc_spec'
+    ).innerText =
+      doctorProfile.spec;
+
+  }
+
+
+  if (
+    document.getElementById(
+      'paper_doc_id'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_doc_id'
+    ).innerText =
+      doctorProfile.id;
+
+  }
+
+
+  if (
+    document.getElementById(
+      'paper_clinic_name'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_clinic_name'
+    ).innerText =
+      clinicProfile.name;
+
+  }
+
+
+  if (
+    document.getElementById(
+      'paper_clinic_address'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_clinic_address'
+    ).innerText =
+      clinicProfile.address;
+
+  }
+
+
+  if (
+    document.getElementById(
+      'paper_clinic_phone'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_clinic_phone'
+    ).innerText =
+      clinicProfile.phone;
+
+  }
+
+
+  // Today Date
+
+  const today =
+    new Date();
 
   const formattedDate =
-    `${String(today.getDate()).padStart(2, '0')}.` +
-    `${String(today.getMonth() + 1).padStart(2, '0')}.` +
-    `${today.getFullYear()}`;
+    `${String(
+      today.getDate()
+    ).padStart(2,'0')}.${String(
+      today.getMonth()+1
+    ).padStart(2,'0')}.${today.getFullYear()}`;
 
-  setText(
-    'paper_rx_date',
-    formattedDate
-  );
 
-  const rxIdEl =
-    document.getElementById('paper_rx_id');
+  if (
+    document.getElementById(
+      'paper_rx_date'
+    )
+  ) {
+
+    document.getElementById(
+      'paper_rx_date'
+    ).innerText =
+      formattedDate;
+
+  }
+
+
+  // Rx ID generator or getter
+
+  let rxIdEl =
+    document.getElementById(
+      'paper_rx_id'
+    );
+
 
   if (
     rxIdEl &&
@@ -692,77 +1008,113 @@ function liveUpdate() {
       rxIdEl.innerText === ''
     )
   ) {
+
     rxIdEl.innerText =
       'RX-' +
       Math.floor(
-        100000 + Math.random() * 900000
+        100000 +
+        Math.random() *
+        900000
       );
+
   }
 
+
   const currentRxId =
-    rxIdEl?.innerText || 'RX-000000';
+    rxIdEl
+      ? rxIdEl.innerText
+      : 'RX-000000';
+
+
+  // Drugs Render in Paper
 
   const paperDrugsContainer =
-    document.getElementById('paper_drugs_list');
+    document.getElementById(
+      'paper_drugs_list'
+    );
+
 
   if (paperDrugsContainer) {
 
-    paperDrugsContainer.innerHTML = '';
+    paperDrugsContainer.innerHTML =
+      '';
 
-    drugs.forEach((d, idx) => {
 
-      if (
-        d.name &&
-        d.name.trim() !== ''
-      ) {
+    drugs.forEach(
+      (d, idx) => {
 
-        const item =
-          document.createElement('div');
+        if (
+          d.name &&
+          d.name.trim() !== ''
+        ) {
 
-        item.className =
-          'rx-drug-item';
+          const item =
+            document.createElement(
+              'div'
+            );
 
-        item.innerHTML = `
-          <strong>
-            ${idx + 1}. Rp.:
-            ${escapeHtml(d.shape || '')}
-            ${escapeHtml(d.name || '')}
-            ${escapeHtml(d.dose || '')}
-          </strong>
+          item.className =
+            'rx-drug-item';
 
-          <div class="rx-drug-sub">
 
-            ${
-              d.dtd &&
-              d.dtd !== '-'
-                ? escapeHtml(d.dtd) + '<br>'
-                : ''
-            }
+          item.innerHTML = `
 
-            ${
-              d.count
-                ? 'Miqdori: ' +
-                  escapeHtml(d.count) +
-                  '<br>'
-                : ''
-            }
+            <strong>
+              ${idx + 1}. Rp.:
+              ${d.shape || ''}
+              ${d.name}
+              ${d.dose || ''}
+            </strong>
 
-            <b>S.</b>
-            ${escapeHtml(d.ds || '')}
+            <div class="rx-drug-sub">
 
-          </div>
-        `;
+              ${
+                d.dtd !== '-' &&
+                d.dtd !== ''
+                  ? d.dtd + '<br>'
+                  : ''
+              }
 
-        paperDrugsContainer.appendChild(item);
+              ${
+                d.count
+                  ? 'Miqdori: ' +
+                    d.count +
+                    '<br>'
+                  : ''
+              }
+
+              <b>S.</b>
+              ${d.ds || ''}
+
+            </div>
+
+          `;
+
+
+          paperDrugsContainer.appendChild(
+            item
+          );
+
+        }
+
       }
-    });
+    );
+
   }
 
+
+  // Stamp Handling
+
   const stampImgEl =
-    document.getElementById('paper_stamp_img');
+    document.getElementById(
+      'paper_stamp_img'
+    );
 
   const stampDefaultEl =
-    document.getElementById('paper_stamp_default');
+    document.getElementById(
+      'paper_stamp_default'
+    );
+
 
   if (stampImgEl) {
 
@@ -775,33 +1127,49 @@ function liveUpdate() {
         'block';
 
       if (stampDefaultEl) {
+
         stampDefaultEl.style.display =
           'none';
+
       }
 
-    } else {
+    }
+
+    else {
 
       stampImgEl.style.display =
         'none';
 
       if (stampDefaultEl) {
+
         stampDefaultEl.style.display =
           'block';
+
       }
+
     }
+
   }
 
-  // QR
+
+  // Dynamic QR Code Generation
+
   const qrContainer =
-    document.getElementById('paper_qr_code');
+    document.getElementById(
+      'paper_qr_code'
+    );
+
 
   if (qrContainer) {
 
-    qrContainer.innerHTML = '';
+    qrContainer.innerHTML =
+      '';
+
 
     const baseUrl =
       window.location.origin +
       window.location.pathname;
+
 
     const pdfViewUrl =
       `${baseUrl}?rx_id=${currentRxId}` +
@@ -809,52 +1177,81 @@ function liveUpdate() {
         pName || 'bemor'
       )}`;
 
+
     if (window.QRCode) {
 
-      new QRCode(qrContainer, {
-        text: pdfViewUrl,
-        width: 64,
-        height: 64,
-        correctLevel:
-          QRCode.CorrectLevel.M
-      });
+      new QRCode(
+        qrContainer,
+        {
+
+          text:
+            pdfViewUrl,
+
+          width:
+            64,
+
+          height:
+            64,
+
+          correctLevel:
+            QRCode.CorrectLevel.M
+
+        }
+      );
+
     }
+
   }
+
 }
 
-/* ================= STAMP IMAGE UPLOAD ================= */
+
+/* ================= STAMP IMAGE UPLOAD LOGIC ================= */
 
 function uploadStampImage(event) {
 
   const file =
-    event.target.files?.[0];
+    event.target.files[0];
 
-  if (!file) return;
+  if (file) {
 
-  const reader =
-    new FileReader();
+    const reader =
+      new FileReader();
 
-  reader.onload = function(e) {
 
-    customStampDataURL =
-      e.target.result;
+    reader.onload =
+      function(e) {
 
-    localStorage.setItem(
-      'drmed_stamp',
-      customStampDataURL
+        customStampDataURL =
+          e.target.result;
+
+
+        localStorage.setItem(
+          'drmed_stamp',
+          customStampDataURL
+        );
+
+
+        liveUpdate();
+
+      };
+
+
+    reader.readAsDataURL(
+      file
     );
 
-    liveUpdate();
-  };
+  }
 
-  reader.readAsDataURL(file);
 }
 
-/* ================= SIGNATURE CANVAS ================= */
 
-let canvas;
-let ctx;
-let isDrawing = false;
+/* ================= SIGNATURE CANVAS LOGIC ================= */
+
+let canvas,
+    ctx,
+    isDrawing = false;
+
 
 function initSignatureCanvas() {
 
@@ -865,8 +1262,12 @@ function initSignatureCanvas() {
 
   if (!canvas) return;
 
+
   ctx =
-    canvas.getContext('2d');
+    canvas.getContext(
+      '2d'
+    );
+
 
   ctx.strokeStyle =
     "#002b80";
@@ -876,6 +1277,9 @@ function initSignatureCanvas() {
 
   ctx.lineCap =
     "round";
+
+
+  // Mouse Events
 
   canvas.addEventListener(
     'mousedown',
@@ -897,9 +1301,12 @@ function initSignatureCanvas() {
     stopDrawing
   );
 
+
+  // Touch Events
+
   canvas.addEventListener(
     'touchstart',
-    e => {
+    (e) => {
 
       const touch =
         e.touches[0];
@@ -907,18 +1314,26 @@ function initSignatureCanvas() {
       const rect =
         canvas.getBoundingClientRect();
 
+
       startDrawing({
-        clientX: touch.clientX,
-        clientY: touch.clientY,
+
+        clientX:
+          touch.clientX,
+
+        clientY:
+          touch.clientY,
+
         rect
+
       });
-    },
-    { passive: true }
+
+    }
   );
+
 
   canvas.addEventListener(
     'touchmove',
-    e => {
+    (e) => {
 
       e.preventDefault();
 
@@ -928,60 +1343,93 @@ function initSignatureCanvas() {
       const rect =
         canvas.getBoundingClientRect();
 
+
       draw({
-        clientX: touch.clientX,
-        clientY: touch.clientY,
+
+        clientX:
+          touch.clientX,
+
+        clientY:
+          touch.clientY,
+
         rect
+
       });
-    },
-    { passive: false }
+
+    }
   );
+
 
   canvas.addEventListener(
     'touchend',
     stopDrawing
   );
+
 }
+
 
 function startDrawing(e) {
 
-  isDrawing = true;
+  isDrawing =
+    true;
+
 
   const rect =
     e.rect ||
     canvas.getBoundingClientRect();
+
 
   ctx.beginPath();
 
+
   ctx.moveTo(
-    e.clientX - rect.left,
-    e.clientY - rect.top
+    e.clientX -
+      rect.left,
+
+    e.clientY -
+      rect.top
   );
+
 }
+
 
 function draw(e) {
 
-  if (!isDrawing) return;
+  if (!isDrawing)
+    return;
+
 
   const rect =
     e.rect ||
     canvas.getBoundingClientRect();
 
+
   ctx.lineTo(
-    e.clientX - rect.left,
-    e.clientY - rect.top
+    e.clientX -
+      rect.left,
+
+    e.clientY -
+      rect.top
   );
 
+
   ctx.stroke();
+
 }
 
+
 function stopDrawing() {
-  isDrawing = false;
+
+  isDrawing =
+    false;
+
 }
+
 
 function clearSignatureCanvas() {
 
   if (!ctx) return;
+
 
   ctx.clearRect(
     0,
@@ -990,15 +1438,19 @@ function clearSignatureCanvas() {
     canvas.height
   );
 
-  const img =
+
+  const sigImg =
     document.getElementById(
       'paper_sig_img'
     );
 
-  if (img) {
-    img.style.display =
+  if (sigImg) {
+
+    sigImg.style.display =
       'none';
+
   }
+
 
   const fallback =
     document.getElementById(
@@ -1006,24 +1458,31 @@ function clearSignatureCanvas() {
     );
 
   if (fallback) {
+
     fallback.style.display =
       'inline-block';
+
   }
+
 }
+
 
 function applySignatureToPaper() {
 
   if (!canvas) return;
+
 
   signatureDataURL =
     canvas.toDataURL(
       "image/png"
     );
 
+
   const imgEl =
     document.getElementById(
       'paper_sig_img'
     );
+
 
   if (imgEl) {
 
@@ -1032,54 +1491,92 @@ function applySignatureToPaper() {
 
     imgEl.style.display =
       'block';
+
   }
+
 
   const fallback =
     document.getElementById(
       'sig_text_fallback'
     );
 
+
   if (fallback) {
+
     fallback.style.display =
       'none';
+
   }
+
 
   alert(
     "Imzo blankaga muvaffaqiyatli tushirildi!"
   );
+
 }
+
 
 /* ================= MODAL CONTROLS ================= */
 
 function openModal(id) {
 
   const modal =
-    document.getElementById(id);
+    document.getElementById(
+      id
+    );
 
-  if (!modal) return;
 
-  modal.classList.add('active');
+  if (modal) {
 
-  if (id === 'historyModal') {
-    renderHistoryList();
+    modal.classList.add(
+      'active'
+    );
+
+
+    if (
+      id ===
+      'historyModal'
+    ) {
+
+      renderHistoryList();
+
+    }
+
+
+    if (
+      id ===
+      'icdModal'
+    ) {
+
+      searchICD10();
+
+    }
+
   }
 
-  if (id === 'icdModal') {
-    searchICD10();
-  }
 }
+
 
 function closeModal(id) {
 
   const modal =
-    document.getElementById(id);
+    document.getElementById(
+      id
+    );
+
 
   if (modal) {
-    modal.classList.remove('active');
+
+    modal.classList.remove(
+      'active'
+    );
+
   }
+
 }
 
-/* ================= SETTINGS ================= */
+
+/* ================= SETTINGS & LOCAL STORAGE ================= */
 
 function saveSettings() {
 
@@ -1088,40 +1585,52 @@ function saveSettings() {
       'set_doc_name'
     ).value;
 
+
   doctorProfile.spec =
     document.getElementById(
       'set_doc_spec'
     ).value;
+
 
   doctorProfile.id =
     document.getElementById(
       'set_doc_id'
     ).value;
 
+
   clinicProfile.name =
     document.getElementById(
       'set_clinic_name'
     ).value;
+
 
   clinicProfile.address =
     document.getElementById(
       'set_clinic_address'
     ).value;
 
+
   clinicProfile.phone =
     document.getElementById(
       'set_clinic_phone'
     ).value;
 
+
   localStorage.setItem(
     'drmed_doctor',
-    JSON.stringify(doctorProfile)
+    JSON.stringify(
+      doctorProfile
+    )
   );
+
 
   localStorage.setItem(
     'drmed_clinic',
-    JSON.stringify(clinicProfile)
+    JSON.stringify(
+      clinicProfile
+    )
   );
+
 
   liveUpdate();
 
@@ -1129,279 +1638,218 @@ function saveSettings() {
     'settingsModal'
   );
 
+
   alert(
     "Sozlamalar saqlandi!"
   );
+
 }
+
 
 function loadSettingsFromStorage() {
 
   const savedDoc =
-    localStorage.getItem('drmed_doctor');
+    localStorage.getItem(
+      'drmed_doctor'
+    );
+
 
   const savedClinic =
-    localStorage.getItem('drmed_clinic');
+    localStorage.getItem(
+      'drmed_clinic'
+    );
+
 
   const savedStamp =
-    localStorage.getItem('drmed_stamp');
+    localStorage.getItem(
+      'drmed_stamp'
+    );
 
-
-  // =====================================================
-  // ESKI DEFAULT MA'LUMOTLARNI AVTOMATIK TOZALASH
-  // =====================================================
-
-  const oldDefaultDoctor = {
-    name: "Asrorov Asadbek Asliddinovich",
-    spec: "Shifokor-Terapevt",
-    id: "012345"
-  };
-
-  const oldDefaultClinic = {
-    name: "DR.MED Tibbiyot Markazi",
-    address: "Toshkent sh., Chilonzor tumani, Bunyodkor ko'chasi 12-uy",
-    phone: "+998 (71) 200-00-11"
-  };
-
-
-  // Eski default doktor ma'lumotlari bo'lsa,
-  // ularni saqlangan ma'lumot deb hisoblamaymiz.
 
   if (savedDoc) {
 
-    try {
-
-      const parsedDoc =
-        JSON.parse(savedDoc);
-
-      const isOldDefault =
-        parsedDoc.name === oldDefaultDoctor.name &&
-        parsedDoc.spec === oldDefaultDoctor.spec &&
-        parsedDoc.id === oldDefaultDoctor.id;
-
-      if (isOldDefault) {
-
-        localStorage.removeItem(
-          'drmed_doctor'
-        );
-
-        doctorProfile = {
-          name: "",
-          spec: "",
-          id: ""
-        };
-
-      } else {
-
-        doctorProfile = {
-          name: parsedDoc.name || "",
-          spec: parsedDoc.spec || "",
-          id: parsedDoc.id || ""
-        };
-
-      }
-
-    } catch (error) {
-
-      console.error(
-        "Doctor settings parse error:",
-        error
+    doctorProfile =
+      JSON.parse(
+        savedDoc
       );
 
-      localStorage.removeItem(
-        'drmed_doctor'
-      );
-
-      doctorProfile = {
-        name: "",
-        spec: "",
-        id: ""
-      };
-    }
-
-  } else {
-
-    doctorProfile = {
-      name: "",
-      spec: "",
-      id: ""
-    };
   }
 
-
-  // =====================================================
-  // KLINIKA
-  // =====================================================
 
   if (savedClinic) {
 
-    try {
-
-      const parsedClinic =
-        JSON.parse(savedClinic);
-
-      const isOldDefault =
-        parsedClinic.name === oldDefaultClinic.name &&
-        parsedClinic.address === oldDefaultClinic.address &&
-        parsedClinic.phone === oldDefaultClinic.phone;
-
-      if (isOldDefault) {
-
-        localStorage.removeItem(
-          'drmed_clinic'
-        );
-
-        clinicProfile = {
-          name: "",
-          address: "",
-          phone: ""
-        };
-
-      } else {
-
-        clinicProfile = {
-          name: parsedClinic.name || "",
-          address: parsedClinic.address || "",
-          phone: parsedClinic.phone || ""
-        };
-
-      }
-
-    } catch (error) {
-
-      console.error(
-        "Clinic settings parse error:",
-        error
+    clinicProfile =
+      JSON.parse(
+        savedClinic
       );
 
-      localStorage.removeItem(
-        'drmed_clinic'
-      );
-
-      clinicProfile = {
-        name: "",
-        address: "",
-        phone: ""
-      };
-    }
-
-  } else {
-
-    clinicProfile = {
-      name: "",
-      address: "",
-      phone: ""
-    };
   }
 
-
-  // =====================================================
-  // STAMP / MUHR
-  // =====================================================
 
   if (savedStamp) {
 
     customStampDataURL =
       savedStamp;
 
-  } else {
-
-    customStampDataURL =
-      null;
   }
 
 
-  // =====================================================
-  // FORM MAYDONLARIGA QO'YISH
-  // =====================================================
+  if (
+    document.getElementById(
+      'set_doc_name'
+    )
+  ) {
 
-  const fields = {
+    document.getElementById(
+      'set_doc_name'
+    ).value =
+      doctorProfile.name;
 
-    set_doc_name:
-      doctorProfile.name,
-
-    set_doc_spec:
-      doctorProfile.spec,
-
-    set_doc_id:
-      doctorProfile.id,
-
-    set_clinic_name:
-      clinicProfile.name,
-
-    set_clinic_address:
-      clinicProfile.address,
-
-    set_clinic_phone:
-      clinicProfile.phone
-
-  };
+  }
 
 
-  Object.entries(fields).forEach(
-    ([id, value]) => {
+  if (
+    document.getElementById(
+      'set_doc_spec'
+    )
+  ) {
 
-      const el =
-        document.getElementById(id);
+    document.getElementById(
+      'set_doc_spec'
+    ).value =
+      doctorProfile.spec;
 
-      if (el) {
+  }
 
-        el.value =
-          value || "";
 
-      }
+  if (
+    document.getElementById(
+      'set_doc_id'
+    )
+  ) {
 
-    }
-  );
+    document.getElementById(
+      'set_doc_id'
+    ).value =
+      doctorProfile.id;
+
+  }
+
+
+  if (
+    document.getElementById(
+      'set_clinic_name'
+    )
+  ) {
+
+    document.getElementById(
+      'set_clinic_name'
+    ).value =
+      clinicProfile.name;
+
+  }
+
+
+  if (
+    document.getElementById(
+      'set_clinic_address'
+    )
+  ) {
+
+    document.getElementById(
+      'set_clinic_address'
+    ).value =
+      clinicProfile.address;
+
+  }
+
+
+  if (
+    document.getElementById(
+      'set_clinic_phone'
+    )
+  ) {
+
+    document.getElementById(
+      'set_clinic_phone'
+    ).value =
+      clinicProfile.phone;
+
+  }
+
 }
 
-/* ================= HISTORY CRUD ================= */
+
+/* ================= HISTORY CRUD & SEARCH ================= */
 
 function savePrescriptionToHistory() {
 
   const patientName =
     document.getElementById(
       'p_name'
-    )?.value || '';
+    )
+      ? document.getElementById(
+          'p_name'
+        ).value
+      : '';
 
-  if (!patientName.trim()) {
+
+  if (!patientName) {
 
     alert(
       "Bemor ismini kiriting!"
     );
 
     return;
+
   }
+
 
   const rxId =
     document.getElementById(
       'paper_rx_id'
-    )?.innerText ||
-    'RX-' +
-      Date.now()
-        .toString()
-        .slice(-6);
+    )
+      ? document.getElementById(
+          'paper_rx_id'
+        ).innerText
+      : 'RX-' +
+        Date.now()
+          .toString()
+          .slice(-6);
+
 
   const record = {
 
-    id: rxId,
+    id:
+      rxId,
 
     date:
-      new Date().toLocaleDateString(
-        'uz-UZ'
-      ),
+      new Date()
+        .toLocaleDateString(
+          'uz-UZ'
+        ),
 
-    patientName,
+    patientName:
+      patientName,
 
     diag:
       document.getElementById(
         'p_diag'
-      )?.value || '',
+      )
+        ? document.getElementById(
+            'p_diag'
+          ).value
+        : '',
 
     drugs:
       JSON.parse(
-        JSON.stringify(drugs)
+        JSON.stringify(
+          drugs
+        )
       )
+
   };
+
 
   let history =
     JSON.parse(
@@ -1410,17 +1858,26 @@ function savePrescriptionToHistory() {
       ) || '[]'
     );
 
-  history.unshift(record);
+
+  history.unshift(
+    record
+  );
+
 
   localStorage.setItem(
     'drmed_history',
-    JSON.stringify(history)
+    JSON.stringify(
+      history
+    )
   );
+
 
   alert(
     "Retsept arxivga saqlandi!"
   );
+
 }
+
 
 function renderHistoryList() {
 
@@ -1429,7 +1886,9 @@ function renderHistoryList() {
       'historyListContainer'
     );
 
+
   if (!container) return;
+
 
   const history =
     JSON.parse(
@@ -1438,10 +1897,12 @@ function renderHistoryList() {
       ) || '[]'
     );
 
+
   const searchInput =
     document.getElementById(
       'historySearchInput'
     );
+
 
   const searchQuery =
     searchInput
@@ -1450,67 +1911,88 @@ function renderHistoryList() {
           .trim()
       : '';
 
+
   let filteredHistory =
     history;
+
 
   if (searchQuery) {
 
     filteredHistory =
       history.filter(
         item =>
+
           (
             item.patientName &&
             item.patientName
               .toLowerCase()
-              .includes(searchQuery)
-          ) ||
+              .includes(
+                searchQuery
+              )
+          )
+
+          ||
+
           (
             item.id &&
             item.id
               .toLowerCase()
-              .includes(searchQuery)
+              .includes(
+                searchQuery
+              )
           )
+
       );
+
   }
 
-  if (filteredHistory.length === 0) {
+
+  if (
+    filteredHistory.length ===
+    0
+  ) {
 
     container.innerHTML =
-      '<p class="help-text" style="padding:10px;text-align:center;">Hozircha saqlangan retseptlar mavjud emas.</p>';
+      '<p class="help-text" style="padding:10px; text-align:center;">Hozircha saqlangan retseptlar mavjud emas.</p>';
 
     return;
+
   }
+
 
   container.innerHTML =
     filteredHistory
       .map(
-        (item, idx) => `
+        (
+          item,
+          idx
+        ) => `
 
           <div class="history-item">
 
             <div class="history-info">
 
               <h4>
-                ${escapeHtml(item.patientName)}
-                (${escapeHtml(item.id)})
+                ${item.patientName}
+                (${item.id})
               </h4>
 
               <p>
-                ${escapeHtml(item.date)}
+                ${item.date}
                 —
                 ${
-                  escapeHtml(
-                    item.diag ||
-                    'Tashxis ko\'rsatilmagan'
-                  )
+                  item.diag ||
+                  'Tashxis ko\'rsatilmagan'
                 }
               </p>
 
             </div>
 
+
             <button
               class="sm-btn btn-add"
               onclick="loadFromHistory(${idx})"
+              type="button"
             >
               Yuklash
             </button>
@@ -1520,7 +2002,9 @@ function renderHistoryList() {
         `
       )
       .join('');
+
 }
+
 
 function loadFromHistory(index) {
 
@@ -1531,47 +2015,76 @@ function loadFromHistory(index) {
       ) || '[]'
     );
 
+
   const item =
     history[index];
 
-  if (!item) return;
 
-  const nameEl =
-    document.getElementById('p_name');
+  if (item) {
 
-  const diagEl =
-    document.getElementById('p_diag');
+    if (
+      document.getElementById(
+        'p_name'
+      )
+    ) {
 
-  const rxEl =
-    document.getElementById('paper_rx_id');
+      document.getElementById(
+        'p_name'
+      ).value =
+        item.patientName ||
+        '';
 
-  if (nameEl) {
-    nameEl.value =
-      item.patientName || '';
+    }
+
+
+    if (
+      document.getElementById(
+        'p_diag'
+      )
+    ) {
+
+      document.getElementById(
+        'p_diag'
+      ).value =
+        item.diag ||
+        '';
+
+    }
+
+
+    if (
+      document.getElementById(
+        'paper_rx_id'
+      )
+    ) {
+
+      document.getElementById(
+        'paper_rx_id'
+      ).innerText =
+        item.id;
+
+    }
+
+
+    drugs =
+      item.drugs ||
+      [];
+
+
+    renderDrugCards();
+
+    liveUpdate();
+
+    closeModal(
+      'historyModal'
+    );
+
+    switchStep(3);
+
   }
 
-  if (diagEl) {
-    diagEl.value =
-      item.diag || '';
-  }
-
-  if (rxEl) {
-    rxEl.innerText =
-      item.id;
-  }
-
-  drugs =
-    item.drugs || [];
-
-  renderDrugCards();
-  liveUpdate();
-
-  closeModal(
-    'historyModal'
-  );
-
-  switchStep(3);
 }
+
 
 function clearAllHistory() {
 
@@ -1586,8 +2099,11 @@ function clearAllHistory() {
     );
 
     renderHistoryList();
+
   }
+
 }
+
 
 /* ================= DYNAMIC ICD-10 SEARCH ================= */
 
@@ -1598,6 +2114,7 @@ function searchICD10() {
       'icdSearchInput'
     );
 
+
   const query =
     queryInput
       ? queryInput.value
@@ -1605,49 +2122,79 @@ function searchICD10() {
           .trim()
       : '';
 
+
   const resultsContainer =
     document.getElementById(
       'icdResultsList'
     );
 
-  if (!resultsContainer) return;
 
-  let filtered = [];
+  if (!resultsContainer)
+    return;
+
+
+  let filtered =
+    [];
+
 
   if (!query) {
 
     filtered =
-      icd10Data.slice(0, 30);
+      icd10Data.slice(
+        0,
+        30
+      );
 
-  } else {
+  }
+
+  else {
 
     filtered =
       icd10Data
         .filter(
           i =>
+
             (
               i.code &&
               i.code
                 .toLowerCase()
-                .includes(query)
-            ) ||
+                .includes(
+                  query
+                )
+            )
+
+            ||
+
             (
               i.title &&
               i.title
                 .toLowerCase()
-                .includes(query)
+                .includes(
+                  query
+                )
             )
+
         )
-        .slice(0, 50);
+        .slice(
+          0,
+          50
+        );
+
   }
 
-  if (filtered.length === 0) {
+
+  if (
+    filtered.length ===
+    0
+  ) {
 
     resultsContainer.innerHTML =
-      '<p class="help-text" style="padding:12px;text-align:center;">Tashxis topilmadi.</p>';
+      '<p class="help-text" style="padding: 12px; text-align: center;">Tashxis topilmadi.</p>';
 
     return;
+
   }
+
 
   resultsContainer.innerHTML =
     filtered
@@ -1656,21 +2203,18 @@ function searchICD10() {
 
           <div
             class="history-item"
-            onclick="selectICD(
-              '${escapeJsString(i.code)}',
-              '${escapeJsString(i.title)}'
-            )"
+            onclick="selectICD('${i.code}', '${i.title.replace(/'/g, "\\'")}')"
             style="cursor:pointer;"
           >
 
             <div class="history-info">
 
               <h4>
-                ${escapeHtml(i.code)}
+                ${i.code}
               </h4>
 
               <p>
-                ${escapeHtml(i.title)}
+                ${i.title}
               </p>
 
             </div>
@@ -1680,100 +2224,387 @@ function searchICD10() {
         `
       )
       .join('');
+
 }
 
-function escapeJsString(value) {
-  return String(value || '')
-    .replace(/\\/g, '\\\\')
-    .replace(/'/g, "\\'")
-    .replace(/\n/g, '\\n')
-    .replace(/\r/g, '\\r');
-}
 
-function selectICD(code, title) {
+function selectICD(
+  code,
+  title
+) {
 
-  const icdEl =
-    document.getElementById('p_icd');
+  if (
+    document.getElementById(
+      'p_icd'
+    )
+  ) {
 
-  const diagEl =
-    document.getElementById('p_diag');
+    document.getElementById(
+      'p_icd'
+    ).value =
+      code;
 
-  if (icdEl) {
-    icdEl.value = code;
   }
 
-  if (diagEl) {
-    diagEl.value = title;
+
+  if (
+    document.getElementById(
+      'p_diag'
+    )
+  ) {
+
+    document.getElementById(
+      'p_diag'
+    ).value =
+      title;
+
   }
+
 
   liveUpdate();
 
   closeModal(
     'icdModal'
   );
+
 }
 
-/* =========================================================
-   DR.MED — PDF.JS INTEGRATION
-   ========================================================= */
 
-window.addEventListener('DOMContentLoaded', () => {
+/* ================= EXPORT & PRINT ================= */
 
-    /*
-     * PDF tugmasi
-     */
-    const pdfButton =
-        document.getElementById('pdfDownloadButton') ||
-        document.querySelector('.btn-pdf');
+function exportToPDF() {
 
-    if (pdfButton) {
+  const element =
+    document.getElementById(
+      'printablePaper'
+    ) ||
+    document.querySelector(
+      '.rx-paper'
+    );
 
-        pdfButton.onclick = function () {
 
-            if (
-                window.DRMED_PDF &&
-                typeof window.DRMED_PDF.openFormatModal === 'function'
-            ) {
-                window.DRMED_PDF.openFormatModal();
-            } else {
-                alert(
-                    "PDF moduli hali yuklanmagan. Sahifani yangilang."
-                );
-            }
+  if (!element) {
 
-        };
+    alert(
+      "Retsept blankasi topilmadi."
+    );
+
+    return;
+
+  }
+
+
+  const pName =
+    document.getElementById(
+      'p_name'
+    )
+      ? document.getElementById(
+          'p_name'
+        ).value
+      : 'bemor';
+
+
+  const opt = {
+
+    margin:
+      [5, 5, 5, 5],
+
+    filename:
+      `DRMED_Retsept_${pName}.pdf`,
+
+    image: {
+
+      type:
+        'jpeg',
+
+      quality:
+        0.98
+
+    },
+
+    html2canvas: {
+
+      scale:
+        2,
+
+      useCORS:
+        true,
+
+      logging:
+        false,
+
+      windowWidth:
+        800
+
+    },
+
+    jsPDF: {
+
+      unit:
+        'mm',
+
+      format:
+        'a4',
+
+      orientation:
+        'portrait'
 
     }
 
+  };
 
-    /*
-     * Telegram / Share tugmasi
-     */
-    const telegramButton =
-        document.getElementById('telegramShareButton') ||
-        document.querySelector('.btn-share');
 
-    if (telegramButton) {
+  if (
+    window.html2pdf
+  ) {
 
-        telegramButton.onclick = async function () {
+    html2pdf()
+      .set(opt)
+      .from(element)
+      .save();
 
-            if (
-                window.DRMED_PDF &&
-                typeof window.DRMED_PDF.share === 'function'
-            ) {
+  }
 
-                await window.DRMED_PDF.share();
+  else {
 
-            } else {
+    alert(
+      "PDF kutubxonasi yuklanmagan. Iltimos qayta urinib ko'ring."
+    );
 
-                alert(
-                    "PDF moduli hali yuklanmagan. Sahifani yangilang."
-                );
+  }
 
-            }
+}
 
-        };
+
+function printPrescription() {
+
+  window.print();
+
+}
+
+
+function shareTelegram() {
+
+  if (tg) {
+
+    tg.sendData(
+      JSON.stringify({
+
+        action:
+          "share_rx",
+
+        patient:
+          document.getElementById(
+            'p_name'
+          )
+            ? document.getElementById(
+                'p_name'
+              ).value
+            : '',
+
+        rx_id:
+          document.getElementById(
+            'paper_rx_id'
+          )
+            ? document.getElementById(
+                'paper_rx_id'
+              ).innerText
+            : ''
+
+      })
+    );
+
+  }
+
+  else {
+
+    alert(
+      "Telegram Mini App rejimi faollashtirilmagan."
+    );
+
+  }
+
+}
+
+
+function clearPatientForm() {
+
+  if (
+    document.getElementById(
+      'p_name'
+    )
+  ) {
+
+    document.getElementById(
+      'p_name'
+    ).value =
+      '';
+
+  }
+
+
+  if (
+    document.getElementById(
+      'p_age'
+    )
+  ) {
+
+    document.getElementById(
+      'p_age'
+    ).value =
+      '';
+
+  }
+
+
+  if (
+    document.getElementById(
+      'p_address'
+    )
+  ) {
+
+    document.getElementById(
+      'p_address'
+    ).value =
+      '';
+
+  }
+
+
+  if (
+    document.getElementById(
+      'p_phone'
+    )
+  ) {
+
+    document.getElementById(
+      'p_phone'
+    ).value =
+      '';
+
+  }
+
+
+  liveUpdate();
+
+}
+
+
+function resetAppDefaults() {
+
+  if (
+    confirm(
+      "Dasturni dastlabki holatga qaytarmoqchimisiz? Barcha saqlanmagan ma'lumotlar o'chadi."
+    )
+  ) {
+
+    localStorage.clear();
+
+    location.reload();
+
+  }
+
+}
+
+
+function downloadPDF() {
+
+  liveUpdate();
+
+
+  const element =
+    document.getElementById(
+      "prescriptionPaper"
+    );
+
+
+  if (!element) {
+
+    alert(
+      "Retsept topilmadi!"
+    );
+
+    return;
+
+  }
+
+
+  const rxElement =
+    document.getElementById(
+      "paper_rx_id"
+    );
+
+
+  const rxId =
+    rxElement
+      ? rxElement.innerText
+      : 'RX-000000';
+
+
+  const opt = {
+
+    margin:
+      8,
+
+    filename:
+      `Retsept_${rxId}.pdf`,
+
+    image: {
+
+      type:
+        "jpeg",
+
+      quality:
+        1
+
+    },
+
+    html2canvas: {
+
+      scale:
+        3,
+
+      useCORS:
+        true,
+
+      scrollY:
+        0
+
+    },
+
+    jsPDF: {
+
+      unit:
+        "mm",
+
+      format:
+        "a4",
+
+      orientation:
+        "portrait"
 
     }
 
-});
+  };
+
+
+  if (
+    window.html2pdf
+  ) {
+
+    html2pdf()
+      .set(opt)
+      .from(element)
+      .save();
+
+  }
+
+  else {
+
+    alert(
+      "PDF kutubxonasi yuklanmagan. Iltimos qayta urinib ko'ring."
+    );
+
+  }
+
+}
