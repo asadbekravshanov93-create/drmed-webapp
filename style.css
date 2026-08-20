@@ -2248,3 +2248,805 @@ button,
 ::-webkit-scrollbar-thumb:hover {
   background: #64748b;
 }
+/* ==========================================================================
+   DR.MED PDF EXPORT SYSTEM
+   ========================================================================== */
+
+/*
+   PDF format tanlash oynasi
+*/
+
+#pdfFormatModal {
+  display: none;
+}
+
+#pdfFormatModal.active {
+  display: flex;
+}
+
+
+/* ==========================================================================
+   PDF FORMAT DIALOG
+   ========================================================================== */
+
+#pdfFormatModal .modal-dialog {
+  width: 100%;
+  max-width: 440px;
+  overflow: hidden;
+}
+
+#pdfFormatModal .modal-header {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+#pdfFormatModal .modal-body {
+  padding: 18px;
+}
+
+
+/* ==========================================================================
+   PDF FORMAT OPTIONS
+   ========================================================================== */
+
+.pdf-format-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.pdf-format-option {
+  appearance: none;
+  -webkit-appearance: none;
+
+  width: 100%;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: var(--radius-md);
+
+  background: #ffffff;
+
+  padding: 16px 12px;
+
+  cursor: pointer;
+
+  text-align: center;
+
+  color: var(--text-main);
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 8px;
+
+  min-height: 155px;
+
+  transition:
+    transform 0.15s ease,
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.pdf-format-option:hover {
+  border-color: var(--primary);
+
+  background: var(--primary-light);
+
+  box-shadow:
+    0 4px 12px
+    rgba(0, 122, 99, 0.12);
+}
+
+.pdf-format-option:active {
+  transform: scale(0.97);
+}
+
+.pdf-format-option .format-icon {
+  width: 64px;
+
+  height: 82px;
+
+  border:
+    2px solid var(--primary);
+
+  border-radius: 5px;
+
+  background: #ffffff;
+
+  position: relative;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  color: var(--primary);
+
+  font-size: 12px;
+
+  font-weight: 900;
+}
+
+.pdf-format-option .format-icon::before {
+  content: "";
+
+  position: absolute;
+
+  top: 8px;
+
+  left: 8px;
+
+  right: 8px;
+
+  height: 2px;
+
+  background:
+    var(--primary);
+
+  box-shadow:
+    0 8px 0 var(--primary),
+    0 16px 0 var(--primary);
+}
+
+.pdf-format-option .format-icon span {
+  position: relative;
+
+  z-index: 2;
+
+  background: #ffffff;
+
+  padding: 2px 4px;
+
+  margin-top: 30px;
+}
+
+
+/*
+   A5 ikonka — albom holati
+*/
+
+.pdf-format-option.a5-option .format-icon {
+  width: 82px;
+
+  height: 64px;
+}
+
+
+/* ==========================================================================
+   FORMAT TITLE / DESCRIPTION
+   ========================================================================== */
+
+.pdf-format-option .format-title {
+  font-size: 14px;
+
+  font-weight: 800;
+
+  color: var(--text-main);
+}
+
+.pdf-format-option .format-description {
+  font-size: 10px;
+
+  line-height: 1.35;
+
+  color: var(--text-muted);
+
+  max-width: 180px;
+}
+
+
+/* ==========================================================================
+   PDF BUTTON — OTHER BUTTONS BILAN BIR XIL
+   ========================================================================== */
+
+.action-toolbar .btn-pdf,
+#pdfDownloadButton {
+  width: 100%;
+
+  min-width: 0;
+
+  min-height: 66px;
+
+  padding:
+    10px 4px;
+
+  border: none;
+
+  border-radius:
+    var(--radius-sm);
+
+  background:
+    #059669 !important;
+
+  color:
+    #ffffff !important;
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  line-height: 1.15;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 4px;
+
+  text-align: center;
+
+  cursor: pointer;
+
+  opacity: 1;
+
+  -webkit-appearance: none;
+
+  appearance: none;
+
+  box-shadow: none;
+
+  transition:
+    transform 0.15s ease,
+    opacity 0.2s ease,
+    filter 0.2s ease;
+}
+
+.action-toolbar .btn-pdf i,
+#pdfDownloadButton i {
+  font-style: normal;
+
+  font-size: 18px;
+
+  line-height: 1;
+}
+
+.action-toolbar .btn-pdf span,
+#pdfDownloadButton span {
+  display: block;
+
+  line-height: 1.15;
+}
+
+.action-toolbar .btn-pdf:active,
+#pdfDownloadButton:active {
+  transform: scale(0.97);
+}
+
+.action-toolbar .btn-pdf:disabled,
+#pdfDownloadButton:disabled {
+  opacity: 0.7;
+
+  cursor: wait;
+}
+
+
+/* ==========================================================================
+   TELEGRAM BUTTON
+   ========================================================================== */
+
+.action-toolbar .btn-share,
+#telegramShareButton {
+  width: 100%;
+
+  min-width: 0;
+
+  min-height: 66px;
+
+  padding:
+    10px 4px;
+
+  border: none;
+
+  border-radius:
+    var(--radius-sm);
+
+  background:
+    #0284c7 !important;
+
+  color:
+    #ffffff !important;
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  line-height: 1.15;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 4px;
+
+  text-align: center;
+
+  cursor: pointer;
+
+  -webkit-appearance: none;
+
+  appearance: none;
+
+  box-shadow: none;
+}
+
+.action-toolbar .btn-share i,
+#telegramShareButton i {
+  font-style: normal;
+
+  font-size: 18px;
+
+  line-height: 1;
+}
+
+.action-toolbar .btn-share span,
+#telegramShareButton span {
+  display: block;
+
+  line-height: 1.15;
+}
+
+.action-toolbar .btn-share:active,
+#telegramShareButton:active {
+  transform: scale(0.97);
+}
+
+.action-toolbar .btn-share:disabled,
+#telegramShareButton:disabled {
+  opacity: 0.7;
+
+  cursor: wait;
+}
+
+
+/* ==========================================================================
+   PDF EXPORT SURFACE
+   ========================================================================== */
+
+/*
+   app.js PDF yaratishda bu elementni vaqtincha yaratadi.
+
+   U foydalanuvchiga ko'rinmaydi.
+*/
+
+#__drmed_pdf_export_surface {
+  position: fixed !important;
+
+  left: -100000px !important;
+
+  top: 0 !important;
+
+  margin: 0 !important;
+
+  padding: 0 !important;
+
+  background: #ffffff !important;
+
+  overflow: hidden !important;
+
+  box-sizing: border-box !important;
+
+  z-index: -9999 !important;
+}
+
+#__drmed_pdf_export_surface
+#__drmed_pdf_export_paper {
+  margin: 0 !important;
+
+  background: #ffffff !important;
+
+  color: #0f172a !important;
+
+  box-sizing: border-box !important;
+
+  border-radius: 0 !important;
+
+  box-shadow: none !important;
+
+  overflow: hidden !important;
+}
+
+
+/* ==========================================================================
+   A4 PDF
+   ========================================================================== */
+
+#__drmed_pdf_export_surface[data-format="a4"] {
+  width: 210mm !important;
+
+  height: 297mm !important;
+}
+
+#__drmed_pdf_export_surface[data-format="a4"]
+#__drmed_pdf_export_paper {
+  width: 210mm !important;
+
+  height: 297mm !important;
+
+  min-height: 297mm !important;
+
+  max-height: 297mm !important;
+}
+
+
+/* ==========================================================================
+   A5 LANDSCAPE PDF
+   ========================================================================== */
+
+#__drmed_pdf_export_surface[data-format="a5"] {
+  width: 210mm !important;
+
+  height: 148mm !important;
+}
+
+#__drmed_pdf_export_surface[data-format="a5"]
+#__drmed_pdf_export_paper {
+  width: 105mm !important;
+
+  height: 148mm !important;
+
+  min-height: 148mm !important;
+
+  max-height: 148mm !important;
+}
+
+
+/*
+   A5 o'ng tomondagi bo'sh qism.
+*/
+
+.drmed-a5-empty-space {
+  position: absolute;
+
+  top: 0;
+
+  right: 0;
+
+  width: 105mm;
+
+  height: 148mm;
+
+  background: #ffffff;
+
+  pointer-events: none;
+}
+
+
+/* ==========================================================================
+   PDF FORMAT MODAL FOOTER
+   ========================================================================== */
+
+.pdf-format-footer {
+  display: flex;
+
+  justify-content: flex-end;
+
+  gap: 8px;
+}
+
+.pdf-format-cancel {
+  min-width: 100px;
+}
+
+
+/* ==========================================================================
+   PDF LOADING
+   ========================================================================== */
+
+.btn-pdf.pdf-loading {
+  pointer-events: none;
+
+  opacity: 0.7 !important;
+}
+
+.btn-pdf.pdf-loading i {
+  animation:
+    drmedPdfSpin 0.9s linear infinite;
+}
+
+@keyframes drmedPdfSpin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* ==========================================================================
+   PDF MODAL — MOBILE
+   ========================================================================== */
+
+@media (max-width: 560px) {
+
+  #pdfFormatModal {
+    padding: 8px;
+  }
+
+  #pdfFormatModal .modal-dialog {
+    width: 100%;
+
+    max-width: 100%;
+
+    border-radius:
+      var(--radius-md);
+  }
+
+  #pdfFormatModal .modal-body {
+    padding: 12px;
+  }
+
+  .pdf-format-options {
+    grid-template-columns:
+      1fr 1fr;
+
+    gap: 8px;
+  }
+
+  .pdf-format-option {
+    min-height: 135px;
+
+    padding:
+      12px 8px;
+
+    border-radius:
+      var(--radius-md);
+  }
+
+  .pdf-format-option .format-icon {
+    width: 54px;
+
+    height: 70px;
+
+    font-size: 10px;
+  }
+
+  .pdf-format-option.a5-option .format-icon {
+    width: 70px;
+
+    height: 54px;
+  }
+
+  .pdf-format-option .format-title {
+    font-size: 12px;
+  }
+
+  .pdf-format-option .format-description {
+    font-size: 9px;
+  }
+
+  .action-toolbar .btn-pdf,
+  #pdfDownloadButton,
+  .action-toolbar .btn-share,
+  #telegramShareButton {
+    min-height: 62px;
+
+    font-size: 9px;
+
+    padding:
+      8px 2px;
+  }
+
+  .action-toolbar .btn-pdf i,
+  #pdfDownloadButton i,
+  .action-toolbar .btn-share i,
+  #telegramShareButton i {
+    font-size: 17px;
+  }
+}
+
+
+/* ==========================================================================
+   VERY SMALL PHONE
+   ========================================================================== */
+
+@media (max-width: 380px) {
+
+  .pdf-format-option {
+    min-height: 125px;
+
+    padding:
+      9px 5px;
+  }
+
+  .pdf-format-option .format-icon {
+    width: 48px;
+
+    height: 62px;
+  }
+
+  .pdf-format-option.a5-option .format-icon {
+    width: 62px;
+
+    height: 48px;
+  }
+
+  .pdf-format-option .format-title {
+    font-size: 11px;
+  }
+
+  .pdf-format-option .format-description {
+    font-size: 8px;
+  }
+
+  .action-toolbar .btn-pdf,
+  #pdfDownloadButton,
+  .action-toolbar .btn-share,
+  #telegramShareButton {
+    min-height: 58px;
+
+    font-size: 8px;
+  }
+
+  .action-toolbar .btn-pdf i,
+  #pdfDownloadButton i,
+  .action-toolbar .btn-share i,
+  #telegramShareButton i {
+    font-size: 15px;
+  }
+}
+
+
+/* ==========================================================================
+   DARK TELEGRAM THEME — PDF MODAL
+   ========================================================================== */
+
+body.tg-theme #pdfFormatModal .modal-dialog {
+  background:
+    var(--card-bg);
+}
+
+body.tg-theme .pdf-format-option {
+  background:
+    var(--card-bg);
+
+  color:
+    var(--text-main);
+
+  border-color:
+    var(--border-color);
+}
+
+body.tg-theme .pdf-format-option:hover {
+  background:
+    var(--primary-light);
+
+  border-color:
+    var(--primary);
+}
+
+body.tg-theme .pdf-format-option .format-title {
+  color:
+    var(--text-main);
+}
+
+body.tg-theme .pdf-format-option .format-icon {
+  background:
+    #ffffff;
+}
+
+
+/* ==========================================================================
+   PRINT — A4
+   ========================================================================== */
+
+@media print {
+
+  @page {
+    size: A4 portrait;
+
+    margin: 0;
+  }
+
+}
+
+
+/* ==========================================================================
+   TOUCH
+   ========================================================================== */
+
+@media (hover: none) {
+
+  .pdf-format-option:hover {
+    transform: none;
+
+    box-shadow: none;
+  }
+
+}
+
+
+/* ==========================================================================
+   SAFE IMAGE RENDERING FOR PDF
+   ========================================================================== */
+
+#__drmed_pdf_export_surface img {
+  max-width: 100%;
+
+  image-rendering: auto;
+}
+
+#__drmed_pdf_export_surface canvas {
+  image-rendering: auto;
+}
+
+
+/* ==========================================================================
+   PDF TEXT SAFETY
+   ========================================================================== */
+
+#__drmed_pdf_export_surface,
+#__drmed_pdf_export_surface * {
+  -webkit-print-color-adjust: exact !important;
+
+  print-color-adjust: exact !important;
+}
+
+
+/* ==========================================================================
+   A5 PREVIEW HELPER
+   ========================================================================== */
+
+.drmed-a5-preview {
+  width: 210mm;
+
+  height: 148mm;
+
+  background: #ffffff;
+
+  position: relative;
+
+  overflow: hidden;
+}
+
+.drmed-a5-preview-paper {
+  width: 105mm;
+
+  height: 148mm;
+
+  background: #ffffff;
+
+  position: absolute;
+
+  left: 0;
+
+  top: 0;
+
+  overflow: hidden;
+}
+
+.drmed-a5-preview-empty {
+  position: absolute;
+
+  right: 0;
+
+  top: 0;
+
+  width: 105mm;
+
+  height: 148mm;
+
+  background: #ffffff;
+}
+
+
+/* ==========================================================================
+   END — DR.MED PDF SYSTEM
+   ========================================================================== */
