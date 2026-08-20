@@ -17,17 +17,21 @@ let currentGender = 'Erkak';
 let signatureDataURL = null;
 let customStampDataURL = null;
 
-// DEFAULT DOCTOR & CLINIC SETTINGS
+// ================= DOCTOR & CLINIC SETTINGS =================
+// Birinchi marta ochilganda barcha maydonlar BO'SH bo'ladi.
+// Foydalanuvchi "Saqlash va Yangilash"ni bosgandan keyin
+// ma'lumotlar localStorage'da saqlanadi.
+
 let doctorProfile = {
-  name: "Asrorov Asadbek Asliddinovich",
-  spec: "Shifokor-Terapevt",
-  id: "012345"
+  name: "",
+  spec: "",
+  id: ""
 };
 
 let clinicProfile = {
-  name: "DR.MED Tibbiyot Markazi",
-  address: "Toshkent sh., Chilonzor tumani, Bunyodkor ko'chasi 12-uy",
-  phone: "+998 (71) 200-00-11"
+  name: "",
+  address: "",
+  phone: ""
 };
 
 // DEFAULT DRUGS ARRAY
@@ -1028,51 +1032,205 @@ function saveSettings() {
 function loadSettingsFromStorage() {
 
   const savedDoc =
-    localStorage.getItem(
-      'drmed_doctor'
-    );
+    localStorage.getItem('drmed_doctor');
 
   const savedClinic =
-    localStorage.getItem(
-      'drmed_clinic'
-    );
+    localStorage.getItem('drmed_clinic');
 
   const savedStamp =
-    localStorage.getItem(
-      'drmed_stamp'
-    );
+    localStorage.getItem('drmed_stamp');
+
+
+  // =====================================================
+  // ESKI DEFAULT MA'LUMOTLARNI AVTOMATIK TOZALASH
+  // =====================================================
+
+  const oldDefaultDoctor = {
+    name: "Asrorov Asadbek Asliddinovich",
+    spec: "Shifokor-Terapevt",
+    id: "012345"
+  };
+
+  const oldDefaultClinic = {
+    name: "DR.MED Tibbiyot Markazi",
+    address: "Toshkent sh., Chilonzor tumani, Bunyodkor ko'chasi 12-uy",
+    phone: "+998 (71) 200-00-11"
+  };
+
+
+  // Eski default doktor ma'lumotlari bo'lsa,
+  // ularni saqlangan ma'lumot deb hisoblamaymiz.
 
   if (savedDoc) {
+
     try {
-      doctorProfile =
+
+      const parsedDoc =
         JSON.parse(savedDoc);
-    } catch (e) {
-      console.error(e);
+
+      const isOldDefault =
+        parsedDoc.name === oldDefaultDoctor.name &&
+        parsedDoc.spec === oldDefaultDoctor.spec &&
+        parsedDoc.id === oldDefaultDoctor.id;
+
+      if (isOldDefault) {
+
+        localStorage.removeItem(
+          'drmed_doctor'
+        );
+
+        doctorProfile = {
+          name: "",
+          spec: "",
+          id: ""
+        };
+
+      } else {
+
+        doctorProfile = {
+          name: parsedDoc.name || "",
+          spec: parsedDoc.spec || "",
+          id: parsedDoc.id || ""
+        };
+
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Doctor settings parse error:",
+        error
+      );
+
+      localStorage.removeItem(
+        'drmed_doctor'
+      );
+
+      doctorProfile = {
+        name: "",
+        spec: "",
+        id: ""
+      };
     }
+
+  } else {
+
+    doctorProfile = {
+      name: "",
+      spec: "",
+      id: ""
+    };
   }
+
+
+  // =====================================================
+  // KLINIKA
+  // =====================================================
 
   if (savedClinic) {
+
     try {
-      clinicProfile =
+
+      const parsedClinic =
         JSON.parse(savedClinic);
-    } catch (e) {
-      console.error(e);
+
+      const isOldDefault =
+        parsedClinic.name === oldDefaultClinic.name &&
+        parsedClinic.address === oldDefaultClinic.address &&
+        parsedClinic.phone === oldDefaultClinic.phone;
+
+      if (isOldDefault) {
+
+        localStorage.removeItem(
+          'drmed_clinic'
+        );
+
+        clinicProfile = {
+          name: "",
+          address: "",
+          phone: ""
+        };
+
+      } else {
+
+        clinicProfile = {
+          name: parsedClinic.name || "",
+          address: parsedClinic.address || "",
+          phone: parsedClinic.phone || ""
+        };
+
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Clinic settings parse error:",
+        error
+      );
+
+      localStorage.removeItem(
+        'drmed_clinic'
+      );
+
+      clinicProfile = {
+        name: "",
+        address: "",
+        phone: ""
+      };
     }
+
+  } else {
+
+    clinicProfile = {
+      name: "",
+      address: "",
+      phone: ""
+    };
   }
+
+
+  // =====================================================
+  // STAMP / MUHR
+  // =====================================================
 
   if (savedStamp) {
+
     customStampDataURL =
       savedStamp;
+
+  } else {
+
+    customStampDataURL =
+      null;
   }
 
+
+  // =====================================================
+  // FORM MAYDONLARIGA QO'YISH
+  // =====================================================
+
   const fields = {
-    set_doc_name: doctorProfile.name,
-    set_doc_spec: doctorProfile.spec,
-    set_doc_id: doctorProfile.id,
-    set_clinic_name: clinicProfile.name,
-    set_clinic_address: clinicProfile.address,
-    set_clinic_phone: clinicProfile.phone
+
+    set_doc_name:
+      doctorProfile.name,
+
+    set_doc_spec:
+      doctorProfile.spec,
+
+    set_doc_id:
+      doctorProfile.id,
+
+    set_clinic_name:
+      clinicProfile.name,
+
+    set_clinic_address:
+      clinicProfile.address,
+
+    set_clinic_phone:
+      clinicProfile.phone
+
   };
+
 
   Object.entries(fields).forEach(
     ([id, value]) => {
@@ -1081,8 +1239,12 @@ function loadSettingsFromStorage() {
         document.getElementById(id);
 
       if (el) {
-        el.value = value;
+
+        el.value =
+          value || "";
+
       }
+
     }
   );
 }
