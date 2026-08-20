@@ -1818,7 +1818,13 @@ function createPdfExportSurface(
     '0';
 
   surface.style.zIndex =
-    '-9999';
+  '99999';
+
+surface.style.visibility =
+  'visible';
+
+surface.style.display =
+  'block';
 
   surface.style.background =
     '#ffffff';
