@@ -1664,65 +1664,239 @@ function selectICD(code, title) {
 }
 
 /* =========================================================
-   DR.MED — PDF.JS INTEGRATION
+   DR.MED — PDF / TELEGRAM UNIVERSAL CONTROLLER
+   PDF.JS O'ZGARTIRILMAYDI
    ========================================================= */
 
 window.addEventListener('DOMContentLoaded', () => {
 
-    /*
-     * PDF tugmasi
-     */
     const pdfButton =
         document.getElementById('pdfDownloadButton') ||
         document.querySelector('.btn-pdf');
 
+
+    /*
+     * =====================================================
+     * PDF YUKLASH
+     * =====================================================
+     */
+
     if (pdfButton) {
 
-        pdfButton.onclick = function () {
+        pdfButton.addEventListener(
+            'click',
+            async function (event) {
 
-            if (
-                window.DRMED_PDF &&
-                typeof window.DRMED_PDF.openFormatModal === 'function'
-            ) {
-                window.DRMED_PDF.openFormatModal();
-            } else {
+                event.preventDefault();
+                event.stopPropagation();
+
+                /*
+                 * PDF.js yuklanganligini tekshiramiz
+                 */
+
+                if (
+                    !window.DRMED_PDF
+                ) {
+
+                    alert(
+                        "PDF moduli hali yuklanmagan. Sahifani yangilang."
+                    );
+
+                    return;
+
+                }
+
+
+                /*
+                 * Format oynasi mavjud bo'lsa,
+                 * uni PDF.js ochadi.
+                 */
+
+                if (
+                    typeof
+                    window.DRMED_PDF.openFormatModal ===
+                    'function'
+                ) {
+
+                    try {
+
+                        await
+                            window.DRMED_PDF.openFormatModal();
+
+                    }
+
+                    catch (error) {
+
+                        console.error(
+                            'PDF ochish xatosi:',
+                            error
+                        );
+
+                        alert(
+                            "PDF yaratishda xatolik yuz berdi."
+                        );
+
+                    }
+
+                    return;
+
+                }
+
+
+                /*
+                 * A4 fallback
+                 */
+
+                if (
+                    typeof
+                    window.DRMED_PDF.downloadA4 ===
+                    'function'
+                ) {
+
+                    try {
+
+                        await
+                            window.DRMED_PDF.downloadA4();
+
+                    }
+
+                    catch (error) {
+
+                        console.error(
+                            'A4 PDF xatosi:',
+                            error
+                        );
+
+                        alert(
+                            "PDF yuklashda xatolik yuz berdi."
+                        );
+
+                    }
+
+                    return;
+
+                }
+
+
                 alert(
-                    "PDF moduli hali yuklanmagan. Sahifani yangilang."
+                    "PDF moduli to'g'ri yuklanmagan."
                 );
-            }
 
-        };
+            },
+            false
+        );
 
     }
 
 
     /*
-     * Telegram / Share tugmasi
+     * =====================================================
+     * TELEGRAM / SHARE
+     * =====================================================
      */
+
     const telegramButton =
-        document.getElementById('telegramShareButton') ||
-        document.querySelector('.btn-share');
+        document.getElementById(
+            'telegramShareButton'
+        ) ||
+        document.querySelector(
+            '.btn-share'
+        );
+
 
     if (telegramButton) {
 
-        telegramButton.onclick = async function () {
+        telegramButton.addEventListener(
+            'click',
+            async function (event) {
 
-            if (
-                window.DRMED_PDF &&
-                typeof window.DRMED_PDF.share === 'function'
-            ) {
+                event.preventDefault();
+                event.stopPropagation();
 
-                await window.DRMED_PDF.share();
 
-            } else {
+                if (
+                    !window.DRMED_PDF
+                ) {
 
-                alert(
-                    "PDF moduli hali yuklanmagan. Sahifani yangilang."
-                );
+                    alert(
+                        "PDF moduli hali yuklanmagan. Sahifani yangilang."
+                    );
 
-            }
+                    return;
 
-        };
+                }
+
+
+                if (
+                    typeof
+                    window.DRMED_PDF.share ===
+                    'function'
+                ) {
+
+                    try {
+
+                        await
+                            window.DRMED_PDF.share();
+
+                    }
+
+                    catch (error) {
+
+                        console.error(
+                            'Telegram Share xatosi:',
+                            error
+                        );
+
+                    }
+
+                    return;
+
+                }
+
+
+                /*
+                 * Native browser Share fallback.
+                 */
+
+                if (
+                    navigator.share
+                ) {
+
+                    try {
+
+                        await navigator.share({
+
+                            title:
+                                'DR.MED Elektron Retsept',
+
+                            text:
+                                'DR.MED elektron retsept'
+
+                        });
+
+                    }
+
+                    catch (error) {
+
+                        if (
+                            error?.name !==
+                            'AbortError'
+                        ) {
+
+                            console.error(
+                                'Native Share xatosi:',
+                                error
+                            );
+
+                        }
+
+                    }
+
+                }
+
+            },
+            false
+        );
 
     }
 
