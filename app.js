@@ -2428,7 +2428,7 @@ function renderHistoryList() {
             style="color:var(--danger);"
             onclick="deleteFromHistory('${escapeJS(
               prescription.id
-                          )}')"
+            )}')"
           >
             O‘chirish
           </button>
@@ -3241,188 +3241,6 @@ document.addEventListener(
  *     html2pdf
  */
 
-async function exportToPDF(
-  format = 'a4'
-) {
-  /*
-   * PDF.js mavjud bo'lsa,
-   * uning format oynasini ishlatamiz.
-   */
-
-  if (
-    window.DRMED_PDF &&
-    typeof window.DRMED_PDF.openFormatModal ===
-      'function'
-  ) {
-
-    try {
-
-      return await
-        window.DRMED_PDF.openFormatModal();
-
-    }
-
-    catch (error) {
-
-      console.error(
-        'DRMED PDF export xatosi:',
-        error
-      );
-
-    }
-
-  }
-
-
-  /*
-   * PDF.js modal mavjud bo'lmasa,
-   * A4/A5ni to'g'ridan-to'g'ri chaqiramiz.
-   */
-
-  if (
-    window.DRMED_PDF
-  ) {
-
-    try {
-
-      if (
-        format === 'a5' &&
-        typeof window.DRMED_PDF.downloadA5 ===
-          'function'
-      ) {
-
-        return await
-          window.DRMED_PDF.downloadA5();
-
-      }
-
-
-      if (
-        typeof window.DRMED_PDF.downloadA4 ===
-          'function'
-      ) {
-
-        return await
-          window.DRMED_PDF.downloadA4();
-
-      }
-
-    }
-
-    catch (error) {
-
-      console.error(
-        'PDF A4/A5 xatosi:',
-        error
-      );
-
-    }
-
-  }
-
-
-  /*
-   * Eski html2pdf fallback.
-   */
-
-  const element =
-    document.getElementById(
-      'printablePaper'
-    ) ||
-    document.getElementById(
-      'prescriptionPaper'
-    ) ||
-    document.querySelector(
-      '.rx-paper'
-    );
-
-
-  if (!element) {
-
-    alert(
-      'Retsept blankasi topilmadi.'
-    );
-
-    return;
-
-  }
-
-
-  const rxId =
-    getCurrentPrescriptionId();
-
-
-  const opt = {
-
-    margin:
-      8,
-
-    filename:
-      `Retsept_${rxId}.pdf`,
-
-    image: {
-
-      type:
-        'jpeg',
-
-      quality:
-        0.98
-
-    },
-
-    html2canvas: {
-
-      scale:
-        3,
-
-      useCORS:
-        true,
-
-      logging:
-        false,
-
-      scrollY:
-        0
-
-    },
-
-    jsPDF: {
-
-      unit:
-        'mm',
-
-      format:
-        format === 'a5'
-          ? 'a5'
-          : 'a4',
-
-      orientation:
-        'portrait'
-
-    }
-
-  };
-
-
-  if (
-    window.html2pdf
-  ) {
-
-    return html2pdf()
-      .set(opt)
-      .from(element)
-      .save();
-
-  }
-
-
-  alert(
-    "PDF kutubxonasi yuklanmagan. Iltimos qayta urinib ko'ring."
-  );
-
-}
-
-
 /* ==========================================================================
    PRINT
    ========================================================================== */
@@ -3809,49 +3627,6 @@ window.addEventListener(
   () => {
 
     /*
-     * PDF tugmasi
-     */
-
-    const pdfButton =
-      document.getElementById(
-        'pdfDownloadButton'
-      ) ||
-      document.querySelector(
-        '.btn-pdf'
-      );
-
-
-    if (pdfButton) {
-
-      /*
-       * HTML ichidagi eski onclick
-       * bo'lsa ham downloadPDF ishlaydi.
-       */
-
-      pdfButton.addEventListener(
-        'click',
-        async event => {
-
-          /*
-           * Agar tugma <button> bo'lsa
-           * default actionni to'xtatamiz.
-           */
-
-          event.preventDefault();
-
-          event.stopPropagation();
-
-
-          await downloadPDF();
-
-        },
-        false
-      );
-
-    }
-
-
-    /*
      * Telegram Share tugmasi
      */
 
@@ -3981,10 +3756,6 @@ window.openICDModal =
 
 window.closeModal =
   closeModal;
-
-
-window.exportToPDF =
-  exportToPDF;
 
 
 window.printPrescription =
