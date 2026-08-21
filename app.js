@@ -3648,7 +3648,7 @@ async function shareTelegram() {
  *     downloadA5
  */
 
-async function downloadPDF() {
+async function downloadPDF(format = 'a4') {
   liveUpdate();
 
   const element =
@@ -3671,10 +3671,18 @@ async function downloadPDF() {
   }
 
   try {
+    const selectedFormat =
+      String(format).toLowerCase() === 'a5'
+        ? 'a5'
+        : 'a4';
+
+    const filename =
+      `Retsept_${rxId}.pdf`;
+
     const opt = {
       margin: 8,
 
-      filename: `Retsept_${rxId}.pdf`,
+      filename,
 
       image: {
         type: 'jpeg',
@@ -3690,20 +3698,155 @@ async function downloadPDF() {
 
       jsPDF: {
         unit: 'mm',
-        format: 'a4',
+        format: selectedFormat,
         orientation: 'portrait'
       }
     };
 
-    console.log('📄 PDF tayyorlanmoqda...');
+    console.log(
+      `📄 PDF tayyorlanmoqda: ${selectedFormat.toUpperCase()}`
+    );
 
-    await html2pdf()
-      .set(opt)
-      .from(element)
-      .save();
+    /*
+     * PDFni avval Blob sifatida yaratamiz.
+     *
+     * Bu usul:
+     * - Windows / macOS
+     * - Android telefon
+     * - Android planshet
+     * - iPhone
+     * - iPad
+     *
+     * uchun keyingi saqlash/yuklash mexanizmini alohida
+     * boshqarish imkonini beradi.
+     */
+    const pdfBlob =
+      await html2pdf()
+        .set(opt)
+        .from(element)
+        .outputPdf('blob');
+
+    if (
+      !pdfBlob ||
+      typeof pdfBlob.size !== 'number' ||
+      pdfBlob.size === 0
+    ) {
+      throw new Error(
+        'PDF fayli bo‘sh hosil bo‘ldi.'
+      );
+    }
+
+    const blobUrl =
+      URL.createObjectURL(pdfBlob);
+
+    /*
+     * iPhone / iPad:
+     *
+     * iOS browserlarda <a download> ko‘pincha oddiy
+     * kompyuterdagidek ishlamaydi.
+     *
+     * Shuning uchun PDFni native Share Sheet orqali
+     * chiqaramiz. U yerdan:
+     *   - Save to Files
+     *   - Telegram
+     *   - Messages
+     *   - Mail
+     *   va boshqa ilovalarga yuborish mumkin.
+     */
+    const isIOS =
+      /iPad|iPhone|iPod/.test(
+        navigator.userAgent
+      ) ||
+      (
+        navigator.platform === 'MacIntel' &&
+        navigator.maxTouchPoints > 1
+      );
+
+    if (
+      isIOS &&
+      typeof navigator.share === 'function' &&
+      typeof File !== 'undefined'
+    ) {
+      try {
+        const pdfFile =
+          new File(
+            [pdfBlob],
+            filename,
+            {
+              type: 'application/pdf'
+            }
+          );
+
+        const canShareFiles =
+          typeof navigator.canShare === 'function' &&
+          navigator.canShare({
+            files: [pdfFile]
+          });
+
+        if (canShareFiles) {
+          await navigator.share({
+            files: [pdfFile],
+            title:
+              'DR.MED Elektron Retsept'
+          });
+
+          URL.revokeObjectURL(blobUrl);
+
+          console.log(
+            `✅ PDF iPhone/iPad Share Sheet orqali ochildi: ${filename}`
+          );
+
+          return;
+        }
+      } catch (shareError) {
+        if (
+          shareError?.name ===
+          'AbortError'
+        ) {
+          URL.revokeObjectURL(blobUrl);
+          return;
+        }
+
+        console.warn(
+          'iOS PDF Share xatosi:',
+          shareError
+        );
+      }
+    }
+
+    /*
+     * Android / Windows / macOS / Linux:
+     *
+     * Oddiy browser download mexanizmi.
+     */
+    const link =
+      document.createElement('a');
+
+    link.href = blobUrl;
+    link.download = filename;
+    link.rel = 'noopener';
+    link.style.display = 'none';
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    link.remove();
+
+    /*
+     * Ba'zi WebView/browserlarda download atributi
+     * ishlamasa, PDFni yangi oynada ochamiz.
+     */
+    setTimeout(() => {
+      try {
+        URL.revokeObjectURL(blobUrl);
+      } catch (_) {
+        // ignore
+      }
+    }, 60000);
 
     console.log(
-      `✅ PDF yuklandi: Retsept_${rxId}.pdf`
+      `✅ PDF yuklash boshlandi: ${filename}`
     );
 
   } catch (error) {
@@ -3714,11 +3857,13 @@ async function downloadPDF() {
 
     alert(
       'PDF yuklanmadi.\n\n' +
-      (error?.message || 'Nomaʼlum xatolik.')
+      (
+        error?.message ||
+        'Nomaʼlum xatolik.'
+      )
     );
   }
 }
-
 
 /* ==========================================================================
    UI BUTTON BINDINGS
