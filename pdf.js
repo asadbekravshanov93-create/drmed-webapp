@@ -900,31 +900,345 @@
 
     function openPdfFormatModal() {
 
-        const modal =
+        let modal =
             document.getElementById(
                 "pdfFormatModal"
             );
 
 
+        /*
+         * Agar index.html'da modal bo'lmasa,
+         * pdf.js o'zi yaratadi.
+         */
+
         if (!modal) {
 
-            console.warn(
-                "pdfFormatModal topilmadi."
+            modal =
+                document.createElement(
+                    "div"
+                );
+
+
+            modal.id =
+                "pdfFormatModal";
+
+
+            modal.className =
+                "drmed-pdf-format-modal";
+
+
+            modal.innerHTML = `
+                <div class="drmed-pdf-format-card">
+
+                    <div class="drmed-pdf-format-header">
+
+                        <div>
+                            <div class="drmed-pdf-format-title">
+                                PDF formatini tanlang
+                            </div>
+
+                            <div class="drmed-pdf-format-subtitle">
+                                Retseptni qaysi formatda yuklamoqchisiz?
+                            </div>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="drmed-pdf-format-close"
+                            id="drmedPdfFormatClose"
+                            aria-label="Yopish"
+                        >
+                            ×
+                        </button>
+
+                    </div>
+
+
+                    <div class="drmed-pdf-format-options">
+
+                        <button
+                            type="button"
+                            class="drmed-pdf-format-option"
+                            id="drmedPdfA4"
+                        >
+                            <span class="drmed-pdf-format-badge">
+                                A4
+                            </span>
+
+                            <span>
+                                <strong>A4 — Kitobiy</strong>
+                                <small>
+                                    210 × 297 mm, tik holat
+                                </small>
+                            </span>
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="drmed-pdf-format-option"
+                            id="drmedPdfA5"
+                        >
+                            <span class="drmed-pdf-format-badge">
+                                A5
+                            </span>
+
+                            <span>
+                                <strong>A5 — Albomiy</strong>
+                                <small>
+                                    210 × 148 mm, yotiq holat
+                                </small>
+                            </span>
+                        </button>
+
+                    </div>
+
+                </div>
+            `;
+
+
+            const style =
+                document.createElement(
+                    "style"
+                );
+
+
+            style.id =
+                "drmedPdfFormatStyle";
+
+
+            style.textContent = `
+                .drmed-pdf-format-modal{
+                    position:fixed;
+                    inset:0;
+                    z-index:1000001;
+                    display:none;
+                    align-items:center;
+                    justify-content:center;
+                    padding:20px;
+                    background:rgba(15,23,42,.55);
+                    box-sizing:border-box;
+                }
+
+                .drmed-pdf-format-modal.active{
+                    display:flex;
+                }
+
+                .drmed-pdf-format-card{
+                    width:min(420px,100%);
+                    background:#fff;
+                    border-radius:20px;
+                    box-shadow:0 24px 80px rgba(0,0,0,.28);
+                    overflow:hidden;
+                }
+
+                .drmed-pdf-format-header{
+                    display:flex;
+                    align-items:center;
+                    justify-content:space-between;
+                    gap:16px;
+                    padding:18px 20px;
+                    border-bottom:1px solid #e5e7eb;
+                }
+
+                .drmed-pdf-format-title{
+                    font-size:18px;
+                    font-weight:700;
+                    color:#111827;
+                }
+
+                .drmed-pdf-format-subtitle{
+                    margin-top:4px;
+                    font-size:12px;
+                    color:#64748b;
+                }
+
+                .drmed-pdf-format-close{
+                    width:36px;
+                    height:36px;
+                    border:0;
+                    border-radius:10px;
+                    background:#f1f5f9;
+                    color:#334155;
+                    font-size:24px;
+                    line-height:1;
+                    cursor:pointer;
+                }
+
+                .drmed-pdf-format-options{
+                    display:grid;
+                    gap:12px;
+                    padding:18px;
+                }
+
+                .drmed-pdf-format-option{
+                    width:100%;
+                    display:flex;
+                    align-items:center;
+                    gap:14px;
+                    padding:15px;
+                    border:1px solid #dbe3ea;
+                    border-radius:14px;
+                    background:#fff;
+                    text-align:left;
+                    cursor:pointer;
+                }
+
+                .drmed-pdf-format-option:active{
+                    transform:scale(.99);
+                }
+
+                .drmed-pdf-format-badge{
+                    width:50px;
+                    height:50px;
+                    flex:0 0 50px;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    border-radius:12px;
+                    background:#eef6ff;
+                    color:#0f766e;
+                    font-size:16px;
+                    font-weight:800;
+                }
+
+                .drmed-pdf-format-option strong{
+                    display:block;
+                    font-size:15px;
+                    color:#111827;
+                }
+
+                .drmed-pdf-format-option small{
+                    display:block;
+                    margin-top:4px;
+                    font-size:12px;
+                    color:#64748b;
+                }
+            `;
+
+
+            if (
+                !document.getElementById(
+                    "drmedPdfFormatStyle"
+                )
+            ) {
+
+                document.head.appendChild(
+                    style
+                );
+            }
+
+
+            document.body.appendChild(
+                modal
             );
 
 
-            return;
+            const closeButton =
+                modal.querySelector(
+                    "#drmedPdfFormatClose"
+                );
+
+
+            const a4Button =
+                modal.querySelector(
+                    "#drmedPdfA4"
+                );
+
+
+            const a5Button =
+                modal.querySelector(
+                    "#drmedPdfA5"
+                );
+
+
+            closeButton.addEventListener(
+                "click",
+                closePdfFormatModal
+            );
+
+
+            a4Button.addEventListener(
+                "click",
+                function () {
+
+                    closePdfFormatModal();
+
+                    exportToPDF(
+                        "a4"
+                    );
+
+                }
+            );
+
+
+            a5Button.addEventListener(
+                "click",
+                function () {
+
+                    closePdfFormatModal();
+
+                    exportToPDF(
+                        "a5"
+                    );
+
+                }
+            );
+
+
+            modal.addEventListener(
+                "click",
+                function (event) {
+
+                    if (
+                        event.target ===
+                        modal
+                    ) {
+
+                        closePdfFormatModal();
+
+                    }
+
+                }
+            );
+
         }
-
-
-        modal.classList.add(
-            "active"
-        );
 
 
         modal.style.display =
             "flex";
+
+
+        requestAnimationFrame(
+            function () {
+
+                modal.classList.add(
+                    "active"
+                );
+
+            }
+        );
+
+
+        if (
+            window.Telegram &&
+            window.Telegram.WebApp &&
+            window.Telegram.WebApp.HapticFeedback
+        ) {
+
+            try {
+
+                window.Telegram.WebApp.HapticFeedback
+                    .impactOccurred(
+                        "light"
+                    );
+
+            } catch (_) {}
+
+        }
+
     }
+
 
 
     function closePdfFormatModal() {
@@ -1893,6 +2207,189 @@
        ASOSIY PDF EXPORT
        ===================================================== */
 
+    async function savePdfUniversal(
+        pdfBlob,
+        filename
+    ) {
+
+        if (
+            !pdfBlob ||
+            pdfBlob.size <= 0
+        ) {
+
+            throw new Error(
+                "PDF fayli bo'sh."
+            );
+
+        }
+
+
+        const file =
+            new File(
+                [pdfBlob],
+                filename,
+                {
+                    type:
+                        "application/pdf",
+                    lastModified:
+                        Date.now()
+                }
+            );
+
+
+        /*
+         * Mobil qurilmalarda:
+         *
+         * PDF Yuklash tugmasi native Share Sheetni ochadi.
+         * U yerdan:
+         * - Save to Files
+         * - Telegram
+         * - Messages
+         * - Mail
+         * - boshqa ilovalar
+         *
+         * tanlanishi mumkin.
+         */
+
+        if (
+            typeof navigator.share ===
+                "function" &&
+            typeof navigator.canShare ===
+                "function"
+        ) {
+
+            let canShareFiles =
+                false;
+
+
+            try {
+
+                canShareFiles =
+                    navigator.canShare(
+                        {
+                            files:
+                                [file]
+                        }
+                    );
+
+            } catch (_) {
+
+                canShareFiles =
+                    false;
+
+            }
+
+
+            if (canShareFiles) {
+
+                await navigator.share(
+                    {
+                        title:
+                            "DR.MED Elektron Retsept",
+
+                        text:
+                            "DR.MED elektron retsept",
+
+                        files:
+                            [file]
+                    }
+                );
+
+
+                return {
+                    mode:
+                        "share",
+                    file
+                };
+
+            }
+
+        }
+
+
+        /*
+         * Desktop / fallback:
+         * <a download> orqali haqiqiy fayl yuklanadi.
+         */
+
+        const blobUrl =
+            URL.createObjectURL(
+                pdfBlob
+            );
+
+
+        try {
+
+            const link =
+                document.createElement(
+                    "a"
+                );
+
+
+            link.href =
+                blobUrl;
+
+
+            link.download =
+                filename;
+
+
+            link.rel =
+                "noopener";
+
+
+            link.style.position =
+                "fixed";
+
+
+            link.style.left =
+                "-99999px";
+
+
+            link.style.top =
+                "0";
+
+
+            document.body.appendChild(
+                link
+            );
+
+
+            link.click();
+
+
+            link.remove();
+
+
+            return {
+                mode:
+                    "download",
+                file
+            };
+
+        } finally {
+
+            setTimeout(
+                function () {
+
+                    try {
+
+                        URL.revokeObjectURL(
+                            blobUrl
+                        );
+
+                    } catch (_) {}
+
+                },
+                10000
+            );
+
+        }
+
+    }
+
+
+
     async function exportToPDF(
         format
     ) {
@@ -1900,6 +2397,7 @@
         if (isGenerating) {
 
             return;
+
         }
 
 
@@ -1917,23 +2415,25 @@
 
 
             /*
-             * QR tokenni oldindan olamiz.
-             * Shunda PDF render qilinishidan oldin
-             * QR tayyor bo'ladi.
+             * QR tokenni olamiz.
+             *
+             * Bu qism sizdagi mavjud QR tizimi.
+             * Hozircha unga tegilmaydi.
              */
 
             await ensureRecipeQrToken();
 
 
             showLoading(
-                format === "a5"
+                String(format).toLowerCase() ===
+                    "a5"
                     ? "A5 PDF tayyorlanmoqda..."
                     : "A4 PDF tayyorlanmoqda..."
             );
 
 
             /*
-             * Retsept + QR clone.
+             * Retsept clone.
              */
 
             clone =
@@ -1951,7 +2451,7 @@
 
 
             /*
-             * A4 yoki A5.
+             * A4 / A5.
              */
 
             let pdf;
@@ -1959,7 +2459,7 @@
 
             if (
                 String(format).toLowerCase() ===
-                "a5"
+                    "a5"
             ) {
 
                 pdf =
@@ -1973,6 +2473,7 @@
                     makeA4(
                         canvas
                     );
+
             }
 
 
@@ -1981,11 +2482,12 @@
                 throw new Error(
                     "PDF yaratilmadi."
                 );
+
             }
 
 
             /*
-             * PDF Blob.
+             * Blob.
              */
 
             const pdfBlob =
@@ -2002,95 +2504,54 @@
                 throw new Error(
                     "PDF fayli bo'sh yaratildi."
                 );
+
             }
 
 
+            const filename =
+                fileName(
+                    String(format).toLowerCase() ===
+                        "a5"
+                        ? "a5"
+                        : "a4"
+                );
+
+
             /*
-             * PDF yuklash backendga bog‘liq emas.
-             * Avval foydalanuvchiga PDF beriladi.
-             */
-
-
-
-            /*
-             * Oddiy PDF DOWNLOAD.
+             * Eng muhim qism:
              *
-             * Bu mavjud PDF yuklash
-             * funksiyasini saqlaydi.
+             * PDF Yuklash bosilganda:
+             *
+             * iPhone / iPad / Android:
+             *     native Share Sheet
+             *
+             * Kompyuter:
+             *     haqiqiy download
+             *
+             * PDF viewerga ataylab
+             * window.open() qilinmaydi.
              */
 
             showLoading(
-                "PDF yuklab olinmoqda..."
+                "PDF saqlash oynasi ochilmoqda..."
             );
 
 
-            const pdfUrl =
-                URL.createObjectURL(
-                    pdfBlob
+            const result =
+                await savePdfUniversal(
+                    pdfBlob,
+                    filename
                 );
-
-
-            const downloadLink =
-                document.createElement(
-                    "a"
-                );
-
-
-            downloadLink.href =
-                pdfUrl;
-
-
-            downloadLink.download =
-                fileName(
-                    format
-                );
-
-
-            downloadLink.rel =
-                "noopener";
-
-
-            downloadLink.style.display =
-                "none";
-
-
-            document.body.appendChild(
-                downloadLink
-            );
-
-
-            /*
-             * Browser download.
-             */
-
-            downloadLink.click();
-
-
-            /*
-             * DOMdan olib tashlaymiz.
-             */
-
-            downloadLink.remove();
-
-
-            /*
-             * URLni birozdan keyin
-             * bekor qilamiz.
-             */
-
-            setTimeout(
-                function () {
-
-                    URL.revokeObjectURL(
-                        pdfUrl
-                    );
-
-                },
-                5000
-            );
 
 
             hideLoading();
+
+
+            console.log(
+                "✅ PDF saqlandi/yuklandi:",
+                result.mode,
+                filename
+            );
 
 
         } catch (error) {
@@ -2102,6 +2563,16 @@
 
 
             hideLoading();
+
+
+            if (
+                error?.name ===
+                "AbortError"
+            ) {
+
+                return;
+
+            }
 
 
             alert(
@@ -2116,7 +2587,7 @@
         } finally {
 
             /*
-             * Clone'ni o'chiramiz.
+             * Clone.
              */
 
             if (clone) {
@@ -2131,14 +2602,19 @@
                         "Clone remove xatosi:",
                         removeError
                     );
+
                 }
+
             }
 
 
             isGenerating =
                 false;
+
         }
+
     }
+
 
 
     /* =====================================================
