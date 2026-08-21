@@ -3649,176 +3649,74 @@ async function shareTelegram() {
  */
 
 async function downloadPDF() {
-
   liveUpdate();
 
-
-  /*
-   * Eng yaxshi variant:
-   *
-   * PDF.js format oynasi.
-   */
-
-  if (
-    window.DRMED_PDF &&
-    typeof window.DRMED_PDF.openFormatModal ===
-      'function'
-  ) {
-
-    try {
-
-      return await
-        window.DRMED_PDF.openFormatModal();
-
-    }
-
-    catch (error) {
-
-      console.error(
-        'Universal PDF download xatosi:',
-        error
-      );
-
-
-      if (
-        error?.name ===
-        'AbortError'
-      ) {
-
-        return;
-
-      }
-
-    }
-
-  }
-
-
-  /*
-   * Format oynasi ishlamasa:
-   *
-   * A4.
-   */
-
-  if (
-    window.DRMED_PDF &&
-    typeof window.DRMED_PDF.downloadA4 ===
-      'function'
-  ) {
-
-    try {
-
-      return await
-        window.DRMED_PDF.downloadA4();
-
-    }
-
-    catch (error) {
-
-      console.error(
-        'A4 PDF xatosi:',
-        error
-      );
-
-    }
-
-  }
-
-
-  /*
-   * Fallback — html2pdf.
-   */
-
   const element =
-    document.getElementById(
-      'prescriptionPaper'
-    ) ||
-    document.getElementById(
-      'printablePaper'
-    ) ||
-    document.querySelector(
-      '.rx-paper'
-    );
-
+    document.getElementById('prescriptionPaper') ||
+    document.getElementById('printablePaper') ||
+    document.querySelector('.rx-paper');
 
   if (!element) {
-
-    alert(
-      'Retsept topilmadi!'
-    );
-
+    alert('Retsept topilmadi!');
     return;
-
   }
 
+  const rxId = getCurrentPrescriptionId();
 
-  const rxId =
-    getCurrentPrescriptionId();
+  if (!window.html2pdf) {
+    alert(
+      "PDF kutubxonasi yuklanmagan. Iltimos sahifani qayta yuklang."
+    );
+    return;
+  }
 
+  try {
+    const opt = {
+      margin: 8,
 
-  const opt = {
+      filename: `Retsept_${rxId}.pdf`,
 
-    margin:
-      8,
+      image: {
+        type: 'jpeg',
+        quality: 1
+      },
 
-    filename:
-      `Retsept_${rxId}.pdf`,
+      html2canvas: {
+        scale: 3,
+        useCORS: true,
+        allowTaint: true,
+        scrollY: 0
+      },
 
-    image: {
+      jsPDF: {
+        unit: 'mm',
+        format: 'a4',
+        orientation: 'portrait'
+      }
+    };
 
-      type:
-        'jpeg',
+    console.log('📄 PDF tayyorlanmoqda...');
 
-      quality:
-        1
-
-    },
-
-    html2canvas: {
-
-      scale:
-        3,
-
-      useCORS:
-        true,
-
-      scrollY:
-        0
-
-    },
-
-    jsPDF: {
-
-      unit:
-        'mm',
-
-      format:
-        'a4',
-
-      orientation:
-        'portrait'
-
-    }
-
-  };
-
-
-  if (
-    window.html2pdf
-  ) {
-
-    return html2pdf()
+    await html2pdf()
       .set(opt)
       .from(element)
       .save();
 
+    console.log(
+      `✅ PDF yuklandi: Retsept_${rxId}.pdf`
+    );
+
+  } catch (error) {
+    console.error(
+      '❌ PDF yuklash xatosi:',
+      error
+    );
+
+    alert(
+      'PDF yuklanmadi.\n\n' +
+      (error?.message || 'Nomaʼlum xatolik.')
+    );
   }
-
-
-  alert(
-    "PDF kutubxonasi yuklanmagan. Iltimos qayta urinib ko'ring."
-  );
-
 }
 
 
